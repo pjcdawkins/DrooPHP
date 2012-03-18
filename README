@@ -1,8 +1,8 @@
 Summary
 =======
-**Author** Patrick Dawkins <pjcdawkins@gmail.com>
-**License** GPL
-**Requires** PHP >=5.2.1
+* Author: Patrick Dawkins <pjcdawkins@gmail.com>
+* License: GPL
+* Requires: PHP >=5.2.1
 
 DrooPHP will be a PHP library to enable counting results for an STV election, based on the contents of a BLT (ballot) file.
 
@@ -16,5 +16,7 @@ Main design differences between DrooPHP and Droop:
 
 References
 ==========
-* [BLT File format](http://code.google.com/p/droop/wiki/BltFileFormat) (Droop)
-* [Reference STV rules](http://prfound.org/resources/reference/) (Proportional Representation Foundation)
+* BLT File format (Droop):
+  http://code.google.com/p/droop/wiki/BltFileFormat
+* Reference STV rules (Proportional Representation Foundation):
+  http://prfound.org/resources/reference/
