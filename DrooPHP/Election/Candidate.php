@@ -13,9 +13,10 @@
  */
 class DrooPHP_Election_Candidate {
 
-  const STATE_ELECTED = 1;
-  const STATE_EXCLUDED = -1;
-  const STATE_HOPEFUL = 0;
+  const STATE_ELECTED = 'elected';
+  const STATE_HOPEFUL = 'hopeful';
+  const STATE_WITHDRAWN = 'withdrawn';
+  const STATE_DEFEATED = 'defeated';
 
   public $name;
   public $state;
@@ -23,14 +24,15 @@ class DrooPHP_Election_Candidate {
   /**
    * Constructor.
    *
-   * @param $name.
+   * @param string $name.
    *   The name of the candidate.
+   * @param bool $withdrawn
+   *   Whether the candidate has been withdrawn.
    */
-  public function __construct($name) {
-    // Every candidate begins in the 'hopeful' state.
-    $this->state = self::STATE_HOPEFUL;
-
+  public function __construct($name, $withdrawn = FALSE) {
     $this->name = $name;
+    // Every candidate begins in either the 'hopeful' or 'withdrawn' state.
+    $this->state = $withdrawn? self::STATE_WITHDRAWN : self::STATE_HOPEFUL;
   }
 
 }

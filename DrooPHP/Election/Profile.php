@@ -69,8 +69,6 @@ class DrooPHP_Election_Profile {
    */
   protected $_candidates = array();
 
-  /* SETTER METHODS */
-
   /**
    * Set the number of candidates.
    */
@@ -101,13 +99,28 @@ class DrooPHP_Election_Profile {
   }
 
   /**
+   * Get the number of candidates.
+   *
+   * @return int
+   */
+  public function getNumCandidates() {
+    return $this->_num_candidates;
+  }
+
+  /**
    * Add a candidate.
    *
    * @param int $id
    * @param string $name
    */
-  public function addCandidate($id, $name) {
-    $this->_candidates[(int) $id] = new DrooPHP_Election_Candidate($name);
+  public function addCandidate($name) {
+    static $id = 1;
+    if ($id > $this->_num_candidates) {
+      throw new DrooPHP_Exception('Attempted to add too many candidate names.');
+    }
+    $withdrawn = (bool) in_array($id, $this->_withdrawn);
+    $this->_candidates[$id] = new DrooPHP_Election_Candidate($name, $withdrawn);
+    $id++;
   }
 
 }

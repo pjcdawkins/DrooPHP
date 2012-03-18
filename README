@@ -2,8 +2,15 @@ Author: Patrick Dawkins <pjcdawkins@gmail.com>
 License: GPL
 Requires: PHP >=5.2.1
 
+SUMMARY
+-------
+
 DrooPHP will be a PHP library to enable counting votes in an STV election.
 
 An aim is to implement Droop - the Python project. However, DrooPHP is
 unlikely to become as mature as Droop any time soon. See:
 http://code.google.com/p/droop/
+
+REFERENCES
+----------
+http://prfound.org/resources/reference/
