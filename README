@@ -1,16 +1,22 @@
-Author: Patrick Dawkins <pjcdawkins@gmail.com>
-License: GPL
-Requires: PHP >=5.2.1
+Summary
+=======
+**Author** Patrick Dawkins <pjcdawkins@gmail.com>
+**License** GPL
+**Requires** PHP >=5.2.1
 
-SUMMARY
--------
+DrooPHP will be a PHP library to enable counting results for an STV election, based on the contents of a BLT (ballot) file.
 
-DrooPHP will be a PHP library to enable counting votes in an STV election.
-
-An aim is to implement Droop - the Python project. However, DrooPHP is
-unlikely to become as mature as Droop any time soon. See:
+An aim is to emulate Droop - the Python project. However, DrooPHP is unlikely to become as mature as Droop any time soon. See:
 http://code.google.com/p/droop/
 
-REFERENCES
-----------
-http://prfound.org/resources/reference/
+Main design differences between DrooPHP and Droop:
+- DrooPHP needs new lines (LF or CRLF) to separate BLT file information, as is customary (but not required) in the BLT standard.
+- DrooPHP does not support C-style comments /* like this */.
+
+
+References
+==========
+- BLT File format (Droop):
+  http://code.google.com/p/droop/wiki/BltFileFormat
+- Reference STV rules (Proportional Representation Foundation):
+  http://prfound.org/resources/reference/
