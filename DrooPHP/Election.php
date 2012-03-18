@@ -150,7 +150,7 @@ class DrooPHP_Election {
 
   protected function _getDefaultOptions() {
     $options = array(
-      'ron' => NULL,
+      'ron' => FALSE,
     );
     return $options;
   }

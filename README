@@ -10,13 +10,11 @@ An aim is to emulate Droop - the Python project. However, DrooPHP is unlikely to
 http://code.google.com/p/droop/
 
 Main design differences between DrooPHP and Droop:
-- DrooPHP needs new lines (LF or CRLF) to separate BLT file information, as is customary (but not required) in the BLT standard.
-- DrooPHP does not support C-style comments /* like this */.
+* DrooPHP needs new lines (LF or CRLF) to separate BLT file information, as is customary (but not required) in the BLT standard.
+* DrooPHP does not support C-style comments /* like this */.
 
 
 References
 ==========
-- BLT File format (Droop):
-  http://code.google.com/p/droop/wiki/BltFileFormat
-- Reference STV rules (Proportional Representation Foundation):
-  http://prfound.org/resources/reference/
+* [BLT File format](http://code.google.com/p/droop/wiki/BltFileFormat) (Droop)
+* [Reference STV rules](http://prfound.org/resources/reference/) (Proportional Representation Foundation)
