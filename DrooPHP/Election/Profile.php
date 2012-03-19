@@ -69,6 +69,9 @@ class DrooPHP_Election_Profile {
    */
   protected $_candidates = array();
 
+  /** @var int */
+  protected $_cid_increment = 1;
+
   /**
    * Set the number of candidates.
    */
@@ -114,13 +117,13 @@ class DrooPHP_Election_Profile {
    * @param string $name
    */
   public function addCandidate($name) {
-    static $id = 1;
+    $id = $this->_cid_increment;
     if ($id > $this->_num_candidates) {
       throw new DrooPHP_Exception('Attempted to add too many candidate names.');
     }
     $withdrawn = (bool) in_array($id, $this->_withdrawn);
     $this->_candidates[$id] = new DrooPHP_Election_Candidate($name, $withdrawn);
-    $id++;
+    $this->_cid_increment++;
   }
 
 }

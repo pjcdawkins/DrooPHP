@@ -74,7 +74,7 @@ class DrooPHP_Election {
     }
     catch (Exception $e) {
       throw new DrooPHP_Exception(
-        'Error in BLT data, line ' . ftell($file) . ': ' . $e->getMessage()
+        'Error in BLT data, position ' . ftell($this->file) . ': ' . $e->getMessage()
       );
       return FALSE;
     }
@@ -88,7 +88,6 @@ class DrooPHP_Election {
   protected function _parseHead() {
     $file = $this->file;
     $profile = $this->profile;
-    rewind($file);
     $i = 0;
     while (($line = fgets($file)) !== FALSE && $i <= 2) {
       // Remove comments (starting with # or // until the end of the line).
