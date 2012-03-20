@@ -16,16 +16,30 @@ class DrooPHP_Method {
   /** @var DrooPHP_Election */
   public $election;
 
-  /** @var DrooPHP_Result */
-  public $result;
+  /** @var float */
+  public $quota;
 
   public function __construct(DrooPHP_Election $election) {
     $this->election = $election;
   }
 
   /** @todo */
-  public function countStage($stage = 1) {
-    $candidates = $this->election->candidates;
+  public function countStage($round = 1) {
+    $election = $this->election;
+    foreach ($election->getCandidates() as $candidate) {
+      switch ($candidate->state) {
+        case DrooPHP_Candidate::STATE_DEFEATED:
+        case DrooPHP_Candidate::STATE_WITHDRAWN:
+          // do nothing
+          break;
+        case DrooPHP_Candidate::STATE_ELECTED:
+          //  distribute votes
+          break;
+        case DrooPHP_Candidate::STATE_HOPEFUL:
+          // add to hopeful candidates for this round
+          break;
+      }
+    }
   }
 
   /** @todo */
@@ -37,7 +51,9 @@ class DrooPHP_Method {
   }
 
   /** @todo */
-  public function hasQuota(DrooPHP_Candidate $candidate) {
+  public function beatsQuota($num) {
+    $quota = $this->quota;
+    return $num > $quota? $num - $quota : FALSE;
   }
 
 }

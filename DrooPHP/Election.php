@@ -128,6 +128,20 @@ class DrooPHP_Election {
     return $this->_candidates;
   }
 
+
+  /**
+   * Get a single candidate by ID
+   *
+   * @param mixed $id
+   * @return DrooPHP_Candidate
+   */
+  public function getCandidate($id) {
+    if (!isset($this->_candidates[$id])) {
+      throw new DrooPHP_Exception(sprintf('The candidate "%s" does not exist.', $id));
+    }
+    return $this->_candidates[$id];
+  }
+
   /**
    * Add a candidate.
    *
@@ -140,7 +154,7 @@ class DrooPHP_Election {
       throw new DrooPHP_Exception('Attempted to add too many candidate names.');
     }
     $withdrawn = (bool) in_array($id, $this->_withdrawn);
-    $this->candidates[$id] = new DrooPHP_Candidate($name, $withdrawn);
+    $this->_candidates[$id] = new DrooPHP_Candidate($name, $withdrawn);
     $this->_cid_increment++;
   }
 
