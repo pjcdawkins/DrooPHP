@@ -1,17 +1,17 @@
 <?php
 /**
  * @file
- *   DrooPHP_Election_Candidate class.
+ *   DrooPHP_Candidate class.
  * @package
  *   DrooPHP
  */
 
 /**
  * @class
- *   DrooPHP_Election_Candidate
+ *   DrooPHP_Candidate
  *   Container for a candidate in an election.
  */
-class DrooPHP_Election_Candidate {
+class DrooPHP_Candidate {
 
   const STATE_ELECTED = 'elected';
   const STATE_HOPEFUL = 'hopeful';

@@ -9,187 +9,139 @@
 /**
  * @class
  *   DrooPHP_Election
- *   Main class for an election, containing an election profile, options, and
- *   count methods.
+ *   Container for an election profile, and the main parser for BLT file data.
+ *
+ *   The public interface of ElectionProfile:
+ *     $title: title string from the ballot file
+ *     $source: source string from blt file
+ *     $comment: comment string from blt file
+ *     $nSeats: the number of seats to be filled
+ *     $nBallots: the number of ballots (possibly greater than len(rankings) because of
+ *               ballot multipliers)
+ *     $eligible: the set of non-withdrawn candidate IDs
+ *     $withdrawn: the set of withdrawn candidate IDs
+ *         eligible and withdrawn should be treated as frozenset (unordered and immutable)
+ *         though they may be implemented as any iterable.
+ *     $ballotLines: a list of BallotLine objects with not equal rankings, each with a:
+ *        multiplier: a repetition count >=1
+ *        ranking: an array of candidate IDs
+ *     $ballotLinesequal: a list of BallotLine objects with at least one equal ranking, each with a:
+ *        multiplier: a repetition count >=1
+ *        ranking: tuple of tuples of candidate IDs
+ *     $tieOrder[cid]: tiebreaking order, by CID
+ *     $nickName[cid]: short name of candidate, by CID
+ *     $options: list of election options from ballot file
+ *     $candidateName[cid]  full name of candidate, by CID
+ *     $candidateOrder[cid] ballot order of candidate, by CID
+ *   All attributes should be treated as immutable.
  */
 class DrooPHP_Election {
 
-  /**
-   * The file resource handle.
-   *
-   * @var resource
-   */
-  public $file;
-
-  /** @var DrooPHP_Election_Profile */
-  public $profile;
-
-  /** @var array */
-  public $options = array();
+  /** @var string */
+  public $title;
+  /** @var string */
+  public $source;
+  /** @var string */
+  public $comment;
 
   /**
-   * Constructor: initiate a count by loading a BLT file.
+   * Array of DrooPHP_Candidate objects.
    *
-   * @todo allow passing in a complete profile instead of a file, perhaps.
+   * @var array
    */
-  public function __construct($filename, $options = array()) {
-    $this->loadOptions($options);
-    if (file_exists($filename) && is_readable($filename)) {
-      $this->file = fopen($filename, 'r');
+  protected $_candidates = array();
+
+  /**
+   * The number of seats (vacancies) to be filled.
+   * @var int
+   */
+  protected $_num_seats;
+
+  /**
+   * The total number of candidates standing.
+   * @var int
+   */
+  protected $_num_candidates;
+
+  /**
+   * The set of withdrawn candidate IDs.
+   * @var array
+   */
+  protected $_withdrawn = array();
+
+  /** @var int */
+  protected $_cid_increment = 1;
+
+  /**
+   * Set the number of candidates.
+   */
+  public function setNumCandidates($int) {
+    if (!is_numeric($int)) {
+      throw new DrooPHP_Exception('The number of candidates must be an integer.');
     }
-    else {
-      throw new DrooPHP_Exception('File does not exist or cannot be read: ' . $filename);
-    }
-    $this->profile = new DrooPHP_Election_Profile;
-    $this->parse();
+    $this->_num_candidates = (int) $int;
   }
 
   /**
-   * Set up options for this election.
-   *
-   * Possible options:
-   *   ron => The name of the Re-Open Nominations candidate, if there is one.
-   *
-   * @param array $options
+   * Set the number of seats.
    */
-  public function loadOptions(array $options) {
-    $options = array_merge($this->_getDefaultOptions(), $options);
-
-    // 'ron' => TRUE is equivalent to 'ron' => 'RON'
-    if ($options['ron'] === TRUE) {
-      $options['ron'] = 'RON';
+  public function setNumSeats($int) {
+    if (!is_numeric($int)) {
+      throw new DrooPHP_Exception('The number of seats must be an integer.');
     }
-
-    $this->options = $options;
+    $this->_num_seats = (int) $int;
   }
 
   /**
-   * Parse the BLT file to create the election profile.
+   * Mark candidate IDs as withdrawn.
+   *
+   * @todo validate this after the candidates are added.
    */
-  public function parse() {
-    try {
-      $this->_parseHead();
-      $this->_parseTail();
-      return TRUE;
-    }
-    catch (Exception $e) {
-      throw new DrooPHP_Exception(
-        'Error in BLT data, position ' . ftell($this->file) . ': ' . $e->getMessage()
-      );
-      return FALSE;
-    }
+  public function setWithdrawn(array $ids) {
+    $this->_withdrawn = $ids;
   }
 
   /**
-   * Read information from the beginning (head) of the BLT file.
+   * Get the number of candidates.
    *
-   * @return void
+   * @return int
    */
-  protected function _parseHead() {
-    $file = $this->file;
-    $profile = $this->profile;
-    $i = 0;
-    while (($line = fgets($file)) !== FALSE && $i <= 2) {
-      // Remove comments (starting with # or // until the end of the line).
-      $line = preg_replace('/(\x23|\/\/).*/', '', $line);
-      // Trim whitespace.
-      $line = trim($line);
-      // Skip blank lines.
-      if (!strlen($line)) {
-        continue;
-      }
-      $i++;
-      if ($i === 1) {
-        // First line should always be "num_candidates num_seats".
-        $parts = explode(' ', $line);
-        if (count($parts) != 2) {
-          throw new DrooPHP_Exception('The first line must contain exactly two parts.');
-        }
-        $profile->setNumCandidates($parts[0]);
-        $profile->setNumSeats($parts[1]);
-      }
-      else if ($i === 2 && strpos($line, '-') === 0) {
-        // If line 2 starts with a minus sign, it specifies the withdrawn candidate IDs.
-        $withdrawn = explode(' -', substr($line, 1));
-        $withdrawn = array_map('intval', $withdrawn); // Candidate IDs are always integers.
-        $profile->setWithdrawn($withdrawn);
-      }
-    }
+  public function getNumCandidates() {
+    return $this->_num_candidates;
   }
 
   /**
-   * Read information from the end (tail) of the BLT file.
+   * Get the number of seats.
    *
-   * @return void
+   * @return int
    */
-  protected function _parseTail() {
-    $file = $this->file;
-    $profile = $this->profile;
-    $num_candidates = $profile->getNumCandidates();
-    /*
-     There can be a maximum of $num_candidates + 3 tail lines (each candidate
-     is named and then there are optionally election, title, and source).
-    */
-    $lines_to_read = $num_candidates + 3;
-    // Read the tail of the file.
-    $pos = -2;
-    $tail = array();
-    // Keep seeking backwards through the file until the number of lines left to read is 0.
-    while ($lines_to_read > 0) {
-      $char = NULL;
-      // Keep seeking backwards through the line until finding a line feed character.
-      while ($char !== "\n" && fseek($file, $pos, SEEK_END) !== -1) {
-        $char = fgetc($file);
-        $pos--;
-      }
-      $line = fgets($file);
-      // Remove comments (starting with # or // until the end of the line).
-      $line = preg_replace('/(\x23|\/\/).*/', '', $line);
-      // Trim whitespace.
-      $line = trim($line);
-      // Skip blank lines.
-      if (!strlen($line)) {
-        continue;
-      }
-      /*
-       A line containing just 0 marks the end of the ballot lines, so stop
-       before reading anything before it (remember we're reading backwards).
-      */
-      if ($line === '0') {
-        break;
-      }
-      $tail[] = $line;
-      $lines_to_read--;
-    }
-    // Reverse so we can read forwards (because optional lines are at the end).
-    $tail = array_reverse($tail);
-    // The minimum number of lines is the number of candidates.
-    if (count($tail) < $num_candidates) {
-      throw new DrooPHP_Exception('Candidate names not found');
-    }
-    foreach ($tail as $key => $line) {
-      $info = trim($line, '"');
-      if ($key < $num_candidates) {
-        // This line is a candidate.
-        $profile->addCandidate($info);
-      }
-      else if ($profile->title === NULL) {
-        $profile->title = trim($line, '"');
-      }
-      else if ($profile->source === NULL) {
-        $profile->source = trim($line, '"');
-      }
-      else if ($profile->comment === NULL) {
-        $profile->comment = trim($line, '"');
-      }
-    }
+  public function getNumSeats() {
+    return $this->_num_seats;
   }
 
-  protected function _getDefaultOptions() {
-    $options = array(
-      'ron' => FALSE,
-    );
-    return $options;
+  /**
+   * Get the candidates array.
+   *
+   * @return array
+   */
+  public function getCandidates() {
+    return $this->_candidates;
+  }
+
+  /**
+   * Add a candidate.
+   *
+   * @param int $id
+   * @param string $name
+   */
+  public function addCandidate($name) {
+    $id = $this->_cid_increment;
+    if ($id > $this->_num_candidates) {
+      throw new DrooPHP_Exception('Attempted to add too many candidate names.');
+    }
+    $withdrawn = (bool) in_array($id, $this->_withdrawn);
+    $this->candidates[$id] = new DrooPHP_Candidate($name, $withdrawn);
+    $this->_cid_increment++;
   }
 
 }

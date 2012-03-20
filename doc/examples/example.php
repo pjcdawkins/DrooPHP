@@ -1,8 +1,9 @@
 <?php
+ini_set('display_errors', TRUE);
 require '../../DrooPHP.php';
 DrooPHP::init();
 
-$sheriff = new DrooPHP_Election('OpenSTV/SanFrancisco-Sheriff-2011.blt');
+$sheriff = new DrooPHP_Count('OpenSTV/SanFrancisco-Sheriff-2011.blt');
 
 header('Content-Type: text/plain; charset=UTF-8');
 var_dump($sheriff);
