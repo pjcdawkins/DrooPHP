@@ -45,13 +45,6 @@ class DrooPHP_Election {
   public $comment;
 
   /**
-   * Array of DrooPHP_Candidate objects.
-   *
-   * @var array
-   */
-  protected $_candidates = array();
-
-  /**
    * The number of seats (vacancies) to be filled.
    * @var int
    */
@@ -62,6 +55,19 @@ class DrooPHP_Election {
    * @var int
    */
   protected $_num_candidates;
+
+  /**
+   * The total number of ballots.
+   * @var int
+   */
+  protected $_num_ballots;
+
+  /**
+   * The candidates: array of DrooPHP_Candidate objects keyed by candidate ID.
+   *
+   * @var array
+   */
+  protected $_candidates = array();
 
   /**
    * The set of withdrawn candidate IDs.
@@ -93,6 +99,16 @@ class DrooPHP_Election {
   }
 
   /**
+   * Set the number of ballots.
+   */
+  public function setNumBallots($int) {
+    if (!is_numeric($int)) {
+      throw new DrooPHP_Exception('The number of ballots must be an integer.');
+    }
+    $this->_num_ballots = (int) $int;
+  }
+
+  /**
    * Mark candidate IDs as withdrawn.
    *
    * @todo validate this after the candidates are added.
@@ -117,6 +133,15 @@ class DrooPHP_Election {
    */
   public function getNumSeats() {
     return $this->_num_seats;
+  }
+
+  /**
+   * Get the number of ballots.
+   *
+   * @return int
+   */
+  public function getNumBallots() {
+    return $this->_num_ballots;
   }
 
   /**

@@ -209,6 +209,7 @@ class DrooPHP_Count {
     rewind($file);
     $election = $this->election;
     $num_candidates = $election->getNumCandidates();
+    $num_ballots = 0;
     $i = 0;
     while (($line = fgets($file)) !== FALSE) {
       // Remove comments (starting with # or // until the end of the line).
@@ -265,7 +266,9 @@ class DrooPHP_Count {
         $candidate = $election->getCandidate($cid);
         $candidate->addVotes($preference, $multiplier);
       }
+      $num_ballots += $multiplier;
     }
+    $election->setNumBallots($num_ballots);
   }
 
   protected function _getDefaultOptions() {
