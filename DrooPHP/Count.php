@@ -234,37 +234,41 @@ class DrooPHP_Count {
       }
       // Skip the ballot IDs and 0 character.
       $line = preg_replace('/\(.*?\)\s?/', '', $line);
-      $line = preg_replace('/\s0$/m', '', $line);
+      $line = preg_replace('/\s0\b/', '', $line);
       $parts = explode(' ', $line);
       // The first part is always a ballot multiplier.
       $multiplier = (int) array_shift($parts);
-      foreach ($parts as $key => $cid) {
+      // The other parts, "items", are what the voter has ranked (usually candidates).
+      foreach ($parts as $key => $item) {
         // Exclude skipped rankings.
-        if ($cid == '-') {
+        if ($item == '-') {
           continue;
         }
-        $preference = $key + 1;
-        if ($preference > $num_candidates) {
+        $preference_level = $key + 1;
+        if ($preference_level > $num_candidates) {
           throw new DrooPHP_Exception('Too many preferences.');
         }
-        // If the item contains a = sign, it is an equal ranking (e.g. 1=2).
-        if (strpos($cid, '=')) {
+        if (strpos($item, '=')) {
+          // If the item contains a = sign, it is an equal ranking (e.g. 1=2).
           if (!$this->options['equal']) {
             throw new DrooPHP_Exception('Equal rankings are not permitted in this count.');
           }
-          $added_equal = array();
-          foreach (explode('=', $cid) as $cid_equal) {
-            if (in_array($cid_equal, $added_equal)) {
+          $equated = array();
+          foreach (explode('=', $item) as $cid) {
+            if (in_array($cid, $equated)) {
               throw new DrooPHP_Exception('Candidates cannot be ranked equal with themselves.');
             }
-            $candidate = $election->getCandidate($cid_equal);
-            $candidate->addVotes($preference, $multiplier);
-            $added_equal[] = $cid_equal;
+            $candidate = $election->getCandidate($cid);
+            $candidate->addVotes($preference_level, $multiplier);
+            $equated[] = $cid;
           }
-          continue;
         }
-        $candidate = $election->getCandidate($cid);
-        $candidate->addVotes($preference, $multiplier);
+        else {
+          // Otherwise, the item is a candidate ID.
+          $cid = $item;
+          $candidate = $election->getCandidate($cid);
+          $candidate->addVotes($preference_level, $multiplier);
+        }
       }
       $num_ballots += $multiplier;
     }
