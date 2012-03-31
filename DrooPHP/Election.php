@@ -9,31 +9,7 @@
 /**
  * @class
  *   DrooPHP_Election
- *   Container for an election profile, and the main parser for BLT file data.
- *
- *   The public interface of ElectionProfile:
- *     $title: title string from the ballot file
- *     $source: source string from blt file
- *     $comment: comment string from blt file
- *     $nSeats: the number of seats to be filled
- *     $nBallots: the number of ballots (possibly greater than len(rankings) because of
- *               ballot multipliers)
- *     $eligible: the set of non-withdrawn candidate IDs
- *     $withdrawn: the set of withdrawn candidate IDs
- *         eligible and withdrawn should be treated as frozenset (unordered and immutable)
- *         though they may be implemented as any iterable.
- *     $ballotLines: a list of BallotLine objects with not equal rankings, each with a:
- *        multiplier: a repetition count >=1
- *        ranking: an array of candidate IDs
- *     $ballotLinesequal: a list of BallotLine objects with at least one equal ranking, each with a:
- *        multiplier: a repetition count >=1
- *        ranking: tuple of tuples of candidate IDs
- *     $tieOrder[cid]: tiebreaking order, by CID
- *     $nickName[cid]: short name of candidate, by CID
- *     $options: list of election options from ballot file
- *     $candidateName[cid]  full name of candidate, by CID
- *     $candidateOrder[cid] ballot order of candidate, by CID
- *   All attributes should be treated as immutable.
+ *   Contains details about an election.
  */
 class DrooPHP_Election {
 

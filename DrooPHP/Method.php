@@ -42,8 +42,20 @@ class DrooPHP_Method {
     }
   }
 
-  /** @todo */
+  /**
+   * Calculate the minimum number of votes a candidate needs in order to be
+   * elected.
+   *
+   * By default this is the Droop quota:
+   *   floor((number of valid ballots / (number of seats + 1)) + 1)
+   *
+   * @return int
+   */
   public function calculateQuota() {
+    $election = $this->election;
+    $num = ($election->getNumBallots() / ($election->getNumSeats() + 1)) + 1;
+    $rounded = floor($num);
+    return $rounded;
   }
 
   /** @todo */
