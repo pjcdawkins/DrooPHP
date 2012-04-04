@@ -50,17 +50,13 @@ class DrooPHP_Count {
    * Set up options for this election.
    *
    * Possible options:
-   *   ron => The name of the Re-Open Nominations candidate, if there is one.
+   *   equal => Whether or not to allow equal rankings (e.g. 2=3).
+   *   method => The name of a counting method class (must extend DrooPHP_Method).
    *
    * @param array $options
    */
   public function loadOptions(array $options) {
     $options = array_merge($this->_getDefaultOptions(), $options);
-
-    // 'ron' => TRUE is equivalent to 'ron' => 'RON'
-    if ($options['ron'] === TRUE) {
-      $options['ron'] = 'RON';
-    }
 
     $this->options = $options;
   }
@@ -199,8 +195,100 @@ class DrooPHP_Count {
   }
 
   /**
-   * Read the ballot lines of the BLT file, setting up the candidates' initial
-   * votes for each round.
+   * Read the ballot lines, getting the number of votes per candidate at
+   * $preference_level, for a given candidate (chosen at the previous preference
+   * level).
+   *
+   * @param int $preference_level
+   *   The preference level for which to count votes.
+   * @param mixed $from_cid
+   *   The ID of the candidate from whom votes will be transferred.
+   *
+   * @return array
+   *   An array of votes, keyed by candidate ID.
+   */
+  public function getVoteRatio($preference_level, $from_cid = NULL) {
+    $file = $this->file;
+    rewind($file);
+    $election = $this->election;
+    $num_candidates = $election->getNumCandidates();
+    // Array of votes keyed by candidate ID.
+    $votes = array();
+    $i = 0;
+    while (($line = fgets($file)) !== FALSE) {
+      // Remove comments (starting with # or // until the end of the line).
+      $line = preg_replace('/(\x23|\/\/).*/', '', $line);
+      // Trim whitespace.
+      $line = trim($line);
+      // Skip blank lines.
+      if (!strlen($line)) {
+        continue;
+      }
+      $i++;
+      // Skip non-ballot lines.
+      if ($i < $this->_ballot_first_line) {
+        continue;
+      }
+      // Stop at 0.
+      if ($line === '0') {
+        break;
+      }
+      if (substr($line, -1) !== '0') {
+        throw new DrooPHP_Exception('Ballot lines must end with 0.');
+      }
+      // Skip the ballot IDs and 0 character.
+      $line = preg_replace('/\(.*?\)\s?/', '', $line);
+      $line = preg_replace('/\s0\b/', '', $line);
+      $parts = explode(' ', $line);
+      // The first part is always a ballot multiplier.
+      $multiplier = (int) array_shift($parts);
+      // If there isn't an item at this preference level, don't do anything.
+      if (!isset($parts[$preference_level - 1])) {
+        continue;
+      }
+      // Count only those where $from_cid is the ID of the previous level candidate.
+      if ($from_cid === NULL) {
+        throw new DrooPHP_Exception('Votes cannot be counted: no previous-level candidate specified.');
+      }
+      if ($parts[$preference_level - 2] != $from_cid) {
+        continue;
+      }
+      $item = $parts[$preference_level - 1];
+      // A - signifies a skipped ranking.
+      if ($item == '-') {
+        continue;
+      }
+      if (strpos($item, '=')) {
+        // If the item contains a = sign, it is an equal ranking (e.g. 1=2).
+        if (!$this->options['equal']) {
+          throw new DrooPHP_Exception('Equal rankings are not permitted in this count.');
+        }
+        $equated = array();
+        foreach (explode('=', $item) as $cid) {
+          if (in_array($cid, $equated)) {
+            throw new DrooPHP_Exception('Candidates cannot be ranked equal with themselves.');
+          }
+          $equated[] = $cid;
+          if (!isset($votes[$cid])) {
+            $votes[$cid] = 0;
+          }
+          $votes[$cid] += $multiplier;
+        }
+      }
+      else {
+        // Otherwise, the item is a candidate ID.
+        $cid = $item;
+        if (!isset($votes[$cid])) {
+          $votes[$cid] = 0;
+        }
+        $votes[$cid] += $multiplier;
+      }
+    }
+    return $votes;
+  }
+
+  /**
+   * Read the ballot lines of the BLT file, counting and validating ballot lines.
    *
    * @return void
    */
@@ -235,50 +323,51 @@ class DrooPHP_Count {
       // Skip the ballot IDs and 0 character.
       $line = preg_replace('/\(.*?\)\s?/', '', $line);
       $line = preg_replace('/\s0\b/', '', $line);
+      // Stop on finding equal rankings if they are not permitted.
+      if (!$this->options['equal'] && strpos($line, '=') !== FALSE) {
+        throw new DrooPHP_Exception('Equal rankings are not permitted in this count.');
+      }
+      // Split the line into constituent parts, separated by spaces.
       $parts = explode(' ', $line);
-      // The first part is always a ballot multiplier.
+      // The first part is always a ballot multiplier. All other parts are rankings.
       $multiplier = (int) array_shift($parts);
-      // The other parts, "items", are what the voter has ranked (usually candidates).
-      foreach ($parts as $key => $item) {
-        // Exclude skipped rankings.
-        if ($item == '-') {
-          continue;
-        }
-        $preference_level = $key + 1;
-        if ($preference_level > $num_candidates) {
-          throw new DrooPHP_Exception('Too many preferences.');
-        }
-        if (strpos($item, '=')) {
-          // If the item contains a = sign, it is an equal ranking (e.g. 1=2).
-          if (!$this->options['equal']) {
-            throw new DrooPHP_Exception('Equal rankings are not permitted in this count.');
+      $num_ballots += $multiplier;
+      // Make sure that it doesn't contain more rankings than the total number of candidates.
+      if (count($parts) > $num_candidates) {
+        throw new DrooPHP_Exception('Too many preferences.');
+      }
+      // Count the first-preference votes.
+      $item = $parts[0];
+      // A - signifies a skipped ranking.
+      if ($item == '-') {
+        continue;
+      }
+      if (strpos($item, '=')) {
+        // If the item contains a = sign, it is an equal ranking (e.g. 1=2).
+        $equated = array();
+        foreach (explode('=', $item) as $cid) {
+          if (in_array($cid, $equated)) {
+            throw new DrooPHP_Exception('Candidates cannot be ranked equal with themselves.');
           }
-          $equated = array();
-          foreach (explode('=', $item) as $cid) {
-            if (in_array($cid, $equated)) {
-              throw new DrooPHP_Exception('Candidates cannot be ranked equal with themselves.');
-            }
-            $candidate = $election->getCandidate($cid);
-            $candidate->addVotes($preference_level, $multiplier);
-            $equated[] = $cid;
-          }
-        }
-        else {
-          // Otherwise, the item is a candidate ID.
-          $cid = $item;
+          $equated[] = $cid;
           $candidate = $election->getCandidate($cid);
-          $candidate->addVotes($preference_level, $multiplier);
+          $candidate->addVotes($multiplier);
         }
       }
-      $num_ballots += $multiplier;
+      else {
+        // Otherwise, the item is a candidate ID.
+        $cid = $item;
+        $candidate = $election->getCandidate($cid);
+        $candidate->addVotes($multiplier);
+      }
     }
     $election->setNumBallots($num_ballots);
   }
 
   protected function _getDefaultOptions() {
     $options = array(
-      'ron' => FALSE,
       'equal' => TRUE,
+      'method' => 'DrooPHP_Method',
     );
     return $options;
   }

@@ -21,6 +21,11 @@ class DrooPHP_Election {
   public $comment;
 
   /**
+   * An array of elected candidates.
+   */
+  public $elected = array();
+
+  /**
    * The number of seats (vacancies) to be filled.
    * @var int
    */
@@ -86,8 +91,6 @@ class DrooPHP_Election {
 
   /**
    * Mark candidate IDs as withdrawn.
-   *
-   * @todo validate this after the candidates are added.
    */
   public function setWithdrawn(array $ids) {
     $this->_withdrawn = $ids;
@@ -129,33 +132,31 @@ class DrooPHP_Election {
     return $this->_candidates;
   }
 
-
   /**
    * Get a single candidate by ID
    *
-   * @param mixed $id
+   * @param mixed $cid
    * @return DrooPHP_Candidate
    */
-  public function getCandidate($id) {
-    if (!isset($this->_candidates[$id])) {
-      throw new DrooPHP_Exception(sprintf('The candidate "%s" does not exist.', $id));
+  public function getCandidate($cid) {
+    if (!isset($this->_candidates[$cid])) {
+      throw new DrooPHP_Exception(sprintf('The candidate "%s" does not exist.', $cid));
     }
-    return $this->_candidates[$id];
+    return $this->_candidates[$cid];
   }
 
   /**
    * Add a candidate.
    *
-   * @param int $id
    * @param string $name
    */
   public function addCandidate($name) {
-    $id = $this->_cid_increment;
-    if ($id > $this->_num_candidates) {
+    $cid = $this->_cid_increment;
+    if ($cid > $this->_num_candidates) {
       throw new DrooPHP_Exception('Attempted to add too many candidate names.');
     }
-    $withdrawn = (bool) in_array($id, $this->_withdrawn);
-    $this->_candidates[$id] = new DrooPHP_Candidate($name, $withdrawn);
+    $withdrawn = (bool) in_array($cid, $this->_withdrawn);
+    $this->_candidates[$cid] = new DrooPHP_Candidate($name, $withdrawn);
     $this->_cid_increment++;
   }
 

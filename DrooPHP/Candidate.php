@@ -24,8 +24,11 @@ class DrooPHP_Candidate {
   /** @var mixed */
   public $state;
 
+  /** @var int */
+  protected $_votes = 0;
+
   /** @var array */
-  protected $_votes = array();
+  protected $_messages = array(); // @todo move messages into proper data
 
   /**
    * Constructor.
@@ -42,27 +45,30 @@ class DrooPHP_Candidate {
   }
 
   /**
-   * Give the candidate more votes for a round.
+   * Give the candidate more votes.
    */
-  public function addVotes($round, $num) {
-    if (!isset($this->_votes[$round])) {
-      $this->_votes[$round] = 0;
-    }
-    $this->_votes[$round] += (int) $num;
+  public function addVotes($num) {
+    $this->_votes += (int) $num;
   }
 
   /**
-   * Get the candidate's number of votes for a round.
+   * Get the candidate's number of votes.
    *
    * @return int
    */
-  public function getVotes($round) {
-    if (!isset($this->_votes[$round])) {
-      throw new DrooPHP_Exception(
-        'Attempted to get the votes of a candidate for a non-existent round.'
-      );
-    }
-    return $this->_votes[$round];
+  public function getVotes() {
+    return $this->_votes;
+  }
+
+  /**
+   * Log a message about the candidate.
+   *
+   * @param string $message
+   *
+   * @return void
+   */
+  public function log($message) {
+    $this->_messages[] = $message;
   }
 
 }

@@ -11,10 +11,14 @@ http://code.google.com/p/droop/
 
 Main design differences between DrooPHP and Droop:
 * DrooPHP needs new lines (LF or CRLF) to separate BLT file information, as is customary (but not required) in the BLT standard.
-* DrooPHP does not support C-style comments /* like this */.
+* DrooPHP does not support multi-line or C-style comments /* like this */.
 
 References
 ==========
+* How to Conduct an Election by the Single Transferable Vote, R. A. Newland,
+  F. S. Britton (Electoral Reform Society of Great Britain and Ireland, London,
+  1997):
+  http://www.cix.co.uk/~rosenstiel/stvrules/
 * BLT File format (Droop):
   http://code.google.com/p/droop/wiki/BltFileFormat
 * Reference STV rules (Proportional Representation Foundation):
