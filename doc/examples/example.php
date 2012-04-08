@@ -8,13 +8,14 @@ $options = array(
   'method' => 'DrooPHP_Method_Ers97',
 );
 
-$count = new DrooPHP_Count('OpenSTV/SanFrancisco-Sheriff-2011.blt', $options);
+//$count = new DrooPHP_Count('OpenSTV/SanFrancisco-Sheriff-2011.blt', $options);
+$count = new DrooPHP_Count('simple.blt', $options);
 
 header('Content-Type: text/plain; charset=UTF-8');
 
 
-$method = new DrooPHP_Method($count);
+$method = new DrooPHP_Method_Ers97($count);
 
 $method->run();
-$election = $count->election;
-var_dump($election);
+
+var_dump($method);
