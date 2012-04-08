@@ -13,6 +13,7 @@
  *   standard (ERS97) for single transferable vote (STV) elections.
  */
 class DrooPHP_Method_Ers97 extends DrooPHP_Method {
+<<<<<<< HEAD
 
   /** @todo */
   public function run($round = 1) {
@@ -136,4 +137,6 @@ class DrooPHP_Method_Ers97 extends DrooPHP_Method {
     return $quota;
   }
 
+=======
+>>>>>>> parent of a14db84... Added maxRounds option to escape infinite loops (candidates are currently not elected properly).
 }

@@ -52,7 +52,6 @@ class DrooPHP_Count {
    * Possible options:
    *   equal => Whether or not to allow equal rankings (e.g. 2=3).
    *   method => The name of a counting method class (must extend DrooPHP_Method).
-   *   maxRounds => The maximum number of counting rounds (to prevent infinite loops).
    *
    * @param array $options
    */
@@ -289,23 +288,6 @@ class DrooPHP_Count {
   }
 
   /**
-   * Get the value of an option.
-   *
-   * @param string $option
-   *   The name of the option.
-   * @param mixed $or
-   *   Optionally, a value to return if the option doesn't exist.
-   *
-   * @return mixed
-   */
-  public function getOption($option, $or = NULL) {
-    if ($or !== NULL && !isset($this->options[$option])) {
-      return $or;
-    }
-    return $this->options[$option];
-  }
-
-  /**
    * Read the ballot lines of the BLT file, counting and validating ballot lines.
    *
    * @return void
@@ -386,7 +368,6 @@ class DrooPHP_Count {
     $options = array(
       'equal' => TRUE,
       'method' => 'DrooPHP_Method',
-      'maxRounds' => 100,
     );
     return $options;
   }
