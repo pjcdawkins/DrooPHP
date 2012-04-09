@@ -121,20 +121,20 @@ class DrooPHP_Count {
       }
       $i++;
       if ($i === 1) {
-        // First line should always be "_num_candidates num_seats".
+        // First line should always be "num_candidates num_seats".
         $parts = explode(' ', $line);
         if (count($parts) != 2) {
           throw new DrooPHP_Exception('The first line must contain exactly two parts.');
         }
-        $election->setNumCandidates($parts[0]);
-        $election->setNumSeats($parts[1]);
+        $election->num_candidates = (int) $parts[0];
+        $election->num_seats = (int) $parts[1];
       }
       else if ($i === 2) {
         if (strpos($line, '-') === 0) {
           // If line 2 starts with a minus sign, it specifies the withdrawn candidate IDs.
           $withdrawn = explode(' -', substr($line, 1));
           $withdrawn = array_map('intval', $withdrawn); // Candidate IDs are always integers.
-          $election->setWithdrawn($withdrawn);
+          $election->withdrawn = $withdrawn;
           $this->_ballot_first_line = 3;
         }
         else {
@@ -152,7 +152,7 @@ class DrooPHP_Count {
   protected function _parseTail() {
     $file = $this->file;
     $election = $this->election;
-    $num_candidates = $election->getNumCandidates();
+    $num_candidates = $election->num_candidates;
     /*
      There can be a maximum of $num_candidates + 3 tail lines (each candidate
      is named and then there are optionally election, title, and source).
@@ -229,7 +229,7 @@ class DrooPHP_Count {
     $file = $this->file;
     rewind($file);
     $election = $this->election;
-    $num_candidates = $election->getNumCandidates();
+    $num_candidates = $election->num_candidates;
     // Array of votes keyed by candidate ID.
     $votes = array();
     $i = 0;
@@ -314,7 +314,7 @@ class DrooPHP_Count {
     $file = $this->file;
     rewind($file);
     $election = $this->election;
-    $num_candidates = $election->getNumCandidates();
+    $num_candidates = $election->num_candidates;
     $num_ballots = 0;
     $i = 0;
     while (($line = fgets($file)) !== FALSE) {
@@ -369,24 +369,24 @@ class DrooPHP_Count {
           }
           $equated[] = $cid;
           $candidate = $election->getCandidate($cid);
-          $candidate->addVotes($multiplier);
+          $candidate->votes += $multiplier;
         }
       }
       else {
         // Otherwise, the item is a candidate ID.
         $cid = $item;
         $candidate = $election->getCandidate($cid);
-        $candidate->addVotes($multiplier);
+        $candidate->votes += $multiplier;
       }
     }
-    $election->setNumBallots($num_ballots);
+    $election->num_ballots = (int) $num_ballots;
   }
 
   protected function _getDefaultOptions() {
     $options = array(
       'equal' => TRUE,
       'method' => 'DrooPHP_Method',
-      'maxRounds' => 1000,
+      'maxRounds' => 100,
     );
     return $options;
   }

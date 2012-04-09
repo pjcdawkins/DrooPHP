@@ -18,20 +18,20 @@ class DrooPHP_Method_Ers97 extends DrooPHP_Method {
   public function run($round = 1) {
     echo "- COUNTING ROUND $round -\n"; // debugging
     $election = $this->election;
-    $num_seats = $election->getNumSeats();
+    $num_seats = $election->num_seats;
     $quota = $this->quota;
     $next_round = $round + 1;
     $someone_elected = FALSE;
     if (!isset($activeVote)) {
-      $activeVote = $election->getNumBallots();
+      $activeVote = $election->num_ballots;
     }
     $remaining = array();
-    foreach ($election->getCandidates() as $cid => $candidate) {
+    foreach ($election->candidates as $cid => $candidate) {
       if ($candidate->state !== DrooPHP_Candidate::STATE_HOPEFUL) {
         // Ignore elected, withdrawn, or defeated candidates.
         continue;
       }
-      $votes = $candidate->getVotes($round);
+      $votes = $candidate->votes;
       if ($votes >= $quota || $votes > ($activeVote / ($num_seats - $this->num_elected + 1))) {
         // The candidate is now elected.
         echo "Elected $cid\n"; // debugging
@@ -111,7 +111,7 @@ class DrooPHP_Method_Ers97 extends DrooPHP_Method {
       $dest_candidate = $election->getCandidate($cid);
       if ($dest_candidate->state === DrooPHP_Candidate::STATE_HOPEFUL) {
         $transferNum = floor(($num / $totalVotes) * $surplus);
-        $dest_candidate->addVotes($transferNum);
+        $dest_candidate->votes += $transferNum;
         $dest_candidate->log("Received $transferNum transferred votes from candidate '$from_cid' for round $round.");
       }
     }
@@ -130,7 +130,7 @@ class DrooPHP_Method_Ers97 extends DrooPHP_Method {
    */
   protected function _calculateQuota() {
     $election = $this->election;
-    $num = $election->getNumBallots() / ($election->getNumSeats() + 1);
+    $num = $election->num_ballots / ($election->num_seats + 1);
     $quota = ceil($num * 100) / 100;
     $this->quota = $quota;
     return $quota;

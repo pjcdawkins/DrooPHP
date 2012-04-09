@@ -21,14 +21,14 @@ class DrooPHP_Candidate {
   /** @var string */
   public $name;
 
-  /** @var mixed */
+  /** @var string */
   public $state;
 
   /** @var int */
-  protected $_votes = 0;
+  public $votes = 0;
 
   /** @var array */
-  protected $_messages = array(); // @todo move messages into proper data
+  public $messages = array(); // @todo move messages into proper data
 
   /**
    * Constructor.
@@ -45,22 +45,6 @@ class DrooPHP_Candidate {
   }
 
   /**
-   * Give the candidate more votes.
-   */
-  public function addVotes($num) {
-    $this->_votes += (int) $num;
-  }
-
-  /**
-   * Get the candidate's number of votes.
-   *
-   * @return int
-   */
-  public function getVotes() {
-    return $this->_votes;
-  }
-
-  /**
    * Log a message about the candidate.
    *
    * @param string $message
@@ -68,7 +52,7 @@ class DrooPHP_Candidate {
    * @return void
    */
   public function log($message) {
-    $this->_messages[] = $message;
+    $this->messages[] = (string) $message;
   }
 
 }

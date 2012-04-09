@@ -59,8 +59,8 @@ abstract class DrooPHP_Method {
    */
   public function isComplete() {
     $election = $this->election;
-    $num_seats = $election->getNumSeats();
-    $num_candidates = $election->getNumCandidates();
+    $num_seats = $election->num_seats;
+    $num_candidates = $election->num_candidates;
     $must_be_elected = $num_seats;
     if ($num_seats > $num_candidates) {
       $must_be_elected = $num_candidates;
@@ -79,7 +79,7 @@ abstract class DrooPHP_Method {
    */
   protected function _calculateQuota() {
     $election = $this->election;
-    $num = ($election->getNumBallots() / ($election->getNumSeats() + 1)) + 1;
+    $num = ($election->num_ballots / ($election->num_seats + 1)) + 1;
     $quota = floor($num);
     $this->quota = $quota;
     return $quota;
