@@ -21,10 +21,22 @@ class DrooPHP_Election {
   public $comment;
 
   /**
-   * The number of seats (vacancies) to be filled.
+   * The number of seats to be filled.
    * @var int
    */
   public $num_seats = 0;
+
+  /**
+   * The number of seats filled.
+   * @var int
+   */
+  public $num_filled_seats = 0;
+
+  /**
+   * The total number of (invalid and valid) ballots.
+   * @var int
+   */
+  public $num_ballots = 0;
 
   /**
    * The total number of valid ballots.

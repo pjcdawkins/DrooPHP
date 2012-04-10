@@ -13,23 +13,17 @@
  */
 abstract class DrooPHP_Method {
 
-  /** @var DrooPHP_Count */
-  public $count;
-
-  /** @var DrooPHP_Election */
-  public $election;
-
   /** @var float */
   public $quota;
 
-  /** @var int */
-  public $num_elected;
-
   /**
-   * @see self::logRound()
+   * @see self::logStage()
    * @var array
    */
-  public $rounds = array();
+  public $stages = array();
+
+  /** @var DrooPHP_Count */
+  public $count;
 
   /**
    * Constructor
@@ -39,37 +33,35 @@ abstract class DrooPHP_Method {
    */
   public function __construct(DrooPHP_Count $count) {
     $this->count = $count;
-    $this->election = $count->election;
     $this->calculateQuota();
   }
 
   /**
    * Run the election: this is the main, iterative method.
    */
-  public function run($round = 1) {
-    echo "- COUNTING ROUND $round -\n"; // debugging
-    $this->logRound($round);
+  public function run($stage = 1) {
+    $this->logStage($stage);
   }
 
   /**
-   * Log information about a voting round, e.g. the number of votes for each
+   * Log information about a voting stage, e.g. the number of votes for each
    * candidate.
    *
-   * @var int $round
+   * @var int $stage
    *
    * @return void
    */
-  public function logRound($round) {
-    if (isset($this->rounds[$round])) {
-      throw new DrooPHP_Exception("Already written log for round $round.");
+  public function logStage($stage) {
+    if (isset($this->stages[$stage])) {
+      throw new DrooPHP_Exception("Already written log for stage $stage.");
     }
-    $this->rounds[$round] = array();
-    $log = &$this->rounds[$round];
+    $this->stages[$stage] = array();
+    $log = &$this->stages[$stage];
     $log = array(
       'votes' => array(), // array of votes keyed by candidate ID
       'state' => array(), // array of states keyed by candidate ID
     );
-    foreach ($this->election->candidates as $cid => $candidate) {
+    foreach ($this->count->election->candidates as $cid => $candidate) {
       $log['votes'][$cid] = $candidate->votes;
       $log['state'][$cid] = $candidate->state;
     }
@@ -81,9 +73,9 @@ abstract class DrooPHP_Method {
    *
    * @param mixed $from_cid
    * @param int $surplus
-   * @param int $round
+   * @param int $stage
    */
-  abstract public function transferVotes($from_cid, $surplus, $round);
+  abstract public function transferVotes($from_cid, $surplus, $stage);
 
   /**
    * Test whether the election is complete.
@@ -91,14 +83,14 @@ abstract class DrooPHP_Method {
    * @return bool
    */
   public function isComplete() {
-    $election = $this->election;
+    $election = $this->count->election;
     $num_seats = $election->num_seats;
     $num_candidates = $election->num_candidates;
     $must_be_elected = $num_seats;
     if ($num_seats > $num_candidates) {
       $must_be_elected = $num_candidates;
     }
-    return $this->num_elected >= $must_be_elected;
+    return $election->num_filled_seats >= $must_be_elected;
   }
 
   /**
@@ -111,7 +103,7 @@ abstract class DrooPHP_Method {
    * @return int
    */
   protected function calculateQuota() {
-    $election = $this->election;
+    $election = $this->count->election;
     $num = ($election->num_valid_ballots / ($election->num_seats + 1)) + 1;
     $quota = floor($num);
     $this->quota = $quota;

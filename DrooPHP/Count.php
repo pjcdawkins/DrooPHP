@@ -56,7 +56,7 @@ class DrooPHP_Count {
    *   allow_repeat => Whether to allow repeat rankings (e.g. 3 2 2).
    *   allow_skipped => Whether to allow skipped rankings (e.g. -).
    *   method => The name of a counting method class (must extend DrooPHP_Method).
-   *   maxRounds => The maximum number of counting rounds (to prevent infinite loops).
+   *   maxStages => The maximum number of counting stages (to prevent infinite loops).
    *
    * @param array $options
    */
@@ -271,25 +271,35 @@ class DrooPHP_Count {
       $valid = TRUE;
       try {
         foreach ($parts as $part) {
-          $this->validateBallotPart($part); // Throws an exception on failure.
           if ($part == '-') {
+            if (!$this->options['allow_skipped']) {
+              throw new DrooPHP_Exception_InvalidBallot('Skipped rankings are not permitted in this count.');
+            }
             continue;
           }
           $position++;
           if (strpos($part, '=')) {
+            if (!$this->options['allow_equal']) {
+              throw new DrooPHP_Exception_InvalidBallot('Equal rankings are not permitted in this count.');
+            }
             $part = explode('=', $part);
+            foreach ($part as $cid) {
+              $this->validateCandidateId($cid); // throws DrooPHP_Exception_InvalidBallot
+            }
+          }
+          else {
+            $this->validateCandidateId($part); // throws DrooPHP_Exception_InvalidBallot
           }
           if (in_array($part, $ranking)) {
             if (!$this->options['allow_repeat']) {
-              throw new DrooPHP_Exception_InvalidBallot('Repeat rankings are not allowed.');
+              throw new DrooPHP_Exception_InvalidBallot('Repeat rankings are not allowed in this count.');
             }
             continue;
           }
           $ranking[$position] = $part;
         }
-        // Empty ballots (possible with skipped rankings) don't count at all.
         if (empty($ranking)) {
-          continue;
+          throw new DrooPHP_Exception_InvalidBallot('Empty ballot.');
         }
       }
       catch (DrooPHP_Exception_InvalidBallot $e) {
@@ -298,12 +308,13 @@ class DrooPHP_Count {
           throw new DrooPHP_Exception($e->getMessage(), $e->getCode(), $e);
         }
       }
+      $election->num_ballots += $multiplier; // ERS97 5.1.1
       if (!$valid) {
-        // The ballot is invalid: increment the total number of invalid ballots.
+        // The ballot is invalid: increment the total number of invalid ballots. // ERS97 5.1.2
         $election->num_invalid_ballots += $multiplier;
         continue;
       }
-      // The ballot is valid: increment the total number of valid ballots.
+      // The ballot is valid: increment the total number of valid ballots. // ERS97 5.1.2
       $election->num_valid_ballots += $multiplier;
       if (isset($election->ballots[$key])) {
         // If an identical ballot already exists in the election, increase its value by $multiplier.
@@ -314,32 +325,8 @@ class DrooPHP_Count {
         $election->ballots[$key] = new DrooPHP_Ballot($ranking, $multiplier);
       }
     }
-  }
-
-  /**
-   * Validate part of a ballot.
-   *
-   * @throws DrooPHP_Exception
-   * @param string $part
-   * @return void
-   */
-  protected function validateBallotPart($part) {
-    if (strpos($part, '=')) {
-      if (!$this->options['allow_equal']) {
-        throw new DrooPHP_Exception_InvalidBallot('Equal rankings are not permitted in this count.');
-      }
-      foreach (explode('=', $part) as $cid) {
-        $this->validateCandidateId($cid);
-      }
-    }
-    else if ($part == '-') {
-      if (!$this->options['allow_skipped']) {
-        throw new DrooPHP_Exception_InvalidBallot('Skipped rankings are not permitted in this count.');
-      }
-    }
-    else {
-      $this->validateCandidateId($part);
-    }
+    // Sort the voting papers into first preferences // ERS97 5.1.2
+    ksort($election->ballots); // @todo this is almost certainly unnecessary
   }
 
   /**
@@ -362,7 +349,7 @@ class DrooPHP_Count {
       'allow_repeat' => 0,
       'allow_invalid' => 1,
       'method' => 'DrooPHP_Method',
-      'maxRounds' => 100,
+      'maxStages' => 100,
     );
   }
 

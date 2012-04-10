@@ -24,8 +24,8 @@ class DrooPHP_Method_Ers97 extends DrooPHP_Method {
    *
    * @return int
    */
-  public function calculateActiveVote() {
-    $candidates = $this->election->candidates;
+  public function getActiveVote() {
+    $candidates = $this->count->election->candidates;
     $active_vote = 0;
     foreach ($candidates as $candidate) {
       if ($candidate->state === DrooPHP_Candidate::STATE_HOPEFUL) {
@@ -37,91 +37,141 @@ class DrooPHP_Method_Ers97 extends DrooPHP_Method {
   }
 
   /**
-   * @see parent::logRound()
+   * @see parent::logStage()
    */
-  public function logRound($round) {
-    parent::logRound($round);
-    $log = &$this->rounds[$round];
-    $log['active_vote'] = $this->calculateActiveVote();
-    var_dump($log);
+  public function logStage($stage) {
+    parent::logStage($stage);
+    $log = &$this->stages[$stage];
+    $log['active_vote'] = $this->getActiveVote();
+    $log['surpluses'] = $this->getSurpluses();
   }
 
   /** @todo */
-  public function run($round = 1) {
-    parent::run($round);
-    $num_seats = $this->election->num_seats;
-    $quota = $this->quota;
-    $next_round = $round + 1;
-    $someone_elected = FALSE;
-    $active_vote = $this->calculateActiveVote();
-    $remaining = array();
-    foreach ($this->election->candidates as $cid => $candidate) {
-      if ($candidate->state !== DrooPHP_Candidate::STATE_HOPEFUL) {
-        // Ignore elected, withdrawn, or defeated candidates.
-        continue;
+  public function run($stage = 1) {
+
+    $election = $this->count->election;
+
+    // First stage. // ERS97 5.1
+    if ($stage == 1) {
+      // Count the first preference votes and add them to each candidate // ERS97 5.1.4
+      $total = 0;
+      foreach ($election->ballots as $ballot) {
+        $candidate = $election->getCandidate($ballot->ranking[1]);
+        $candidate->votes += $ballot->value;
+        $total += $ballot->value;
       }
-      if ($candidate->votes >= $quota || $candidate->votes > ($active_vote / ($num_seats - $this->num_elected + 1))) {
-        // The candidate is now elected.
-        echo "Elected $cid\n"; // debugging
-        $candidate->state = DrooPHP_Candidate::STATE_ELECTED;
-        $someone_elected = TRUE;
-        $this->num_elected++;
-        // Calculate the candidate's surplus, and transfer votes for the next round.
-        $surplus = $candidate->votes - $quota;
-        $candidate->log("Elected in round $round.");
-        if ($surplus > 0) {
-          $this->transferVotes($cid, $surplus, $next_round);
-          $candidate->log("A surplus of $surplus votes was transferred to other candidates for round $next_round.");
-        }
-      }
-      else {
-        // If the candidate hasn't been elected, add number of votes to $remaining so a comparison can be made for elimination.
-        $remaining[$cid] = $candidate->votes;
+      // Check that the total is the same as the total valid vote. // ERS97 5.1.5 // @todo this is unnecessary
+      if ($total != $election->num_valid_ballots) {
+        throw new DrooPHP_Exception('Total votes in stage 1 not equal to the total valid vote.');
       }
     }
-    // If no-one has been elected in this round, eliminate the candidate with the fewest votes.
-    if (!$someone_elected) {
-      $to_eliminate = NULL;
-      foreach ($remaining as $cid => $votes) {
-        if (!isset($last) || $votes < $last) {
-          $last = $votes;
-          $to_eliminate = $cid;
-        }
+
+    // Elect candidates // ERS97 5.1.7 // ERS97 5.3.13 // ERS97 5.4.9
+    /*
+      Considering each candidate in turn in descending order of their votes, deem
+      elected and candidate whose vote equals or exceeds:
+        (a) the quota, or
+        (b) (on very rare occasions, where this is less than the quota), the total
+            active vote, divided by one more than the number of places not yet filled.
+      up to the number of places to be filled, subject to paragraph 5.6.2. // ERS97 5.6.2 refers to ties
+     */
+    $candidates = $this->orderCandidates(); // sort into descending order of votes
+    $active_vote = $this->getActiveVote();
+    foreach ($candidates as $cid => $candidate) {
+      $num_vacancies = $election->num_seats - $election->num_filled_seats;
+      if ($num_vacancies == 0) {
+        break;
       }
-      if ($to_eliminate !== NULL) {
-        $cid = $to_eliminate;
-        $votes = $remaining[$cid];
-        echo "Defeated $cid\n"; // debugging
-        $candidate = $this->election->getCandidate($cid);
-        $candidate->state = DrooPHP_Candidate::STATE_DEFEATED;
-        $candidate->log("Defeated in round $round.");
-        if ($votes > 0) {
-          $this->transferVotes($cid, $votes, $next_round);
-          $candidate->log("$votes votes were transferred from defeated candidate '$cid' to other candidates for round $next_round.");
+      if ($candidate->state === DrooPHP_Candidate::STATE_HOPEFUL) {
+        if ($candidate->votes >= $this->quota || $candidate->votes >= ($active_vote / ($num_vacancies + 1))) {
+          // The candidate is now elected.
+          $candidate->state = DrooPHP_Candidate::STATE_ELECTED;
+          $candidate->log("Elected in stage $stage.");
+          $election->num_filled_seats++;
+          if ($candidate->votes > $this->quota) {
+            $candidate->surplus = $candidate->votes - $this->quota;
+          }
         }
       }
     }
-    // Proceed to the next round or stop if the election is complete.
+
+    if ($stage == 1) {
+      // That completes the first stage of the count. // ERS97 5.1.8
+      $this->logStage($stage);
+      $stage++;
+    }
+
+    // If one or more candidates have surpluses, the largest of these should now be transferred. // ERS97 5.2.2
+    $surpluses = $this->getSurpluses();
+    if (!empty($surpluses)) {
+    }
+
+    // @todo elimination
+    // @todo transfer surplus from withdrawn candidates
+    // @todo transfer surplus after elimination
+
+    return;
+
+    // Proceed to the next stage or stop if the election is complete.
     if ($this->isComplete()) {
       return TRUE;
     }
-    else if ($round >= $this->count->getOption('maxRounds')) {
-      throw new Exception('Maximum number of rounds reached before completing the count.');
+    else if ($stage >= $this->count->getOption('maxStages')) {
+      throw new Exception('Maximum number of stages reached before completing the count.');
       return FALSE;
     }
     else {
-      $this->run($next_round);
+      $this->logStage($stage);
+      $this->run($stage + 1);
     }
   }
 
   /**
-   * Transfer the votes from a successful candidate to the other hopeful ones.
+   * Return an array of candidates in descending order of their votes. // ERS97 5.1.7
+   *
+   * @return array
+   *   Array of DrooPHP_Candidate objects, keyed by candidate ID.
+   */
+  public function orderCandidates() {
+    $election = $this->count->election;
+    $candidates_votes = array(); // array of vote amounts keyed by candidate ID
+    foreach ($election->candidates as $cid => $candidate) {
+      $candidates_votes[$cid] = $candidate->votes;
+    }
+    arsort($candidates_votes, SORT_NUMERIC);
+    $candidates = array();
+    foreach ($candidates_votes as $cid => $votes) {
+      $candidates[$cid] = $election->candidates[$cid];
+    }
+    return $candidates;
+  }
+
+  /**
+   * Return an array of candidates' surpluses in descending order of size. // ERS97 5.2.3
+   *
+   * @return array
+   *   Array of surpluses (floats), keyed by candidate ID.
+   */
+  public function getSurpluses() {
+    $candidates = $this->count->election->candidates;
+    $surpluses = array();
+    foreach ($candidates as $cid => $candidate) {
+      if ($candidate->surplus > 0) {
+        $surpluses[$cid] = $candidate->surplus;
+      }
+    }
+    arsort($surpluses, SORT_NUMERIC);
+    return $surpluses;
+  }
+
+  /**
+   * Transfer the votes from a successful candidate to the other hopeful ones. // ERS97 5.3 // ERS97 5.4
    *
    * @param mixed $from_cid
    * @param int $surplus
-   * @param int $round
+   * @param int $stage
    */
-  public function transferVotes($from_cid, $surplus, $round) {
+  public function transferVotes($from_cid, $surplus, $stage) {
     echo "Attempting transfer from $from_cid\n"; // debugging
 
     // @todo
@@ -129,17 +179,17 @@ class DrooPHP_Method_Ers97 extends DrooPHP_Method {
 
   /**
    * Calculate the minimum number of votes a candidate needs in order to be
-   * elected.
+   * elected. // ERS97 5.1.6 // ERS97 5.4.8 // ERS97 6.14
    *
-   * According to the Electoral Reform Society, this should be done by "dividing
+   * According to ERS97 5.1.6, this should be done by "dividing
    * the total valid vote by one more than the number of places to be filled.
    * Take the division to two decimal places. If the result is exact that is the
    * quota. Otherwise ignore the remainder, and add 0.01".
    *
    * @return float
    */
-  protected function _calculateQuota() {
-    $election = $this->election;
+  protected function calculateQuota() {
+    $election = $this->count->election;
     $num = $election->num_valid_ballots / ($election->num_seats + 1);
     $quota = ceil($num * 100) / 100;
     $this->quota = $quota;
