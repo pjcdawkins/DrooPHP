@@ -81,7 +81,7 @@ class DrooPHP_Election {
   protected $_cid_increment = 1;
 
   /**
-   * Get a single candidate by ID
+   * Get a single candidate by ID.
    *
    * @param mixed $cid
    * @return DrooPHP_Candidate
@@ -91,6 +91,22 @@ class DrooPHP_Election {
       throw new DrooPHP_Exception(sprintf('The candidate "%s" does not exist.', $cid));
     }
     return $this->candidates[$cid];
+  }
+
+  /**
+   * Get an array of candidates who have the given state.
+   *
+   * @return array
+   *   Array of DrooPHP_Candidate objects keyed by candidate ID.
+   */
+  public function getCandidatesByState($state) {
+    $candidates = array();
+    foreach ($this->candidates as $cid => $candidate) {
+      if ($candidate->state === $state) {
+        $candidates[$cid] = $candidate;
+      }
+    }
+    return $candidates;
   }
 
   /**
@@ -104,7 +120,9 @@ class DrooPHP_Election {
       throw new DrooPHP_Exception('Attempted to add too many candidate names.');
     }
     $withdrawn = in_array($cid, $this->withdrawn);
-    $this->candidates[$cid] = new DrooPHP_Candidate($name, $withdrawn);
+    $candidate = new DrooPHP_Candidate($name, $withdrawn);
+    $candidate->cid = $cid;
+    $this->candidates[$cid] = $candidate;
     $this->_cid_increment++;
   }
 

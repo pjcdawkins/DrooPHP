@@ -21,6 +21,9 @@ class DrooPHP_Candidate {
   /** @var string */
   public $name;
 
+  /** @var mixed */
+  public $cid;
+
   /** @var string */
   public $state;
 
@@ -29,6 +32,9 @@ class DrooPHP_Candidate {
 
   /** @var float */
   public $surplus = 0;
+
+  /** @var int */
+  public $position;
 
   /** @var array */
   public $messages = array(); // @todo move messages into proper data

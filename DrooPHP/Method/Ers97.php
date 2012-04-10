@@ -17,6 +17,19 @@
 class DrooPHP_Method_Ers97 extends DrooPHP_Method {
 
   /**
+   * Each candidate that exists in this array has been determined to have more
+   * votes than the next candidate, at the earliest stage in the count at which
+   * those candidates had unequal votes. If two candidates have had equal votes
+   * throughout the election they will not appear in this array.
+   *
+   * See ERS97 5.2.3, ERS97 5.2.5, ERS97 5.6.2.
+   *
+   * @var array
+   *   Array of votes keyed by candidate ID.
+   */
+  public $unambiguous_order = array();
+
+  /**
    * Calculate the total active vote: "The sum of the votes credited to all
    * continuing candidates, plus any votes awaiting transfer."
    *
@@ -28,9 +41,15 @@ class DrooPHP_Method_Ers97 extends DrooPHP_Method {
     $candidates = $this->count->election->candidates;
     $active_vote = 0;
     foreach ($candidates as $candidate) {
-      if ($candidate->state === DrooPHP_Candidate::STATE_HOPEFUL) {
-        $active_vote += $candidate->votes;
-        // @todo add "plus any votes awaiting transfer"
+      switch ($candidate->state) {
+        case DrooPHP_Candidate::STATE_ELECTED:
+          $active_vote += $candidate->surplus;
+          break;
+        case DrooPHP_Candidate::STATE_HOPEFUL:
+        case DrooPHP_Candidate::STATE_DEFEATED:
+        case DrooPHP_Candidate::STATE_WITHDRAWN:
+          $active_vote += $candidate->votes;
+          break;
       }
     }
     return $active_vote;
@@ -42,12 +61,17 @@ class DrooPHP_Method_Ers97 extends DrooPHP_Method {
   public function logStage($stage) {
     parent::logStage($stage);
     $log = &$this->stages[$stage];
-    $log['active_vote'] = $this->getActiveVote();
     $log['surpluses'] = $this->getSurpluses();
+    $log['active_vote'] = $this->getActiveVote();
   }
 
   /** @todo */
   public function run($stage = 1) {
+
+    // Log the current status of the count (i.e. the status reached at the end of the previous stage).
+    if ($stage > 1) {
+      $this->logStage($stage - 1);
+    }
 
     $election = $this->count->election;
 
@@ -56,9 +80,21 @@ class DrooPHP_Method_Ers97 extends DrooPHP_Method {
       // Count the first preference votes and add them to each candidate // ERS97 5.1.4
       $total = 0;
       foreach ($election->ballots as $ballot) {
-        $candidate = $election->getCandidate($ballot->ranking[1]);
-        $candidate->votes += $ballot->value;
-        $total += $ballot->value;
+        $first_preference = $ballot->ranking[1];
+        if (is_array($first_preference)) {
+          // Deal with equal rankings (probably not permitted in ERS97 but this can be dealt with as an edge case).
+          $num = count($first_preference);
+          foreach ($first_preference as $cid) {
+            $candidate = $election->getCandidate($cid);
+            $candidate->votes += (1 / $num) * $ballot->value;
+            $total += (1 / $num) * $ballot->value;
+          }
+        }
+        else {
+          $candidate = $election->getCandidate($first_preference);
+          $candidate->votes += $ballot->value;
+          $total += $ballot->value;
+        }
       }
       // Check that the total is the same as the total valid vote. // ERS97 5.1.5 // @todo this is unnecessary
       if ($total != $election->num_valid_ballots) {
@@ -77,40 +113,65 @@ class DrooPHP_Method_Ers97 extends DrooPHP_Method {
      */
     $candidates = $this->orderCandidates(); // sort into descending order of votes
     $active_vote = $this->getActiveVote();
+    $quota = $this->quota;
+    $anyone_elected = FALSE;
     foreach ($candidates as $cid => $candidate) {
-      $num_vacancies = $election->num_seats - $election->num_filled_seats;
+      $num_vacancies = $this->getNumVacancies();
       if ($num_vacancies == 0) {
-        break;
+        // If all seats are filled, the election has finished.
+        return TRUE;
       }
       if ($candidate->state === DrooPHP_Candidate::STATE_HOPEFUL) {
-        if ($candidate->votes >= $this->quota || $candidate->votes >= ($active_vote / ($num_vacancies + 1))) {
+        if ($candidate->votes >= $quota || $candidate->votes >= ($active_vote / ($num_vacancies + 1))) {
           // The candidate is now elected.
           $candidate->state = DrooPHP_Candidate::STATE_ELECTED;
-          $candidate->log("Elected in stage $stage.");
+          $candidate->log(sprintf('Elected at stage %d.', $stage));
           $election->num_filled_seats++;
-          if ($candidate->votes > $this->quota) {
-            $candidate->surplus = $candidate->votes - $this->quota;
+          $anyone_elected = TRUE;
+          if ($candidate->votes > $quota) {
+            $candidate->surplus = $candidate->votes - $quota;
+            $candidate->log(sprintf('Elected with a surplus: %s - %s = %s.', $candidate->votes, $quota, $candidate->surplus));
           }
         }
       }
     }
 
     if ($stage == 1) {
-      // That completes the first stage of the count. // ERS97 5.1.8
-      $this->logStage($stage);
-      $stage++;
+      // If we're on the first stage, it's now complete, the next actions are part of stage 2. // ERS97 5.1.8
+      return $this->run($stage + 1);
+    }
+
+    if ($anyone_elected) {
+      // If anyone has been elected in this stage, then it's now complete.
+      return $this->run($stage + 1);
     }
 
     // If one or more candidates have surpluses, the largest of these should now be transferred. // ERS97 5.2.2
     $surpluses = $this->getSurpluses();
     if (!empty($surpluses)) {
+      // @todo work out what to do with the deferment rules in ERS97 5.2.2
+/*
+      $candidate_fewest_votes_diff = 0;
+      foreach (array_slice($candidates, -2) as $cid => $candidate) {
+        if (isset($candidate_second_fewest_votes)) {
+          $candidate_fewest_votes_diff = $candidate_second_fewest_votes - $candidate->votes;
+          break;
+        }
+        $candidates_second_fewest_votes = $candidate->votes;
+      }
+      $total_surplus = array_sum($surpluses);
+*/
+      // @todo transfer
+      // The transfer of a surplus constitutes a stage in the count. // ERS97 5.2.4
+      //return $this->run($stage + 1); // not ready to loop yet
     }
 
-    // @todo elimination
-    // @todo transfer surplus from withdrawn candidates
-    // @todo transfer surplus after elimination
+    return; //debugging
 
-    return;
+    // @todo eliminate candidates
+    // @todo transfer after elimination
+    // @todo transfer from withdrawn candidates
+    //$this->defeatCandidates();
 
     // Proceed to the next stage or stop if the election is complete.
     if ($this->isComplete()) {
@@ -121,8 +182,7 @@ class DrooPHP_Method_Ers97 extends DrooPHP_Method {
       return FALSE;
     }
     else {
-      $this->logStage($stage);
-      $this->run($stage + 1);
+      return $this->run($stage + 1);
     }
   }
 
@@ -141,7 +201,17 @@ class DrooPHP_Method_Ers97 extends DrooPHP_Method {
     arsort($candidates_votes, SORT_NUMERIC);
     $candidates = array();
     foreach ($candidates_votes as $cid => $votes) {
-      $candidates[$cid] = $election->candidates[$cid];
+      $candidate = $election->candidates[$cid];
+      $candidates[$cid] = $candidate;
+      if (isset($previous_cid) && $votes == $previous_votes) {
+        // This candidate has equal votes to the previous one, so neither can exist in $this->$unambiguous_order.
+        unset($this->unambiguous_order[$previous_cid]);
+      }
+      else {
+        $this->unambiguous_order[$cid] = $votes;
+      }
+      $previous_cid = $cid;
+      $previous_votes = $votes;
     }
     return $candidates;
   }
@@ -162,19 +232,6 @@ class DrooPHP_Method_Ers97 extends DrooPHP_Method {
     }
     arsort($surpluses, SORT_NUMERIC);
     return $surpluses;
-  }
-
-  /**
-   * Transfer the votes from a successful candidate to the other hopeful ones. // ERS97 5.3 // ERS97 5.4
-   *
-   * @param mixed $from_cid
-   * @param int $surplus
-   * @param int $stage
-   */
-  public function transferVotes($from_cid, $surplus, $stage) {
-    echo "Attempting transfer from $from_cid\n"; // debugging
-
-    // @todo
   }
 
   /**

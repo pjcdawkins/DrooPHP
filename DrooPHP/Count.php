@@ -60,7 +60,7 @@ class DrooPHP_Count {
    *
    * @param array $options
    */
-  public function loadOptions(array $options) {
+  public function loadOptions(array $options = array()) {
     $options = array_merge($this->getDefaultOptions(), $options);
 
     $this->options = $options;
@@ -99,14 +99,16 @@ class DrooPHP_Count {
       $this->parseBallots();
     }
     catch (DrooPHP_Exception $e) {
+      $n = 10; // number of characters to dump for debugging
       $position = ftell($this->file);
-      fseek($this->file, -10, SEEK_CUR);
-      $snippet = fread($this->file, 10);
+      fseek($this->file, -$n, SEEK_CUR);
+      $snippet = fread($this->file, $n);
       throw new DrooPHP_Exception(
         sprintf(
-          "Error in BLT data, position %d: %s. Previous 10 characters: %s.",
+          "Error in BLT data, position %d: %s. Previous %d characters: %s.",
           $position,
           rtrim($e->getMessage(), '.'),
+          $n,
           str_replace(PHP_EOL, '\n', $snippet)
         )
       );
@@ -267,7 +269,7 @@ class DrooPHP_Count {
         throw new DrooPHP_Exception_InvalidBallot('The number of rankings exceeds the number of candidates.');
       }
       $ranking = array();
-      $position = 0;
+      $position = 1;
       $valid = TRUE;
       try {
         foreach ($parts as $part) {
@@ -277,7 +279,6 @@ class DrooPHP_Count {
             }
             continue;
           }
-          $position++;
           if (strpos($part, '=')) {
             if (!$this->options['allow_equal']) {
               throw new DrooPHP_Exception_InvalidBallot('Equal rankings are not permitted in this count.');
@@ -297,6 +298,7 @@ class DrooPHP_Count {
             continue;
           }
           $ranking[$position] = $part;
+          $position++;
         }
         if (empty($ranking)) {
           throw new DrooPHP_Exception_InvalidBallot('Empty ballot.');

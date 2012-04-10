@@ -39,9 +39,7 @@ abstract class DrooPHP_Method {
   /**
    * Run the election: this is the main, iterative method.
    */
-  public function run($stage = 1) {
-    $this->logStage($stage);
-  }
+  abstract public function run($stage = 1);
 
   /**
    * Log information about a voting stage, e.g. the number of votes for each
@@ -68,16 +66,6 @@ abstract class DrooPHP_Method {
   }
 
   /**
-   * Transfer the votes from a successful or defeated candidate to the other
-   * hopeful ones.
-   *
-   * @param mixed $from_cid
-   * @param int $surplus
-   * @param int $stage
-   */
-  abstract public function transferVotes($from_cid, $surplus, $stage);
-
-  /**
    * Test whether the election is complete.
    *
    * @return bool
@@ -91,6 +79,16 @@ abstract class DrooPHP_Method {
       $must_be_elected = $num_candidates;
     }
     return $election->num_filled_seats >= $must_be_elected;
+  }
+
+  /**
+   * Find the number of seats yet to be filled.
+   *
+   * @return int
+   */
+  public function getNumVacancies() {
+    $election = $this->count->election;
+    return $election->num_seats - $election->num_filled_seats;
   }
 
   /**

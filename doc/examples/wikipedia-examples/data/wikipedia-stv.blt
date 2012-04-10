@@ -1,0 +1,16 @@
+// This is the example from Wikipedia's article "Single transferable vote"
+// See http://en.wikipedia.org/wiki/Single_transferable_vote
+5 3
+4 1 0
+2 2 1 0
+8 3 4 0
+4 3 5 0
+1 4 0
+1 5 0
+0
+Orange
+Pear
+Chocolate
+Strawberry
+Sweets
+"Wikipedia example"
