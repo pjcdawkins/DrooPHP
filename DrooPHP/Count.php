@@ -20,11 +20,11 @@ class DrooPHP_Count {
    */
   public $file;
 
-  /** @var DrooPHP_Election */
-  public $election;
-
   /** @var array */
   public $options = array();
+
+  /** @var DrooPHP_Election */
+  public $election;
 
   /** @var int */
   protected $_ballot_first_line;
@@ -44,20 +44,24 @@ class DrooPHP_Count {
     }
     $this->election = new DrooPHP_Election;
     $this->parse();
+    fclose($this->file);
   }
 
   /**
    * Set up options for this election.
    *
    * Possible options:
-   *   equal => Whether or not to allow equal rankings (e.g. 2=3).
+   *   allow_invalid => Whether to continue counting despite encountering an invalid/spoiled ballot.
+   *   allow_equal => Whether to allow equal rankings (e.g. 2=3).
+   *   allow_repeat => Whether to allow repeat rankings (e.g. 3 2 2).
+   *   allow_skipped => Whether to allow skipped rankings (e.g. -).
    *   method => The name of a counting method class (must extend DrooPHP_Method).
    *   maxRounds => The maximum number of counting rounds (to prevent infinite loops).
    *
    * @param array $options
    */
   public function loadOptions(array $options) {
-    $options = array_merge($this->_getDefaultOptions(), $options);
+    $options = array_merge($this->getDefaultOptions(), $options);
 
     $this->options = $options;
   }
@@ -82,21 +86,29 @@ class DrooPHP_Count {
   /**
    * Parse the BLT file to get election information.
    *
-   * @see self::_parseHead()
-   * @see self::_parseTail()
-   * @see self::_parseBallots()
+   * @see self::parseHead()
+   * @see self::parseTail()
+   * @see self::parseBallots()
    *
    * @return void
    */
   public function parse() {
     try {
-      $this->_parseHead();
-      $this->_parseTail();
-      $this->_parseBallots();
+      $this->parseHead();
+      $this->parseTail();
+      $this->parseBallots();
     }
-    catch (Exception $e) {
+    catch (DrooPHP_Exception $e) {
+      $position = ftell($this->file);
+      fseek($this->file, -10, SEEK_CUR);
+      $snippet = fread($this->file, 10);
       throw new DrooPHP_Exception(
-        'Error in BLT data, position ' . ftell($this->file) . ': ' . $e->getMessage()
+        sprintf(
+          "Error in BLT data, position %d: %s. Previous 10 characters: %s.",
+          $position,
+          rtrim($e->getMessage(), '.'),
+          str_replace(PHP_EOL, '\n', $snippet)
+        )
       );
     }
   }
@@ -106,11 +118,10 @@ class DrooPHP_Count {
    *
    * @return void
    */
-  protected function _parseHead() {
-    $file = $this->file;
+  protected function parseHead() {
     $election = $this->election;
-    $i = 0;
-    while (($line = fgets($file)) !== FALSE && $i <= 2) {
+    $line_number = 0; // actually, this is the line number ignoring comments
+    while (($line = fgets($this->file)) !== FALSE && $line_number <= 2) {
       // Remove comments (starting with # or // until the end of the line).
       $line = preg_replace('/(\x23|\/\/).*/', '', $line);
       // Trim whitespace.
@@ -119,8 +130,8 @@ class DrooPHP_Count {
       if (!strlen($line)) {
         continue;
       }
-      $i++;
-      if ($i === 1) {
+      $line_number++;
+      if ($line_number === 1) {
         // First line should always be "num_candidates num_seats".
         $parts = explode(' ', $line);
         if (count($parts) != 2) {
@@ -129,7 +140,7 @@ class DrooPHP_Count {
         $election->num_candidates = (int) $parts[0];
         $election->num_seats = (int) $parts[1];
       }
-      else if ($i === 2) {
+      else if ($line_number === 2) {
         if (strpos($line, '-') === 0) {
           // If line 2 starts with a minus sign, it specifies the withdrawn candidate IDs.
           $withdrawn = explode(' -', substr($line, 1));
@@ -149,8 +160,7 @@ class DrooPHP_Count {
    *
    * @return void
    */
-  protected function _parseTail() {
-    $file = $this->file;
+  protected function parseTail() {
     $election = $this->election;
     $num_candidates = $election->num_candidates;
     /*
@@ -159,17 +169,17 @@ class DrooPHP_Count {
     */
     $lines_to_read = $num_candidates + 3;
     // Read the tail of the file.
-    $pos = -2;
+    $pos = -1;
     $tail = array();
     // Keep seeking backwards through the file until the number of lines left to read is 0.
     while ($lines_to_read > 0) {
       $char = NULL;
       // Keep seeking backwards through the line until finding a line feed character.
-      while ($char !== "\n" && fseek($file, $pos, SEEK_END) !== -1) {
-        $char = fgetc($file);
+      while ($char !== "\n" && fseek($this->file, $pos, SEEK_END) !== -1) {
+        $char = fgetc($this->file);
         $pos--;
       }
-      $line = fgets($file);
+      $line = fgets($this->file);
       // Remove comments (starting with # or // until the end of the line).
       $line = preg_replace('/(\x23|\/\/).*/', '', $line);
       // Trim whitespace.
@@ -213,111 +223,15 @@ class DrooPHP_Count {
   }
 
   /**
-   * Read the ballot lines, getting the number of votes per candidate at
-   * $preference_level, for a given candidate (chosen at the previous preference
-   * level).
-   *
-   * @param int $preference_level
-   *   The preference level for which to count votes.
-   * @param mixed $from_cid
-   *   The ID of the candidate from whom votes will be transferred.
-   *
-   * @return array
-   *   An array of votes, keyed by candidate ID.
-   */
-  public function getVoteRatio($preference_level, $from_cid = NULL) {
-    $file = $this->file;
-    rewind($file);
-    $election = $this->election;
-    $num_candidates = $election->num_candidates;
-    // Array of votes keyed by candidate ID.
-    $votes = array();
-    $i = 0;
-    while (($line = fgets($file)) !== FALSE) {
-      // Remove comments (starting with # or // until the end of the line).
-      $line = preg_replace('/(\x23|\/\/).*/', '', $line);
-      // Trim whitespace.
-      $line = trim($line);
-      // Skip blank lines.
-      if (!strlen($line)) {
-        continue;
-      }
-      $i++;
-      // Skip non-ballot lines.
-      if ($i < $this->_ballot_first_line) {
-        continue;
-      }
-      // Stop at 0.
-      if ($line === '0') {
-        break;
-      }
-      if (substr($line, -1) !== '0') {
-        throw new DrooPHP_Exception('Ballot lines must end with 0.');
-      }
-      // Skip the ballot IDs and 0 character.
-      $line = preg_replace('/\(.*?\)\s?/', '', $line);
-      $line = preg_replace('/\s0\b/', '', $line);
-      $parts = explode(' ', $line);
-      // The first part is always a ballot multiplier.
-      $multiplier = (int) array_shift($parts);
-      // If there isn't an item at this preference level, don't do anything.
-      if (!isset($parts[$preference_level - 1])) {
-        continue;
-      }
-      // Count only those where $from_cid is the ID of the previous level candidate.
-      if ($from_cid === NULL) {
-        throw new DrooPHP_Exception('Votes cannot be counted: no previous-level candidate specified.');
-      }
-      if ($parts[$preference_level - 2] != $from_cid) {
-        continue;
-      }
-      $item = $parts[$preference_level - 1];
-      // A - signifies a skipped ranking.
-      if ($item == '-') {
-        continue;
-      }
-      if (strpos($item, '=')) {
-        // If the item contains a = sign, it is an equal ranking (e.g. 1=2).
-        if (!$this->options['equal']) {
-          throw new DrooPHP_Exception('Equal rankings are not permitted in this count.');
-        }
-        $equated = array();
-        foreach (explode('=', $item) as $cid) {
-          if (in_array($cid, $equated)) {
-            throw new DrooPHP_Exception('Candidates cannot be ranked equal with themselves.');
-          }
-          $equated[] = $cid;
-          if (!isset($votes[$cid])) {
-            $votes[$cid] = 0;
-          }
-          $votes[$cid] += $multiplier;
-        }
-      }
-      else {
-        // Otherwise, the item is a candidate ID.
-        $cid = $item;
-        if (!isset($votes[$cid])) {
-          $votes[$cid] = 0;
-        }
-        $votes[$cid] += $multiplier;
-      }
-    }
-    return $votes;
-  }
-
-  /**
-   * Read the ballot lines of the BLT file, counting and validating ballot lines.
+   * Read the ballot lines of the BLT file, counting and validating.
    *
    * @return void
    */
-  protected function _parseBallots() {
-    $file = $this->file;
-    rewind($file);
+  protected function parseBallots() {
     $election = $this->election;
-    $num_candidates = $election->num_candidates;
-    $num_ballots = 0;
-    $i = 0;
-    while (($line = fgets($file)) !== FALSE) {
+    $line_number = 0; // actually, this is the line number ignoring comments
+    rewind($this->file);
+    while (($line = fgets($this->file)) !== FALSE) {
       // Remove comments (starting with # or // until the end of the line).
       $line = preg_replace('/(\x23|\/\/).*/', '', $line);
       // Trim whitespace.
@@ -326,69 +240,130 @@ class DrooPHP_Count {
       if (!strlen($line)) {
         continue;
       }
-      $i++;
+      $line_number++;
       // Skip non-ballot lines.
-      if ($i < $this->_ballot_first_line) {
+      if ($line_number < $this->_ballot_first_line) {
         continue;
       }
-      // Stop at 0.
+      // Stop at 0
       if ($line === '0') {
         break;
       }
       if (substr($line, -1) !== '0') {
-        throw new DrooPHP_Exception('Ballot lines must end with 0.');
+        throw new DrooPHP_Exception("Ballot lines must end with 0.");
       }
       // Skip the ballot IDs and 0 character.
       $line = preg_replace('/\(.*?\)\s?/', '', $line);
       $line = preg_replace('/\s0\b/', '', $line);
-      // Stop on finding equal rankings if they are not permitted.
-      if (!$this->options['equal'] && strpos($line, '=') !== FALSE) {
-        throw new DrooPHP_Exception('Equal rankings are not permitted in this count.');
-      }
       // Split the line into constituent parts, separated by spaces.
       $parts = explode(' ', $line);
-      // The first part is always a ballot multiplier. All other parts are rankings.
+      // The first part is always a ballot multiplier.
       $multiplier = (int) array_shift($parts);
-      $num_ballots += $multiplier;
-      // Make sure that it doesn't contain more rankings than the total number of candidates.
-      if (count($parts) > $num_candidates) {
-        throw new DrooPHP_Exception('Too many preferences.');
+      // All the other parts are the actual ranked candidates.
+      // Save a $key for later use in sorting and identifying the ballot.
+      $key = implode('/', $parts);
+      // Make sure that there aren't more rankings than the total number of candidates.
+      if (count($parts) > $election->num_candidates) {
+        throw new DrooPHP_Exception_InvalidBallot('The number of rankings exceeds the number of candidates.');
       }
-      // Count the first-preference votes.
-      $item = $parts[0];
-      // A - signifies a skipped ranking.
-      if ($item == '-') {
-        continue;
-      }
-      if (strpos($item, '=')) {
-        // If the item contains a = sign, it is an equal ranking (e.g. 1=2).
-        $equated = array();
-        foreach (explode('=', $item) as $cid) {
-          if (in_array($cid, $equated)) {
-            throw new DrooPHP_Exception('Candidates cannot be ranked equal with themselves.');
+      $ranking = array();
+      $position = 0;
+      $valid = TRUE;
+      try {
+        foreach ($parts as $part) {
+          $this->validateBallotPart($part); // Throws an exception on failure.
+          if ($part == '-') {
+            continue;
           }
-          $equated[] = $cid;
-          $candidate = $election->getCandidate($cid);
-          $candidate->votes += $multiplier;
+          $position++;
+          if (strpos($part, '=')) {
+            $part = explode('=', $part);
+          }
+          if (in_array($part, $ranking)) {
+            if (!$this->options['allow_repeat']) {
+              throw new DrooPHP_Exception_InvalidBallot('Repeat rankings are not allowed.');
+            }
+            continue;
+          }
+          $ranking[$position] = $part;
+        }
+        // Empty ballots (possible with skipped rankings) don't count at all.
+        if (empty($ranking)) {
+          continue;
         }
       }
+      catch (DrooPHP_Exception_InvalidBallot $e) {
+        $valid = FALSE;
+        if (!$this->options['allow_invalid']) {
+          throw new DrooPHP_Exception($e->getMessage(), $e->getCode(), $e);
+        }
+      }
+      if (!$valid) {
+        // The ballot is invalid: increment the total number of invalid ballots.
+        $election->num_invalid_ballots += $multiplier;
+        continue;
+      }
+      // The ballot is valid: increment the total number of valid ballots.
+      $election->num_valid_ballots += $multiplier;
+      if (isset($election->ballots[$key])) {
+        // If an identical ballot already exists in the election, increase its value by $multiplier.
+        $election->ballots[$key]->value += $multiplier;
+      }
       else {
-        // Otherwise, the item is a candidate ID.
-        $cid = $item;
-        $candidate = $election->getCandidate($cid);
-        $candidate->votes += $multiplier;
+        // Otherwise, register this ballot with the initial value $multiplier.
+        $election->ballots[$key] = new DrooPHP_Ballot($ranking, $multiplier);
       }
     }
-    $election->num_ballots = (int) $num_ballots;
   }
 
-  protected function _getDefaultOptions() {
-    $options = array(
-      'equal' => TRUE,
+  /**
+   * Validate part of a ballot.
+   *
+   * @throws DrooPHP_Exception
+   * @param string $part
+   * @return void
+   */
+  protected function validateBallotPart($part) {
+    if (strpos($part, '=')) {
+      if (!$this->options['allow_equal']) {
+        throw new DrooPHP_Exception_InvalidBallot('Equal rankings are not permitted in this count.');
+      }
+      foreach (explode('=', $part) as $cid) {
+        $this->validateCandidateId($cid);
+      }
+    }
+    else if ($part == '-') {
+      if (!$this->options['allow_skipped']) {
+        throw new DrooPHP_Exception_InvalidBallot('Skipped rankings are not permitted in this count.');
+      }
+    }
+    else {
+      $this->validateCandidateId($part);
+    }
+  }
+
+  /**
+   * Check whether a candidate ID is valid.
+   *
+   * @throws DrooPHP_Exception
+   * @param string $cid
+   * @return void
+   */
+  protected function validateCandidateId($cid) {
+    if (!isset($this->election->candidates[$cid])) {
+      throw new DrooPHP_Exception_InvalidBallot("The candidate '$cid' does not exist.");
+    }
+  }
+
+  protected function getDefaultOptions() {
+    return array(
+      'allow_equal' => 0,
+      'allow_skipped' => 0,
+      'allow_repeat' => 0,
+      'allow_invalid' => 1,
       'method' => 'DrooPHP_Method',
       'maxRounds' => 100,
     );
-    return $options;
   }
 
 }

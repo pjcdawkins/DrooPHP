@@ -21,27 +21,35 @@ class DrooPHP_Election {
   public $comment;
 
   /**
-   * An array of elected candidates.
-   */
-  public $elected = array();
-
-  /**
    * The number of seats (vacancies) to be filled.
    * @var int
    */
-  public $num_seats;
+  public $num_seats = 0;
+
+  /**
+   * The total number of valid ballots.
+   * @var int
+   */
+  public $num_valid_ballots = 0;
+
+  /**
+   * The total number of invalid ballots.
+   * @var int
+   */
+  public $num_invalid_ballots = 0;
+
+  /**
+   * The ballots: array of DrooPHP_Ballot objects.
+   *
+   * @var array
+   */
+  public $ballots = array();
 
   /**
    * The total number of candidates standing.
    * @var int
    */
-  public $num_candidates;
-
-  /**
-   * The total number of ballots.
-   * @var int
-   */
-  public $num_ballots;
+  public $num_candidates = 0;
 
   /**
    * The candidates: array of DrooPHP_Candidate objects keyed by candidate ID.
@@ -49,6 +57,7 @@ class DrooPHP_Election {
    * @var array
    */
   public $candidates = array();
+
 
   /**
    * The set of withdrawn candidate IDs.
