@@ -51,6 +51,14 @@ class DrooPHP_Election {
   public $num_invalid_ballots = 0;
 
   /**
+   * The total number of exhausted ballots. These are ballots from which votes
+   * could not be transferred because no further preferences were stated.
+   *
+   * @var int
+   */
+  public $num_exhausted_ballots = 0;
+
+  /**
    * The ballots: array of DrooPHP_Ballot objects.
    *
    * @var array

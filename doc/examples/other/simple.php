@@ -1,6 +1,5 @@
 <?php
-require '../../../DrooPHP.php';
-DrooPHP::init();
+require '../../../library.php';
 
 $file = 'data/simple.blt';
 
@@ -9,4 +8,4 @@ $method = new DrooPHP_Method_Wikipedia($count);
 
 $method->run();
 
-echo '<pre>' . print_r($method, true) . '</pre>';
+echo '<pre>' . htmlspecialchars(print_r($method, true)) . '</pre>';

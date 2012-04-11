@@ -65,6 +65,15 @@ class DrooPHP_Method_Wikipedia extends DrooPHP_Method {
         $ballot->last_used_level = 1;
       }
       $this->logStage(0);
+
+      // If there are any withdrawn candidates, transfer their votes.
+      $withdrawn = $election->getCandidatesByState(DrooPHP_Candidate::STATE_WITHDRAWN);
+      foreach ($withdrawn as $candidate) {
+        if ($candidate->votes) {
+          $candidate->log(sprintf('Withdrawn candidate: all %d votes will be transferred.', $candidate->votes));
+          $this->transferVotes($candidate->votes, $candidate);
+        }
+      }
     }
 
     // Elect candidates
@@ -79,9 +88,9 @@ class DrooPHP_Method_Wikipedia extends DrooPHP_Method {
         $election->num_filled_seats++;
         $anyone_elected = TRUE;
         if ($candidate->votes > $quota) {
-          $candidate->surplus = $candidate->votes - $quota;
-          $candidate->log(sprintf('Surplus of %d votes will be transferred.', $candidate->surplus));
-          $this->transferVotes($candidate->surplus, $candidate);
+          $surplus = $candidate->votes - $quota;
+          $candidate->log(sprintf('Surplus of %d votes will be transferred.', $surplus));
+          $this->transferVotes($surplus, $candidate);
         }
       }
     }
@@ -92,10 +101,12 @@ class DrooPHP_Method_Wikipedia extends DrooPHP_Method {
       if ($candidate) {
         $candidate->state = DrooPHP_Candidate::STATE_DEFEATED;
         $candidate->log(sprintf('Defeated at stage %d.', $stage));
-        $candidate->log(sprintf('All %d votes will be transferred.', $candidate->votes));
-        $this->transferVotes($candidate->votes, $candidate);
-        if ($this->count->options['allow_equal']) {
-          $candidate->votes = round($candidate->votes, 0); // compensate for rounding errors in transfer with equal rankings
+        if ($candidate->votes) {
+          $candidate->log(sprintf('All %d votes will be transferred.', $candidate->votes));
+          $this->transferVotes($candidate->votes, $candidate);
+          if ($this->count->options['allow_equal']) {
+            $candidate->votes = round($candidate->votes, 0); // compensate for rounding errors in transfer with equal rankings
+          }
         }
       }
     }
@@ -174,7 +185,8 @@ class DrooPHP_Method_Wikipedia extends DrooPHP_Method {
         continue;
       }
       if (!isset($ballot->ranking[$last_used_level + 1])) {
-        // No preference given.
+        // No preference given. This is an exhausted ballot.
+        $election->num_exhausted_ballots++;
         continue;
       }
       $to_cids = $ballot->ranking[$last_used_level + 1];
@@ -208,8 +220,8 @@ class DrooPHP_Method_Wikipedia extends DrooPHP_Method {
       $to_candidate = $hopefuls[$to_cid];
       $from_candidate->votes -= $amount;
       $to_candidate->votes += $amount;
-      $from_candidate->log(sprintf('Transferred %d votes to candidate "%s".', $amount, $to_cid));
-      $to_candidate->log(sprintf('Received %d votes from candidate "%s".', $amount, $from_candidate->cid));
+      $from_candidate->log(sprintf('Transferred %s votes to candidate "%s".', $amount, $to_cid));
+      $to_candidate->log(sprintf('Received %s votes from candidate "%s".', $amount, $from_candidate->cid));
     }
   }
 

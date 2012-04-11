@@ -30,9 +30,6 @@ class DrooPHP_Candidate {
   /** @var int */
   public $votes = 0;
 
-  /** @var float */
-  public $surplus = 0;
-
   /** @var int */
   public $position;
 
