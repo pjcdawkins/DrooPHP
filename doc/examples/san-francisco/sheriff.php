@@ -14,4 +14,6 @@ $count = new DrooPHP_Count($file, $options);
 $method = new DrooPHP_Method_Wikipedia($count);
 $method->run();
 
-echo '<pre>' . htmlspecialchars(print_r($method, true)) . '</pre>';
+header('Content-Type: text/plain; charset=UTF-8');
+
+print_r($method);

@@ -30,9 +30,6 @@ class DrooPHP_Candidate {
   /** @var int */
   public $votes = 0;
 
-  /** @var int */
-  public $position;
-
   /** @var array */
   public $messages = array(); // @todo move messages into proper data
 

@@ -60,8 +60,9 @@ abstract class DrooPHP_Method {
       'state' => array(), // array of states keyed by candidate ID
     );
     foreach ($this->count->election->candidates as $cid => $candidate) {
-      $log['votes'][$cid] = $candidate->votes;
-      $log['state'][$cid] = $candidate->state;
+      $key = $cid . '-' . $candidate->name;
+      $log['votes'][$key] = $candidate->votes;
+      $log['state'][$key] = $candidate->state;
     }
   }
 

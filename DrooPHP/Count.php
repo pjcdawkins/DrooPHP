@@ -263,7 +263,7 @@ class DrooPHP_Count {
       $multiplier = (int) array_shift($parts);
       // All the other parts are the actual ranked candidates.
       // Save a $key for later use in sorting and identifying the ballot.
-      $key = implode('/', $parts);
+      $key = implode(' ', $parts);
       // Make sure that there aren't more rankings than the total number of candidates.
       if (count($parts) > $election->num_candidates) {
         throw new DrooPHP_Exception_InvalidBallot('The number of rankings exceeds the number of candidates.');

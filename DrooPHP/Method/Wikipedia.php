@@ -64,14 +64,15 @@ class DrooPHP_Method_Wikipedia extends DrooPHP_Method {
         }
         $ballot->last_used_level = 1;
       }
-      $this->logStage(0);
+
+      $this->logStage('Start of count');
 
       // If there are any withdrawn candidates, transfer their votes.
       $withdrawn = $election->getCandidatesByState(DrooPHP_Candidate::STATE_WITHDRAWN);
       foreach ($withdrawn as $candidate) {
         if ($candidate->votes) {
           $candidate->log(sprintf('Withdrawn candidate: all %d votes will be transferred.', $candidate->votes));
-          $this->transferVotes($candidate->votes, $candidate);
+          $this->transferVotes($candidate->votes, $candidate, $stage);
         }
       }
     }
@@ -84,26 +85,25 @@ class DrooPHP_Method_Wikipedia extends DrooPHP_Method {
       // A candidate is elected if their votes equal or exceed the quota.
       if ($candidate->votes >= $quota) {
         $candidate->state = DrooPHP_Candidate::STATE_ELECTED;
-        $candidate->log(sprintf('Elected at stage %d.', $stage));
         $election->num_filled_seats++;
         $anyone_elected = TRUE;
-        if ($candidate->votes > $quota) {
-          $surplus = $candidate->votes - $quota;
-          $candidate->log(sprintf('Surplus of %d votes will be transferred.', $surplus));
-          $this->transferVotes($surplus, $candidate);
+        $surplus = $candidate->votes - $quota;
+        $candidate->log(sprintf('Elected at stage %d, with a surplus of %s votes.', $stage, $surplus));
+        if ($surplus > 0 && !$this->isComplete()) {
+          $this->transferVotes($surplus, $candidate, $stage);
         }
       }
     }
 
-    // Wikipedia: 3. If no one new meets the quota, the candidate with the fewest votes is eliminated and that candidate's votes are transferred.
+    // Eliminate candidates.
+    // "If no one new meets the quota, the candidate with the fewest votes is eliminated and that candidate's votes are transferred."
     if (!$anyone_elected) {
       $candidate = $this->findDefeatableCandidate();
       if ($candidate) {
         $candidate->state = DrooPHP_Candidate::STATE_DEFEATED;
-        $candidate->log(sprintf('Defeated at stage %d.', $stage));
-        if ($candidate->votes) {
-          $candidate->log(sprintf('All %d votes will be transferred.', $candidate->votes));
-          $this->transferVotes($candidate->votes, $candidate);
+        $candidate->log(sprintf('Defeated at stage %d, with %s votes.', $stage, $candidate->votes));
+        if ($candidate->votes && !$this->isComplete()) {
+          $this->transferVotes($candidate->votes, $candidate, $stage);
           if ($this->count->options['allow_equal']) {
             $candidate->votes = round($candidate->votes, 0); // compensate for rounding errors in transfer with equal rankings
           }
@@ -116,7 +116,7 @@ class DrooPHP_Method_Wikipedia extends DrooPHP_Method {
     if (count($hopefuls) == $this->getNumVacancies()) {
       foreach ($hopefuls as $candidate) {
         $candidate->state = DrooPHP_Candidate::STATE_ELECTED;
-        $candidate->log(sprintf('Elected at stage %d (by default).', $stage));
+        $candidate->log(sprintf('Elected at stage %d, by default.', $stage));
         $election->num_filled_seats++;
       }
     }
@@ -124,11 +124,11 @@ class DrooPHP_Method_Wikipedia extends DrooPHP_Method {
       // If there are no remaining vacancies, all the remaining candidates are defeated.
       foreach ($hopefuls as $candidate) {
         $candidate->state = DrooPHP_Candidate::STATE_DEFEATED;
-        $candidate->log(sprintf('Defeated at stage %d (by default).', $stage));
+        $candidate->log(sprintf('Defeated at stage %d, by default.', $stage));
       }
     }
 
-    $this->logStage($stage);
+    $this->logStage("End of stage $stage");
 
     // Proceed to the next stage or stop if the election is complete.
     if ($this->isComplete()) {
@@ -165,15 +165,11 @@ class DrooPHP_Method_Wikipedia extends DrooPHP_Method {
   /**
    * Transfer a candidate's votes or surplus to other hopefuls.
    *
-   * @param float $num
-   *   The number of votes to transfer.
-   * @param DrooPHP_Candidate $from_candidate
-   * @param mixed $from_cid
-   *   The ID of $from_candidate.
-   * @param int $from_preference_level
-   *   The preference level at which $from_candidate was elected.
+   * @param float $num_to_transfer
+   * @param DrooPHP_Candidate $from_candidate.
+   * @param int $stage
    */
-  public function transferVotes($num_to_transfer, DrooPHP_Candidate $from_candidate) {
+  public function transferVotes($num_to_transfer, DrooPHP_Candidate $from_candidate, $stage) {
     $election = $this->count->election;
     $hopefuls = $election->getCandidatesByState(DrooPHP_Candidate::STATE_HOPEFUL);
     $votes = array();
@@ -220,8 +216,8 @@ class DrooPHP_Method_Wikipedia extends DrooPHP_Method {
       $to_candidate = $hopefuls[$to_cid];
       $from_candidate->votes -= $amount;
       $to_candidate->votes += $amount;
-      $from_candidate->log(sprintf('Transferred %s votes to candidate "%s".', $amount, $to_cid));
-      $to_candidate->log(sprintf('Received %s votes from candidate "%s".', $amount, $from_candidate->cid));
+      $from_candidate->log(sprintf('Transferred %s votes to %s.', $amount, $to_candidate->name, $stage));
+      $to_candidate->log(sprintf('Received %s votes from %s at stage %d.', $amount, $from_candidate->name, $stage));
     }
   }
 
