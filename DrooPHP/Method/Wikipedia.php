@@ -44,34 +44,24 @@ class DrooPHP_Method_Wikipedia extends DrooPHP_Method {
 
     // First stage.
     if ($stage == 1) {
-      // Count the first preference votes and add them to each candidate
-      $total = 0;
+      // Count the first preference votes and add them to each candidate.
       foreach ($election->ballots as $ballot) {
-        $first_preference = $ballot->ranking[1];
-        if (is_array($first_preference)) {
-          // Deal with equal rankings (this can be dealt with as an edge case).
-          $num = count($first_preference);
-          foreach ($first_preference as $cid) {
-            $candidate = $election->getCandidate($cid);
-            $candidate->votes += (1 / $num) * $ballot->value;
-            $total += (1 / $num) * $ballot->value;
-          }
-        }
-        else {
-          $candidate = $election->getCandidate($first_preference);
-          $candidate->votes += $ballot->value;
-          $total += $ballot->value;
+        // The vote is an array of one or more candidate IDs (usually just one, unless equal rankings are allowed).
+        $first_preference = (array) $ballot->ranking[1];
+        $num_equal = count($first_preference);
+        foreach ($first_preference as $cid) {
+          $candidate = $election->getCandidate($cid);
+          // The worth of a vote is inversly proportional to the number of equal rankings in the vote, e.g. for B=C both B and C receive half a vote.
+          $candidate->votes += (1 / $num_equal) * $ballot->value;
         }
         $ballot->last_used_level = 1;
       }
-
-      $this->logStage('Start of count');
-
+      $this->logStage(0);
       // If there are any withdrawn candidates, transfer their votes.
       $withdrawn = $election->getCandidatesByState(DrooPHP_Candidate::STATE_WITHDRAWN);
       foreach ($withdrawn as $candidate) {
         if ($candidate->votes) {
-          $candidate->log(sprintf('Withdrawn candidate: all %d votes will be transferred.', $candidate->votes));
+          $this->logChange($candidate, sprintf('Withdrawn: all %d votes will be transferred.', $candidate->votes), $stage);
           $this->transferVotes($candidate->votes, $candidate, $stage);
         }
       }
@@ -88,7 +78,7 @@ class DrooPHP_Method_Wikipedia extends DrooPHP_Method {
         $election->num_filled_seats++;
         $anyone_elected = TRUE;
         $surplus = $candidate->votes - $quota;
-        $candidate->log(sprintf('Elected at stage %d, with a surplus of %s votes.', $stage, $surplus));
+        $this->logChange($candidate, sprintf('Elected at stage %d, with a surplus of %s votes.', $stage, $surplus), $stage);
         if ($surplus > 0 && !$this->isComplete()) {
           $this->transferVotes($surplus, $candidate, $stage);
         }
@@ -101,7 +91,7 @@ class DrooPHP_Method_Wikipedia extends DrooPHP_Method {
       $candidate = $this->findDefeatableCandidate();
       if ($candidate) {
         $candidate->state = DrooPHP_Candidate::STATE_DEFEATED;
-        $candidate->log(sprintf('Defeated at stage %d, with %s votes.', $stage, $candidate->votes));
+        $this->logChange($candidate, sprintf('Defeated at stage %d, with %s votes.', $stage, $candidate->votes), $stage);
         if ($candidate->votes && !$this->isComplete()) {
           $this->transferVotes($candidate->votes, $candidate, $stage);
           if ($this->count->options['allow_equal']) {
@@ -113,22 +103,23 @@ class DrooPHP_Method_Wikipedia extends DrooPHP_Method {
 
     $hopefuls = $election->getCandidatesByState(DrooPHP_Candidate::STATE_HOPEFUL);
     // If there are as many seats as remaining candidates, all the remaining candidates are elected.
-    if (count($hopefuls) == $this->getNumVacancies()) {
+    $num_vacancies = $this->getNumVacancies();
+    if (count($hopefuls) == $num_vacancies) {
       foreach ($hopefuls as $candidate) {
         $candidate->state = DrooPHP_Candidate::STATE_ELECTED;
-        $candidate->log(sprintf('Elected at stage %d, by default.', $stage));
+        $this->logChange($candidate, sprintf('Elected at stage %d, by default.', $stage), $stage);
         $election->num_filled_seats++;
       }
     }
-    else if ($this->getNumVacancies() == 0) {
-      // If there are no remaining vacancies, all the remaining candidates are defeated.
+    // If there are no remaining vacancies, all the remaining candidates are defeated.
+    else if ($num_vacancies == 0) {
       foreach ($hopefuls as $candidate) {
         $candidate->state = DrooPHP_Candidate::STATE_DEFEATED;
-        $candidate->log(sprintf('Defeated at stage %d, by default.', $stage));
+        $this->logChange($candidate, sprintf('Defeated at stage %d, by default.', $stage), $stage);
       }
     }
 
-    $this->logStage("End of stage $stage");
+    $this->logStage($stage);
 
     // Proceed to the next stage or stop if the election is complete.
     if ($this->isComplete()) {
@@ -216,8 +207,8 @@ class DrooPHP_Method_Wikipedia extends DrooPHP_Method {
       $to_candidate = $hopefuls[$to_cid];
       $from_candidate->votes -= $amount;
       $to_candidate->votes += $amount;
-      $from_candidate->log(sprintf('Transferred %s votes to %s.', $amount, $to_candidate->name, $stage));
-      $to_candidate->log(sprintf('Received %s votes from %s at stage %d.', $amount, $from_candidate->name, $stage));
+      $this->logChange($from_candidate, sprintf('Transferred %s votes to %s.', $amount, $to_candidate->name, $stage), $stage);
+      $this->logChange($to_candidate, sprintf('Received %s votes from %s.', $amount, $from_candidate->name, $stage), $stage);
     }
   }
 

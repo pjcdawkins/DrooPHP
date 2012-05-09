@@ -13,10 +13,10 @@
  */
 class DrooPHP_Candidate {
 
-  const STATE_ELECTED = 'elected';
-  const STATE_HOPEFUL = 'hopeful';
-  const STATE_WITHDRAWN = 'withdrawn';
-  const STATE_DEFEATED = 'defeated';
+  const STATE_ELECTED = 2;
+  const STATE_HOPEFUL = 1;
+  const STATE_WITHDRAWN = 0;
+  const STATE_DEFEATED = -1;
 
   /** @var string */
   public $name;
@@ -29,9 +29,6 @@ class DrooPHP_Candidate {
 
   /** @var int */
   public $votes = 0;
-
-  /** @var array */
-  public $messages = array(); // @todo move messages into proper data
 
   /**
    * Constructor.
@@ -48,14 +45,21 @@ class DrooPHP_Candidate {
   }
 
   /**
-   * Log a message about the candidate.
+   * Get the candidate's state as an English string.
    *
-   * @param string $message
-   *
-   * @return void
+   * @return string
    */
-  public function log($message) {
-    $this->messages[] = (string) $message;
+  public function getFormattedState() {
+    switch ($this->state) {
+      case self::STATE_DEFEATED:
+        return 'Defeated';
+      case self::STATE_WITHDRAWN:
+        return 'Withdrawn';
+      case self::STATE_ELECTED:
+        return 'Elected';
+      case self::STATE_HOPEFUL:
+        return 'Hopeful';
+    }
   }
 
 }

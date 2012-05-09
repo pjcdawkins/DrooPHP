@@ -50,20 +50,40 @@ abstract class DrooPHP_Method {
    * @return void
    */
   public function logStage($stage) {
-    if (isset($this->stages[$stage])) {
-      throw new DrooPHP_Exception("Already written log for stage $stage.");
+    if (!isset($this->stages[$stage])) {
+      $this->stages[$stage] = array(
+        'votes' => array(),
+        'state' => array(),
+        'changes' => array(),
+      );
     }
-    $this->stages[$stage] = array();
     $log = &$this->stages[$stage];
-    $log = array(
-      'votes' => array(), // array of votes keyed by candidate ID
-      'state' => array(), // array of states keyed by candidate ID
-    );
     foreach ($this->count->election->candidates as $cid => $candidate) {
       $key = $cid . '-' . $candidate->name;
-      $log['votes'][$key] = $candidate->votes;
-      $log['state'][$key] = $candidate->state;
+      $log['votes'][$key] = round($candidate->votes, 2);
+      $log['state'][$key] = $candidate->getFormattedState();
     }
+  }
+
+  /**
+   * Log a change about a candidate.
+   *
+   * @param DrooPHP_Candidate $candidate
+   * @param string $message
+   * @param int $stage
+   */
+  public function logChange(DrooPHP_Candidate $candidate, $message, $stage) {
+    if (!isset($this->stages[$stage])) {
+      $this->stages[$stage] = array(
+        'votes' => array(),
+        'state' => array(),
+        'changes' => array(),
+      );
+    }
+    if (!isset($this->stages[$stage]['changes'][$candidate->cid])) {
+      $this->stages[$stage]['changes'][$candidate->cid] = array();
+    }
+    $this->stages[$stage]['changes'][$candidate->cid][] = $message;
   }
 
   /**
