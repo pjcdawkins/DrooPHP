@@ -17,6 +17,8 @@ spl_autoload_register('droophp_autoloader');
  * @return void
  */
 function droophp_autoloader($class_name) {
-  $filename = dirname(__FILE__) . '/' . str_replace('_', '/', $class_name) . '.php';
-  include($filename);
+  if (strpos(strtolower($class_name), 'droophp_') === 0) {
+    $filename = dirname(__FILE__) . '/' . str_replace('_', '/', $class_name) . '.php';
+    include($filename);
+  }
 }
