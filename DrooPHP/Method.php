@@ -59,9 +59,8 @@ abstract class DrooPHP_Method {
     }
     $log = &$this->stages[$stage];
     foreach ($this->count->election->candidates as $cid => $candidate) {
-      $key = $cid . '-' . $candidate->name;
-      $log['votes'][$key] = round($candidate->votes, 2);
-      $log['state'][$key] = $candidate->getFormattedState();
+      $log['votes'][$cid] = round($candidate->votes, 2);
+      $log['state'][$cid] = $candidate->getFormattedState();
     }
   }
 
