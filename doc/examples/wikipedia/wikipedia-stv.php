@@ -3,8 +3,8 @@ require '../../../library.php';
 
 $file = 'data/wikipedia-stv.blt';
 
-$count = new DrooPHP_Count($file);
-$method = new DrooPHP_Method_Wikipedia($count);
+$count = new DrooPHP\Count($file);
+$method = new DrooPHP\Method\Wikipedia($count);
 
 $method->run();
 

@@ -1,24 +1,10 @@
 <?php
 /**
  * @file
- *   Main library file for DrooPHP. You'll need to include this file to load the library.
- * @package
- *   DrooPHP
+ * Include this file to load the DrooPHP library.
  */
 
-// Register the autoloader.
-spl_autoload_register('droophp_autoloader');
-
-/**
- * Autoloader callback function.
- *
- * @param string $class_name
- *
- * @return void
- */
-function droophp_autoloader($class_name) {
-  if (strpos(strtolower($class_name), 'droophp_') === 0) {
-    $filename = dirname(__FILE__) . '/' . str_replace('_', '/', $class_name) . '.php';
-    include($filename);
-  }
-}
+// Include the autoloader, and register DrooPHP.
+require 'lib/SplClassLoader.php';
+$classLoader = new SplClassLoader('DrooPHP', dirname(__FILE__) . '/lib');
+$classLoader->register(true);
