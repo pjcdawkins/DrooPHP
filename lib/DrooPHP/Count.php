@@ -1,6 +1,7 @@
 <?php
 namespace DrooPHP;
 
+use \Exception as Exception;
 use DrooPHP\Exception\InvalidBallotException;
 use DrooPHP\Method;
 
@@ -28,8 +29,6 @@ class Count
 
     /**
      * Constructor: initiate a count by loading a BLT file.
-     *
-     * @todo allow passing in a complete election instead of a file, perhaps.
      */
     public function __construct($filename, $options = array())
     {
@@ -49,12 +48,13 @@ class Count
      * Set up options for this election.
      *
      * Possible options:
-     *     allow_invalid => Whether to continue counting despite encountering an invalid/spoiled ballot.
-     *     allow_equal => Whether to allow equal rankings (e.g. 2=3).
-     *     allow_repeat => Whether to allow repeat rankings (e.g. 3 2 2).
-     *     allow_skipped => Whether to allow skipped rankings (e.g. -).
-     *     method => The name of a counting method class (must extend Method).
-     *     maxStages => The maximum number of counting stages (to prevent infinite loops).
+     *   allow_invalid  Whether to continue counting despite encountering an
+     *                  invalid or spoiled ballot.
+     *   allow_equal    Whether to allow equal rankings (e.g. 2=3).
+     *   allow_repeat   Whether to allow repeat rankings (e.g. 3 2 2).
+     *   allow_skipped  Whether to allow skipped rankings (e.g. -).
+     *   method         The name of a class extending \DrooPHP\Method.
+     *   maxStages      The maximum number of counting stages.
      *
      * @param array $options
      */
@@ -118,7 +118,7 @@ class Count
     protected function parseHead()
     {
         $election = $this->election;
-        $line_number = 0; // actually, this is the line number ignoring comments
+        $line_number = 0;
         while (($line = fgets($this->file)) !== FALSE && $line_number <= 2) {
             // Remove comments (starting with # or // until the end of the line).
             $line = preg_replace('/(\x23|\/\/).*/', '', $line);
@@ -140,9 +140,11 @@ class Count
             }
             else if ($line_number === 2) {
                 if (strpos($line, '-') === 0) {
-                    // If line 2 starts with a minus sign, it specifies the withdrawn candidate IDs.
+                    // If line 2 starts with a minus sign, it specifies the
+                    // withdrawn candidate IDs.
                     $withdrawn = explode(' -', substr($line, 1));
-                    $withdrawn = array_map('intval', $withdrawn); // Candidate IDs are always integers.
+                    // Candidate IDs are always integers.
+                    $withdrawn = array_map('intval', $withdrawn);
                     $election->withdrawn = $withdrawn;
                     $this->ballot_first_line = 3;
                 }
@@ -160,24 +162,26 @@ class Count
     {
         $election = $this->election;
         $num_candidates = $election->num_candidates;
-        /*
-         There can be a maximum of $num_candidates + 3 tail lines (each candidate
-         is named and then there are optionally election, title, and source).
-        */
+        // There can be a maximum of $num_candidates + 3 tail lines: each
+        // candidate's name is given, and then there are optionally election,
+        // title, and source.
         $lines_to_read = $num_candidates + 3;
         // Read the tail of the file.
         $pos = -1;
         $tail = array();
-        // Keep seeking backwards through the file until the number of lines left to read is 0.
+        // Keep seeking backwards through the file until the number of lines
+        // left to read is 0.
         while ($lines_to_read > 0) {
             $char = NULL;
-            // Keep seeking backwards through the line until finding a line feed character.
+            // Keep seeking backwards through the line until finding a line feed
+            // character.
             while ($char !== "\n" && fseek($this->file, $pos, SEEK_END) !== -1) {
                 $char = fgetc($this->file);
                 $pos--;
             }
             $line = fgets($this->file);
-            // Remove comments (starting with # or // until the end of the line).
+            // Remove comments (starting with # or // until the end of the
+            // line).
             $line = preg_replace('/(\x23|\/\/).*/', '', $line);
             // Trim whitespace.
             $line = trim($line);
@@ -185,17 +189,16 @@ class Count
             if (!strlen($line)) {
                 continue;
             }
-            /*
-             A line containing just 0 marks the end of the ballot lines, so stop
-             before reading anything before it (remember we're reading backwards).
-            */
+            // A line containing just 0 marks the end of the ballot lines, so
+            // stop before reading anything before it (remember we're reading
+            // backwards).
             if ($line === '0') {
                 break;
             }
             $tail[] = $line;
             $lines_to_read--;
         }
-        // Reverse so we can read forwards (because optional lines are at the end).
+        // Reverse so we can read forwards (optional lines are at the end).
         $tail = array_reverse($tail);
         // The minimum number of lines is the number of candidates.
         if (count($tail) < $num_candidates) {
@@ -205,7 +208,7 @@ class Count
             $info = trim($line, '"');
             if ($key < $num_candidates) {
                 // This line is a candidate.
-                $election->addCandidate($info); // @todo support non-integer candidate IDs
+                $election->addCandidate($info);
             }
             else if ($election->title === NULL) {
                 $election->title = $info;
@@ -229,7 +232,9 @@ class Count
         rewind($this->file);
         while (($line = fgets($this->file)) !== FALSE) {
             // Remove comments (starting with # or // until the end of the line).
-            $line = preg_replace('/(\x23|\/\/).*/', '', $line);
+            if (strpos($line, '#') !== FALSE || strpos($line, '//') !== FALSE) {
+                $line = preg_replace('/(\x23|\/\/).*/', '', $line);
+            }
             // Trim whitespace.
             $line = trim($line);
             // Skip blank lines.
@@ -248,10 +253,11 @@ class Count
             if (substr($line, -1) !== '0') {
                 throw new Exception("Ballot lines must end with 0.");
             }
-            // Skip the ballot IDs and 0 character.
-            $line = preg_replace('/\(.*?\)\s?/', '', $line);
-            $line = preg_replace('/\s0\b/', '', $line);
-            // Split the line into constituent parts, separated by spaces.
+            // Skip any ballot IDs at the beginning of the line.
+            $line = preg_replace('/^\([^\)]*\)\s?/', '', $line);
+            // Remove the 0 character from the end of the line.
+            $line = rtrim($line, ' 0');
+            // Split the rest of the line into constituent parts, separated by spaces.
             $parts = explode(' ', $line);
             // The first part is always a ballot multiplier.
             $multiplier = (int) array_shift($parts);
@@ -263,36 +269,47 @@ class Count
                 throw new InvalidBallotException('The number of rankings exceeds the number of candidates.');
             }
             $ranking = array();
-            $position = 1;
+            $preference = 1;
             $valid = TRUE;
             try {
+                // Loop through all the individual parts of the ballot,
+                // validating them and adding them to $ranking.
                 foreach ($parts as $part) {
+                    // Deal with skipped rankings: just move on.
                     if ($part == '-') {
                         if (!$this->options['allow_skipped']) {
                             throw new InvalidBallotException('Skipped rankings are not permitted in this count.');
                         }
                         continue;
                     }
-                    if (strpos($part, '=')) {
+                    // If this is an 'equal ranking', split it into an array and
+                    // validate each side against known candidates.
+                    if (strpos($part, '=') !== FALSE) {
                         if (!$this->options['allow_equal']) {
                             throw new InvalidBallotException('Equal rankings are not permitted in this count.');
                         }
                         $part = explode('=', $part);
                         foreach ($part as $cid) {
-                            $this->validateCandidateId($cid); // throws InvalidBallotException
+                            if (!isset($election->candidates[$cid])) {
+                                throw new InvalidBallotException("The candidate '$cid' does not exist.");
+                            }
                         }
                     }
+                    // Deal with normal rankings.
                     else {
-                        $this->validateCandidateId($part); // throws InvalidBallotException
+                        if (!isset($election->candidates[$part])) {
+                            throw new InvalidBallotException("The candidate '$cid' does not exist.");
+                        }
                     }
+                    // Check for repeat rankings.
                     if (in_array($part, $ranking)) {
                         if (!$this->options['allow_repeat']) {
                             throw new InvalidBallotException('Repeat rankings are not allowed in this count.');
                         }
                         continue;
                     }
-                    $ranking[$position] = $part;
-                    $position++;
+                    $ranking[$preference] = $part;
+                    $preference++;
                 }
                 if (empty($ranking)) {
                     throw new InvalidBallotException('Empty ballot.');
@@ -322,21 +339,7 @@ class Count
             }
         }
         // Sort the voting papers into first preferences // ERS97 5.1.2
-        ksort($election->ballots); // @todo this is almost certainly unnecessary
-    }
-
-    /**
-     * Check whether a candidate ID is valid.
-     *
-     * @param string $cid A candidate ID.
-     *
-     * @throws InvalidBallotException
-     */
-    protected function validateCandidateId($cid)
-    {
-        if (!isset($this->election->candidates[$cid])) {
-            throw new InvalidBallotException("The candidate '$cid' does not exist.");
-        }
+        ksort($election->ballots);
     }
 
     /**
