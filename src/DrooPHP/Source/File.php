@@ -19,9 +19,6 @@ class File extends Source
      */
     public $file;
 
-    /** @var array */
-    public $options = array();
-
     /** @var int */
     protected $ballot_first_line;
 
@@ -46,11 +43,11 @@ class File extends Source
     public function getDefaultOptions()
     {
         return array(
-            'filename' => NULL,
             'allow_equal' => 0,
             'allow_skipped' => 0,
             'allow_repeat' => 0,
             'allow_invalid' => 1,
+            'filename' => NULL,
             'cache_enable' => TRUE,
             'cache_expire' => 3600,
             'cache_driver' => 'FileSystem',
@@ -58,31 +55,15 @@ class File extends Source
     }
 
     /**
-     * Overrides parent::loadOptions().
-     */
-    public function loadOptions(array $options = array()) {
-        // The filename is mandatory.
-        if (empty($options['filename'])) {
-            throw new \Exception('You must specify a filename.');
-        }
-        // If the file is readable, convert the filename to an absolute path.
-        $filename = $options['filename'];
-        if (!is_readable($filename) || !($realpath = realpath($filename))) {
-            throw new \Exception('File does not exist or cannot be read: ' . $filename);
-        }
-        $options['filename'] = $realpath;
-        parent::loadOptions($options);
-    }
-
-    /**
      * Get a Stash pool (caching).
      *
      * @return \Stash\Pool
      */
-    public function getStashPool() {
+    public function getStashPool()
+    {
         static $pool;
         if ($pool === NULL) {
-            $driver_option = $this->getOption('cache_driver');
+            $driver_option = $this->config->cache_driver;
             if ($driver_option instanceof \Stash\Driver\DriverInterface) {
                 $driver = $driver_option;
             }
@@ -91,7 +72,7 @@ class File extends Source
             }
             else if ($driver_option == 'Apc') {
                 $driver = new \Stash\Driver\Apc(array(
-                    'ttl' => $this->getOption('cache_expire'),
+                    'ttl' => $this->config->cache_expire,
                 ));
             }
             else {
@@ -105,17 +86,14 @@ class File extends Source
     /**
      * Get a cache key representing all the options affecting Election loading.
      */
-    protected function getCacheKey() {
-        return md5(
-            serialize(
-                array(
-                    'equal' => $this->getOption('allow_equal'),
-                    'skipped' => $this->getOption('allow_skipped'),
-                    'repeat' => $this->getOption('allow_repeat'),
-                    'invalid' => $this->getOption('allow_invalid'),
-                )
-            )
-        );
+    protected function getCacheKey()
+    {
+        return serialize(array(
+            'equal' => $this->config->allow_equal,
+            'skipped' => $this->config->allow_skipped,
+            'repeat' => $this->config->allow_repeat,
+            'invalid' => $this->config->allow_invalid,
+        ));
     }
 
     /**
@@ -123,11 +101,20 @@ class File extends Source
      *
      * @return Election
      */
-    public function loadElection() {
-        $cache = $this->getOption('cache_enable');
-        $filename = $this->getOption('filename');
-        // If cacheing is disabled, just load and return the Election.
-        if (!$cache) {
+    public function loadElection()
+    {
+        $filename = $this->config->filename;
+        // The filename is mandatory.
+        if (empty($filename)) {
+            throw new \Exception('Filename not specified.');
+        }
+        // If the file is readable, convert the filename to an absolute path.
+        if (!is_readable($filename) || !($realpath = realpath($filename))) {
+            throw new \Exception('File does not exist or cannot be read: ' . $filename);
+        }
+        $filename = $realpath;
+        // If caching is disabled, just load and return the Election.
+        if (!$this->config->cache_enable) {
             return $this->loadElectionWork($filename);
         }
         // Load the cache pool.
@@ -141,7 +128,7 @@ class File extends Source
             $stash_item->lock();
             $election = $this->loadElectionWork($filename);
             // Save to cache.
-            $stash_item->set($election, $this->getOption('cache_expire'));
+            $stash_item->set($election, $this->config->cache_expire);
         }
         return $election;
     }
@@ -153,7 +140,8 @@ class File extends Source
      *
      * @return Election
      */
-    public function loadElectionWork($filename) {
+    public function loadElectionWork($filename)
+    {
         // Parse the file, creating a new Election object.
         $election = new Election;
         $election->file_last_loaded = time();
@@ -358,7 +346,7 @@ class File extends Source
                 foreach ($parts as $part) {
                     // Deal with skipped rankings: just move on.
                     if ($part == '-') {
-                        if (!$this->getOption('allow_skipped')) {
+                        if (!$this->config->allow_skipped) {
                             throw new InvalidBallotException('Skipped rankings are not permitted in this count.');
                         }
                         continue;
@@ -366,7 +354,7 @@ class File extends Source
                     // If this is an 'equal ranking', split it into an array and
                     // validate each side against known candidates.
                     if (strpos($part, '=') !== FALSE) {
-                        if (!$this->getOption('allow_equal')) {
+                        if (!$this->config->allow_equal) {
                             throw new InvalidBallotException('Equal rankings are not permitted in this count.');
                         }
                         $part = explode('=', $part);
@@ -384,7 +372,7 @@ class File extends Source
                     }
                     // Check for repeat rankings.
                     if (in_array($part, $ranking)) {
-                        if (!$this->getOption('allow_repeat')) {
+                        if (!$this->config->allow_repeat) {
                             throw new InvalidBallotException('Repeat rankings are not allowed in this count.');
                         }
                         continue;
@@ -398,7 +386,7 @@ class File extends Source
             }
             catch (InvalidBallotException $e) {
                 $valid = FALSE;
-                if (!$this->getOption('allow_invalid')) {
+                if (!$this->config->allow_invalid) {
                     throw new \Exception($e->getMessage(), $e->getCode(), $e);
                 }
             }

@@ -31,7 +31,7 @@ class Ers97 extends Method
      */
     public function getActiveVote()
     {
-        $candidates = $this->count->election->candidates;
+        $candidates = $this->election->candidates;
         $active_vote = 0;
         foreach ($candidates as $candidate) {
             switch ($candidate->state) {
@@ -70,10 +70,11 @@ class Ers97 extends Method
             $this->logStage($stage - 1);
         }
 
-        $election = $this->count->election;
+        $election = $this->election;
 
         // First stage. // ERS97 5.1
         if ($stage == 1) {
+            $this->calculateQuota();
             // Count the first preference votes and add them to each candidate // ERS97 5.1.4
             $total = 0;
             foreach ($election->ballots as $ballot) {
@@ -174,7 +175,7 @@ class Ers97 extends Method
         if ($this->isComplete()) {
             return TRUE;
         }
-        else if ($stage >= $this->count->getOption('maxStages')) {
+        else if ($stage >= $this->config->max_stages) {
             throw new Exception('Maximum number of stages reached before completing the count.');
             return FALSE;
         }
@@ -191,7 +192,7 @@ class Ers97 extends Method
      */
     public function orderCandidates()
     {
-        $election = $this->count->election;
+        $election = $this->election;
         $candidates_votes = array(); // array of vote amounts keyed by candidate ID
         foreach ($election->candidates as $cid => $candidate) {
             $candidates_votes[$cid] = $candidate->votes;
@@ -222,7 +223,7 @@ class Ers97 extends Method
      */
     public function getSurpluses()
     {
-        $candidates = $this->count->election->candidates;
+        $candidates = $this->election->candidates;
         $surpluses = array();
         foreach ($candidates as $cid => $candidate) {
             if ($candidate->surplus > 0) {
@@ -248,7 +249,7 @@ class Ers97 extends Method
      */
     protected function calculateQuota()
     {
-        $election = $this->count->election;
+        $election = $this->election;
         $num = $election->num_valid_ballots / ($election->num_seats + 1);
         $quota = ceil($num * 100) / 100;
         $this->quota = $quota;

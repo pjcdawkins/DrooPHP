@@ -1,57 +1,34 @@
 <?php
 namespace DrooPHP;
 
-use \DrooPHP\Config\ConfigInterface;
+use \DrooPHP\Config\ConfigurableInterface;
+use \DrooPHP\Source\SourceInterface;
 
 /**
- * A soure of election data.
+ * A source of election data.
  */
-abstract class Source implements ConfigInterface
+abstract class Source implements SourceInterface, ConfigurableInterface
 {
 
-    /** @var array */
-    public $options = array();
+    /** @var Config */
+    public $config;
 
     /** @var Election */
     public $election;
 
     /**
      * Constructor.
-     *
-     * @see ConfigInterface::__construct()
      */
     public function __construct(array $options = array())
     {
-        $this->loadOptions($options);
+        $config = new Config($this);
+        $config->loadOptions($options);
+        $this->config = $config;
+        $this->election = new Election();
     }
 
     /**
-     * Load the election data.
-     *
-     * @return Election
-     */
-    public function loadElection() {
-      $this->election = new Election;
-      return $this->election;
-    }
-
-    /**
-     * Set up options.
-     *
-     * @param array $options An associative array of options.
-     */
-    public function loadOptions(array $options = array())
-    {
-        $options = array_merge($this->getDefaultOptions(), $options);
-        $this->options = $options;
-    }
-
-    /**
-     * Get the default options.
-     *
-     * @see ConfigInterface::getDefaultOptions()
-     *
-     * @return array
+     * @see ConfigurableInterface::getDefaultOptions()
      */
     public function getDefaultOptions()
     {
@@ -59,21 +36,11 @@ abstract class Source implements ConfigInterface
     }
 
     /**
-     * Get the value of an option.
-     *
-     * @see ConfigInterface::getOption()
-     *
-     * @param string $option The name of the option.
-     * @param mixed $or A value to return if the option doesn't exist.
-     *
-     * @return mixed
+     * @see ConfigurableInterface::getRequiredOptions()
      */
-    public function getOption($option, $or = NULL)
+    public function getRequiredOptions()
     {
-        if ($or !== NULL && !isset($this->options[$option])) {
-            return $or;
-        }
-        return $this->options[$option];
+        return array();
     }
 
 }

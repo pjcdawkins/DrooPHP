@@ -1,15 +1,16 @@
 <?php
 namespace DrooPHP;
 
+use \DrooPHP\Config\ConfigurableInterface;
+use \DrooPHP\Method\MethodInterface;
+
 /**
  * Base class for a vote counting algorithm.
- *
- * @todo decouple this from Count
  */
-abstract class Method
+abstract class Method implements MethodInterface, ConfigurableInterface
 {
 
-    /** @var float */
+    /** @var int|float */
     public $quota;
 
     /**
@@ -18,24 +19,46 @@ abstract class Method
      */
     public $stages = array();
 
-    /** @var Count */
-    public $count;
+    /** @var Election */
+    public $election;
+
+    /** @var ConfigInterface */
+    public $config;
 
     /**
      * Constructor
      *
-     * @param Count $count The object representing this count.
+     * @param array $options  The configuration for this count.
      */
-    public function __construct(Count $count)
+    public function __construct(array $options = array())
     {
-        $this->count = $count;
-        $this->calculateQuota();
+        $config = new Config($this);
+        $config->loadOptions($options);
+        $this->config = $config;
+        $this->election = new Election();
     }
 
     /**
-     * Run the election: this is the main, iterative method.
+     * @see ConfigurableInterface::getDefaultOptions()
      */
-    abstract public function run($stage = 1);
+    public function getDefaultOptions()
+    {
+        return array(
+            'allow_equal' => 0,
+            'allow_skipped' => 0,
+            'allow_repeat' => 0,
+            'allow_invalid' => 1,
+            'max_stages' => 100,
+        );
+    }
+
+    /**
+     * @see ConfigurableInterface::getRequiredOptions()
+     */
+    public function getRequiredOptions()
+    {
+        return array();
+    }
 
     /**
      * Log information about a voting stage, e.g. the number of votes for each
@@ -53,7 +76,7 @@ abstract class Method
             );
         }
         $log = &$this->stages[$stage];
-        foreach ($this->count->election->candidates as $cid => $candidate) {
+        foreach ($this->election->candidates as $cid => $candidate) {
             $log['votes'][$cid] = round($candidate->votes, 2);
             $log['state'][$cid] = $candidate->getFormattedState();
         }
@@ -88,7 +111,7 @@ abstract class Method
      */
     public function isComplete()
     {
-        $election = $this->count->election;
+        $election = $this->election;
         $num_seats = $election->num_seats;
         $num_candidates = $election->num_candidates;
         $must_be_elected = $num_seats;
@@ -105,7 +128,7 @@ abstract class Method
      */
     public function getNumVacancies()
     {
-        $election = $this->count->election;
+        $election = $this->election;
         return $election->num_seats - $election->num_filled_seats;
     }
 
@@ -120,7 +143,7 @@ abstract class Method
      */
     protected function calculateQuota()
     {
-        $election = $this->count->election;
+        $election = $this->election;
         $num = ($election->num_valid_ballots / ($election->num_seats + 1)) + 1;
         $quota = floor($num);
         $this->quota = $quota;

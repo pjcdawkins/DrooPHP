@@ -3,12 +3,15 @@ require '../../../library.php';
 
 $file = 'data/wikipedia-stv.blt';
 
-$count = new DrooPHP\Count(array(
-    'source' => new DrooPHP\Source\File(array(
-        'filename' => $file,
-    )),
-    'method' => 'Wikipedia',
-));
+$options = array(
+    'filename' => $file,
+);
+
+$count = new DrooPHP\Count(
+    new DrooPHP\Source\File(),
+    new DrooPHP\Method\Wikipedia(),
+    $options
+);
 
 $output = $count->run();
 

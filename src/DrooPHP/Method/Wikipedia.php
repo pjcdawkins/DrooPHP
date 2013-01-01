@@ -8,7 +8,8 @@ use \DrooPHP\Candidate;
  * Method for counting votes described in the Wikipedia article "Single
  * transferable vote".
  */
-class Wikipedia extends Method {
+class Wikipedia extends Method
+{
 
     /**
      * Overrides parent::run().
@@ -36,12 +37,14 @@ class Wikipedia extends Method {
      *
      * @return bool
      */
-    public function run($stage = 1) {
+    public function run($stage = 1)
+    {
 
-        $election = $this->count->election;
+        $election = $this->election;
 
         // First stage.
         if ($stage == 1) {
+            $this->calculateQuota();
             // Count the first preference votes and add them to each candidate.
             foreach ($election->ballots as $ballot) {
                 // The vote is an array of one or more candidate IDs (usually just one, unless equal rankings are allowed).
@@ -92,7 +95,7 @@ class Wikipedia extends Method {
                 $this->logChange($candidate, sprintf('Defeated at stage %d, with %s votes.', $stage, $candidate->votes), $stage);
                 if ($candidate->votes && !$this->isComplete()) {
                     $this->transferVotes($candidate->votes, $candidate, $stage);
-                    if ($this->count->options['allow_equal']) {
+                    if ($this->config->allow_equal) {
                         $candidate->votes = round($candidate->votes, 0); // compensate for rounding errors in transfer with equal rankings
                     }
                 }
@@ -123,8 +126,11 @@ class Wikipedia extends Method {
         if ($this->isComplete()) {
             return TRUE;
         }
-        else if ($stage >= $this->count->getOption('maxStages')) {
-            throw new Exception('Maximum number of stages reached before completing the count.');
+        else if ($stage >= $this->config->max_stages) {
+            throw new \Exception(sprintf(
+                'Maximum number of stages reached (%d) before completing the count.',
+                $this->config->max_stages
+            ));
             return FALSE;
         }
         else {
@@ -137,8 +143,9 @@ class Wikipedia extends Method {
      *
      * @return Candidate
      */
-    public function findDefeatableCandidate() {
-        $election = $this->count->election;
+    public function findDefeatableCandidate()
+    {
+        $election = $this->election;
         $hopefuls = $election->getCandidatesByState(Candidate::STATE_HOPEFUL);
         // Candidates can only be defeated if sufficient candidates remain to fill all the vacancies.
         if (count($hopefuls) <= $this->getNumVacancies()) {
@@ -160,8 +167,9 @@ class Wikipedia extends Method {
      * @param Candidate $from_candidate
      * @param int $stage
      */
-    public function transferVotes($num_to_transfer, Candidate $from_candidate, $stage) {
-        $election = $this->count->election;
+    public function transferVotes($num_to_transfer, Candidate $from_candidate, $stage)
+    {
+        $election = $this->election;
         $hopefuls = $election->getCandidatesByState(Candidate::STATE_HOPEFUL);
         $votes = array();
         foreach ($election->ballots as $ballot) {
