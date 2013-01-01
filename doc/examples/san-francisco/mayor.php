@@ -9,12 +9,14 @@ $options = array(
     'allow_equal' => 1,
 );
 
-$source = new DrooPHP\Source\File(array('filename' => $file) + $options);
-$count = new DrooPHP\Count($source, $options);
+$count = new DrooPHP\Count($options + array(
+    'source' => new DrooPHP\Source\File($options + array(
+        'filename' => $file,
+    )),
+));
 
-$method = new DrooPHP\Method\Wikipedia($count);
-$method->run();
+$output = $count->run();
 
 header('Content-Type: text/plain; charset=UTF-8');
 
-print_r($method);
+print_r($output);

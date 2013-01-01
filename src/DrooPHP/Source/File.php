@@ -82,7 +82,7 @@ class File extends Source
     public function getStashPool() {
         static $pool;
         if ($pool === NULL) {
-            $driver_option = $this->options['cache_driver'];
+            $driver_option = $this->getOption('cache_driver');
             if ($driver_option instanceof \Stash\Driver\DriverInterface) {
                 $driver = $driver_option;
             }
@@ -91,7 +91,7 @@ class File extends Source
             }
             else if ($driver_option == 'Apc') {
                 $driver = new \Stash\Driver\Apc(array(
-                    'ttl' => $this->options['cache_expire'],
+                    'ttl' => $this->getOption('cache_expire'),
                 ));
             }
             else {
@@ -109,10 +109,10 @@ class File extends Source
         return md5(
             serialize(
                 array(
-                    'equal' => $this->options['allow_equal'],
-                    'skipped' => $this->options['allow_skipped'],
-                    'repeat' => $this->options['allow_repeat'],
-                    'invalid' => $this->options['allow_invalid'],
+                    'equal' => $this->getOption('allow_equal'),
+                    'skipped' => $this->getOption('allow_skipped'),
+                    'repeat' => $this->getOption('allow_repeat'),
+                    'invalid' => $this->getOption('allow_invalid'),
                 )
             )
         );
@@ -124,8 +124,8 @@ class File extends Source
      * @return Election
      */
     public function loadElection() {
-        $cache = $this->options['cache_enable'];
-        $filename = $this->options['filename'];
+        $cache = $this->getOption('cache_enable');
+        $filename = $this->getOption('filename');
         // If cacheing is disabled, just load and return the Election.
         if (!$cache) {
             return $this->loadElectionWork($filename);
@@ -141,7 +141,7 @@ class File extends Source
             $stash_item->lock();
             $election = $this->loadElectionWork($filename);
             // Save to cache.
-            $stash_item->set($election, $this->options['cache_expire']);
+            $stash_item->set($election, $this->getOption('cache_expire'));
         }
         return $election;
     }
@@ -358,7 +358,7 @@ class File extends Source
                 foreach ($parts as $part) {
                     // Deal with skipped rankings: just move on.
                     if ($part == '-') {
-                        if (!$this->options['allow_skipped']) {
+                        if (!$this->getOption('allow_skipped')) {
                             throw new InvalidBallotException('Skipped rankings are not permitted in this count.');
                         }
                         continue;
@@ -366,7 +366,7 @@ class File extends Source
                     // If this is an 'equal ranking', split it into an array and
                     // validate each side against known candidates.
                     if (strpos($part, '=') !== FALSE) {
-                        if (!$this->options['allow_equal']) {
+                        if (!$this->getOption('allow_equal')) {
                             throw new InvalidBallotException('Equal rankings are not permitted in this count.');
                         }
                         $part = explode('=', $part);
@@ -384,7 +384,7 @@ class File extends Source
                     }
                     // Check for repeat rankings.
                     if (in_array($part, $ranking)) {
-                        if (!$this->options['allow_repeat']) {
+                        if (!$this->getOption('allow_repeat')) {
                             throw new InvalidBallotException('Repeat rankings are not allowed in this count.');
                         }
                         continue;
@@ -398,7 +398,7 @@ class File extends Source
             }
             catch (InvalidBallotException $e) {
                 $valid = FALSE;
-                if (!$this->options['allow_invalid']) {
+                if (!$this->getOption('allow_invalid')) {
                     throw new \Exception($e->getMessage(), $e->getCode(), $e);
                 }
             }

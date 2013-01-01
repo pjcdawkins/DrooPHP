@@ -3,6 +3,8 @@ namespace DrooPHP;
 
 /**
  * Base class for a vote counting algorithm.
+ *
+ * @todo decouple this from Count
  */
 abstract class Method
 {

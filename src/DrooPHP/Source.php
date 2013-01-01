@@ -1,10 +1,12 @@
 <?php
 namespace DrooPHP;
 
+use \DrooPHP\Config\ConfigInterface;
+
 /**
  * A soure of election data.
  */
-abstract class Source
+abstract class Source implements ConfigInterface
 {
 
     /** @var array */
@@ -15,8 +17,10 @@ abstract class Source
 
     /**
      * Constructor.
+     *
+     * @see ConfigInterface::__construct()
      */
-    public function __construct($options = array())
+    public function __construct(array $options = array())
     {
         $this->loadOptions($options);
     }
@@ -45,12 +49,31 @@ abstract class Source
     /**
      * Get the default options.
      *
+     * @see ConfigInterface::getDefaultOptions()
+     *
      * @return array
-     * An associative array of default options.
      */
     public function getDefaultOptions()
     {
         return array();
+    }
+
+    /**
+     * Get the value of an option.
+     *
+     * @see ConfigInterface::getOption()
+     *
+     * @param string $option The name of the option.
+     * @param mixed $or A value to return if the option doesn't exist.
+     *
+     * @return mixed
+     */
+    public function getOption($option, $or = NULL)
+    {
+        if ($or !== NULL && !isset($this->options[$option])) {
+            return $or;
+        }
+        return $this->options[$option];
     }
 
 }
