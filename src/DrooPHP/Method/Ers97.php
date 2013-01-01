@@ -187,7 +187,7 @@ class Ers97 extends Method
      * Get candidates in descending order of their votes. // ERS97 5.1.7
      *
      * @return array
-     * Array of \DrooPHP\Candidate objects, keyed by candidate ID.
+     * Array of Candidate objects, keyed by candidate ID.
      */
     public function orderCandidates()
     {

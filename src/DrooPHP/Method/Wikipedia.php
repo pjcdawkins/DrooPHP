@@ -135,7 +135,7 @@ class Wikipedia extends Method {
     /**
      * Get the hopeful candidate with the fewest votes.
      *
-     * @return \DrooPHP\Candidate
+     * @return Candidate
      */
     public function findDefeatableCandidate() {
         $election = $this->count->election;
@@ -157,7 +157,7 @@ class Wikipedia extends Method {
      * Transfer a candidate's votes or surplus to other hopefuls.
      *
      * @param float $num_to_transfer
-     * @param \DrooPHP\Candidate $from_candidate
+     * @param Candidate $from_candidate
      * @param int $stage
      */
     public function transferVotes($num_to_transfer, Candidate $from_candidate, $stage) {

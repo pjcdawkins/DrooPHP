@@ -22,7 +22,7 @@ abstract class Method
     /**
      * Constructor
      *
-     * @param \DrooPHP\Count $count The object representing this count.
+     * @param Count $count The object representing this count.
      */
     public function __construct(Count $count)
     {
@@ -60,7 +60,7 @@ abstract class Method
     /**
      * Log a change about a candidate.
      *
-     * @param \DrooPHP\Candidate $candidate
+     * @param Candidate $candidate
      * @param string $message
      * @param int $stage
      */

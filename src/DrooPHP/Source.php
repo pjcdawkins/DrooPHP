@@ -10,7 +10,7 @@ abstract class Source
     /** @var array */
     public $options = array();
 
-    /** @var \DrooPHP\Election */
+    /** @var Election */
     public $election;
 
     /**
@@ -24,7 +24,7 @@ abstract class Source
     /**
      * Load the election data.
      *
-     * @return \DrooPHP\Election
+     * @return Election
      */
     public function loadElection() {
       $this->election = new Election;

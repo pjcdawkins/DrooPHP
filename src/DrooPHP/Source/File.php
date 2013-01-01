@@ -5,7 +5,6 @@ use \DrooPHP\Ballot;
 use \DrooPHP\Election;
 use \DrooPHP\Exception\InvalidBallotException;
 use \DrooPHP\Source;
-use \Exception;
 
 /**
  * Load an election from a ballot (.blt) file.
@@ -25,51 +24,6 @@ class File extends Source
 
     /** @var int */
     protected $ballot_first_line;
-
-    /**
-     * Overrides parent::loadOptions().
-     */
-    public function loadOptions(array $options = array()) {
-        // The filename is mandatory.
-        if (empty($options['filename'])) {
-            throw new Exception('You must specify a filename.');
-        }
-        // If the file is readable, convert the filename to an absolute path.
-        $filename = $options['filename'];
-        if (!is_readable($filename) || !($realpath = realpath($filename))) {
-            throw new Exception('File does not exist or cannot be read: ' . $filename);
-        }
-        $options['filename'] = $realpath;
-        parent::loadOptions($options);
-    }
-
-    /**
-     * Get a Stash pool (caching).
-     *
-     * @return \Stash\Pool
-     */
-    public function getStashPool() {
-        static $pool;
-        if ($pool === NULL) {
-            $driver_option = $this->options['cache_driver'];
-            if ($driver_option instanceof \Stash\Driver\DriverInterface) {
-                $driver = $driver_option;
-            }
-            else if ($driver_option == 'FileSystem') {
-                $driver = new \Stash\Driver\FileSystem();
-            }
-            else if ($driver_option == 'Apc') {
-                $driver = new \Stash\Driver\Apc(array(
-                    'ttl' => $this->options['cache_expire'],
-                ));
-            }
-            else {
-                throw new Exception('Invalid value provided for option cache_driver.');
-            }
-            $pool = new \Stash\Pool($driver);
-        }
-        return $pool;
-    }
 
     /**
      * Overrides parent::getDefaultOptions().
@@ -101,6 +55,51 @@ class File extends Source
             'cache_expire' => 3600,
             'cache_driver' => 'FileSystem',
         );
+    }
+
+    /**
+     * Overrides parent::loadOptions().
+     */
+    public function loadOptions(array $options = array()) {
+        // The filename is mandatory.
+        if (empty($options['filename'])) {
+            throw new \Exception('You must specify a filename.');
+        }
+        // If the file is readable, convert the filename to an absolute path.
+        $filename = $options['filename'];
+        if (!is_readable($filename) || !($realpath = realpath($filename))) {
+            throw new \Exception('File does not exist or cannot be read: ' . $filename);
+        }
+        $options['filename'] = $realpath;
+        parent::loadOptions($options);
+    }
+
+    /**
+     * Get a Stash pool (caching).
+     *
+     * @return \Stash\Pool
+     */
+    public function getStashPool() {
+        static $pool;
+        if ($pool === NULL) {
+            $driver_option = $this->options['cache_driver'];
+            if ($driver_option instanceof \Stash\Driver\DriverInterface) {
+                $driver = $driver_option;
+            }
+            else if ($driver_option == 'FileSystem') {
+                $driver = new \Stash\Driver\FileSystem();
+            }
+            else if ($driver_option == 'Apc') {
+                $driver = new \Stash\Driver\Apc(array(
+                    'ttl' => $this->options['cache_expire'],
+                ));
+            }
+            else {
+                throw new \Exception('Invalid value provided for option cache_driver.');
+            }
+            $pool = new \Stash\Pool($driver);
+        }
+        return $pool;
     }
 
     /**
@@ -155,7 +154,7 @@ class File extends Source
      * @return Election
      */
     public function loadElectionWork($filename) {
-        // Parse the file, creating a new DrooPHP\Election object.
+        // Parse the file, creating a new Election object.
         $election = new Election;
         $election->file_last_loaded = time();
         // Open the file.
@@ -180,12 +179,12 @@ class File extends Source
             $this->parseTail($election);
             $this->parseBallots($election);
         }
-        catch (Exception $e) {
+        catch (\Exception $e) {
             $n = 10; // Number of characters to display for debugging.
             $position = ftell($this->file);
             fseek($this->file, -$n, SEEK_CUR);
             $snippet = fread($this->file, $n);
-            throw new Exception(
+            throw new \Exception(
                 sprintf(
                     "Error in BLT data, position %d: %s. Previous %d characters: %s.",
                     $position,
@@ -217,7 +216,7 @@ class File extends Source
                 // First line should always be "num_candidates num_seats".
                 $parts = explode(' ', $line);
                 if (count($parts) != 2) {
-                    throw new Exception('The first line must contain exactly two parts.');
+                    throw new \Exception('The first line must contain exactly two parts.');
                 }
                 $election->num_candidates = (int) $parts[0];
                 $election->num_seats = (int) $parts[1];
@@ -285,7 +284,7 @@ class File extends Source
         $tail = array_reverse($tail);
         // The minimum number of lines is the number of candidates.
         if (count($tail) < $num_candidates) {
-            throw new Exception('Candidate names not found');
+            throw new \Exception('Candidate names not found');
         }
         foreach ($tail as $key => $line) {
             $info = trim($line, '"');
@@ -333,7 +332,7 @@ class File extends Source
                 break;
             }
             if (substr($line, -1) !== '0') {
-                throw new Exception("Ballot lines must end with 0.");
+                throw new \Exception("Ballot lines must end with 0.");
             }
             // Skip any ballot IDs at the beginning of the line.
             $line = preg_replace('/^\([^\)]*\)\s?/', '', $line);
@@ -400,7 +399,7 @@ class File extends Source
             catch (InvalidBallotException $e) {
                 $valid = FALSE;
                 if (!$this->options['allow_invalid']) {
-                    throw new Exception($e->getMessage(), $e->getCode(), $e);
+                    throw new \Exception($e->getMessage(), $e->getCode(), $e);
                 }
             }
             $election->num_ballots += $multiplier; // ERS97 5.1.1

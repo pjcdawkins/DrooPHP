@@ -60,7 +60,7 @@ class Election
     public $num_exhausted_ballots = 0;
 
     /**
-     * The ballots: array of \DrooPHP\Ballot objects.
+     * The ballots: array of Ballot objects.
      *
      * @var array
      */
@@ -108,7 +108,7 @@ class Election
      * Get an array of candidates who have the given state.
      *
      * @return array
-     * Array of \DrooPHP\Candidate objects keyed by candidate ID.
+     * Array of Candidate objects keyed by candidate ID.
      */
     public function getCandidatesByState($state)
     {
