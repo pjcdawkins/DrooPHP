@@ -1,0 +1,25 @@
+{
+  "name": "DrooPHP/DrooPHP",
+  "type": "library",
+  "description": "STV vote counting",
+  "keywords": ["count","election","stv","vote"],
+  "homepage": "http://github.com/pjcdawkins/DrooPHP",
+  "license": "GPL",
+  "authors": [
+    {
+      "name": "Patrick Dawkins",
+      "email": "pjcdawkins@gmail.com",
+      "homepage": "http://patrickdawkins.com/",
+      "role": "Developer"
+    }
+  ],
+  "require": {
+    "php": ">=5.3.0",
+    "tedivm/stash": "0.10.*"
+  },
+  "autoload": {
+    "psr-0": {
+      "DrooPHP": "src"
+    }
+  }
+}

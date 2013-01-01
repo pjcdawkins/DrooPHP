@@ -1,14 +1,16 @@
 <?php
-namespace DrooPHP;
+namespace DrooPHP\Source;
 
-use \Exception as Exception;
-use DrooPHP\Exception\InvalidBallotException;
-use DrooPHP\Method;
+use \DrooPHP\Ballot;
+use \DrooPHP\Election;
+use \DrooPHP\Exception\InvalidBallotException;
+use \DrooPHP\Source;
+use \Exception;
 
 /**
- * Main class for a count, containing options and an election.
+ * Load an election from a ballot (.blt) file.
  */
-class Count
+class File extends Source
 {
 
     /**
@@ -21,64 +23,147 @@ class Count
     /** @var array */
     public $options = array();
 
-    /** @var DrooPHP\Election */
-    public $election;
-
     /** @var int */
     protected $ballot_first_line;
 
     /**
-     * Constructor: initiate a count by loading a BLT file.
+     * Overrides parent::loadOptions().
      */
-    public function __construct($filename, $options = array())
-    {
-        $this->loadOptions($options);
-        if (file_exists($filename) && is_readable($filename)) {
-            $this->file = fopen($filename, 'r');
+    public function loadOptions(array $options = array()) {
+        // The filename is mandatory.
+        if (empty($options['filename'])) {
+            throw new Exception('You must specify a filename.');
         }
-        else {
+        // If the file is readable, convert the filename to an absolute path.
+        $filename = $options['filename'];
+        if (!is_readable($filename) || !($realpath = realpath($filename))) {
             throw new Exception('File does not exist or cannot be read: ' . $filename);
         }
-        $this->election = new Election;
-        $this->parse();
-        fclose($this->file);
+        $options['filename'] = $realpath;
+        parent::loadOptions($options);
     }
 
     /**
-     * Set up options for this election.
+     * Get a Stash pool (caching).
+     *
+     * @return \Stash\Pool
+     */
+    public function getStashPool() {
+        static $pool;
+        if ($pool === NULL) {
+            $driver_option = $this->options['cache_driver'];
+            if ($driver_option instanceof \Stash\Driver\DriverInterface) {
+                $driver = $driver_option;
+            }
+            else if ($driver_option == 'FileSystem') {
+                $driver = new \Stash\Driver\FileSystem();
+            }
+            else if ($driver_option == 'Apc') {
+                $driver = new \Stash\Driver\Apc(array(
+                    'ttl' => $this->options['cache_expire'],
+                ));
+            }
+            else {
+                throw new Exception('Invalid value provided for option cache_driver.');
+            }
+            $pool = new \Stash\Pool($driver);
+        }
+        return $pool;
+    }
+
+    /**
+     * Overrides parent::getDefaultOptions().
+     *
+     * Get the default options for loading a file.
      *
      * Possible options:
-     *   allow_invalid  Whether to continue counting despite encountering an
-     *                  invalid or spoiled ballot.
-     *   allow_equal    Whether to allow equal rankings (e.g. 2=3).
-     *   allow_repeat   Whether to allow repeat rankings (e.g. 3 2 2).
-     *   allow_skipped  Whether to allow skipped rankings (e.g. -).
-     *   method         The name of a class extending \DrooPHP\Method.
-     *   maxStages      The maximum number of counting stages.
-     *
-     * @param array $options
+     *   filename       string  The path to a .blt file.
+     *   allow_invalid  bool    Whether to continue loading despite encountering
+     *                          invalid or spoiled ballots.
+     *   allow_equal    bool    Whether to allow equal rankings (e.g. 2=3).
+     *   allow_repeat   bool    Whether to allow repeat rankings (e.g. 3 2 2).
+     *   allow_skipped  bool    Whether to allow skipped rankings (e.g. -).
+     *   cache_enable   bool    Whether to cache the loaded Election.
+     *   cache_expire   int|\DateTime
+     *                          A TTL (seconds) or DateTime expiry date.
+     *   cache_driver   string|\Stash\Driver\DriverInterface
+     *                          The Stash cache driver.
      */
-    public function loadOptions(array $options = array())
+    public function getDefaultOptions()
     {
-        $options = array_merge($this->getDefaultOptions(), $options);
-
-        $this->options = $options;
+        return array(
+            'filename' => NULL,
+            'allow_equal' => 0,
+            'allow_skipped' => 0,
+            'allow_repeat' => 0,
+            'allow_invalid' => 1,
+            'cache_enable' => TRUE,
+            'cache_expire' => 3600,
+            'cache_driver' => 'FileSystem',
+        );
     }
 
     /**
-     * Get the value of an option.
-     *
-     * @param string $option The name of the option.
-     * @param mixed $or A value to return if the option doesn't exist.
-     *
-     * @return mixed
+     * Get a cache key representing all the options affecting Election loading.
      */
-    public function getOption($option, $or = NULL)
-    {
-        if ($or !== NULL && !isset($this->options[$option])) {
-            return $or;
+    protected function getCacheKey() {
+        return md5(
+            serialize(
+                array(
+                    'equal' => $this->options['allow_equal'],
+                    'skipped' => $this->options['allow_skipped'],
+                    'repeat' => $this->options['allow_repeat'],
+                    'invalid' => $this->options['allow_invalid'],
+                )
+            )
+        );
+    }
+
+    /**
+     * Overrides parent::loadElection().
+     *
+     * @return Election
+     */
+    public function loadElection() {
+        $cache = $this->options['cache_enable'];
+        $filename = $this->options['filename'];
+        // If cacheing is disabled, just load and return the Election.
+        if (!$cache) {
+            return $this->loadElectionWork($filename);
         }
-        return $this->options[$option];
+        // Load the cache pool.
+        $stash_pool = $this->getStashPool();
+        $stash_item = $stash_pool->getItem($filename, $this->getCacheKey());
+        $election = $stash_item->get(\Stash\Item::SP_OLD);
+        // Invalidate the cache if the file changed since it was last loaded.
+        $file_updated = (isset($election->file_last_loaded) && filemtime($filename) > $election->file_last_loaded);
+        // Do the work again if the cache missed or should be refreshed.
+        if ($stash_item->isMiss() || $file_updated) {
+            $stash_item->lock();
+            $election = $this->loadElectionWork($filename);
+            // Save to cache.
+            $stash_item->set($election, $this->options['cache_expire']);
+        }
+        return $election;
+    }
+
+    /**
+     * Do the expensive and cacheable part of loading an Election.
+     *
+     * @param string $filename The absolute pathname to the ballot file.
+     *
+     * @return Election
+     */
+    public function loadElectionWork($filename) {
+        // Parse the file, creating a new DrooPHP\Election object.
+        $election = new Election;
+        $election->file_last_loaded = time();
+        // Open the file.
+        $this->file = fopen($filename, 'r');
+        $this->parse($election);
+        // Close the file.
+        fclose($this->file);
+        return $election;
     }
 
     /**
@@ -88,12 +173,12 @@ class Count
      * @see self::parseTail()
      * @see self::parseBallots()
      */
-    public function parse()
+    protected function parse($election)
     {
         try {
-            $this->parseHead();
-            $this->parseTail();
-            $this->parseBallots();
+            $this->parseHead($election);
+            $this->parseTail($election);
+            $this->parseBallots($election);
         }
         catch (Exception $e) {
             $n = 10; // Number of characters to display for debugging.
@@ -115,9 +200,8 @@ class Count
     /**
      * Read information from the beginning (head) of the BLT file.
      */
-    protected function parseHead()
+    protected function parseHead($election)
     {
-        $election = $this->election;
         $line_number = 0;
         while (($line = fgets($this->file)) !== FALSE && $line_number <= 2) {
             // Remove comments (starting with # or // until the end of the line).
@@ -158,9 +242,8 @@ class Count
     /**
      * Read information from the end (tail) of the BLT file.
      */
-    protected function parseTail()
+    protected function parseTail($election)
     {
-        $election = $this->election;
         $num_candidates = $election->num_candidates;
         // There can be a maximum of $num_candidates + 3 tail lines: each
         // candidate's name is given, and then there are optionally election,
@@ -225,9 +308,8 @@ class Count
     /**
      * Read the ballot lines of the BLT file, counting and validating.
      */
-    protected function parseBallots()
+    protected function parseBallots($election)
     {
-        $election = $this->election;
         $line_number = 0; // actually, this is the line number ignoring comments
         rewind($this->file);
         while (($line = fgets($this->file)) !== FALSE) {
@@ -340,21 +422,6 @@ class Count
         }
         // Sort the voting papers into first preferences // ERS97 5.1.2
         ksort($election->ballots);
-    }
-
-    /**
-     * Get the default options for a count.
-     */
-    protected function getDefaultOptions()
-    {
-        return array(
-            'allow_equal' => 0,
-            'allow_skipped' => 0,
-            'allow_repeat' => 0,
-            'allow_invalid' => 1,
-            'method' => 'Wikipedia',
-            'maxStages' => 100,
-        );
     }
 
 }

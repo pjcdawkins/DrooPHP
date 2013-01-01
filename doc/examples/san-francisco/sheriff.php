@@ -9,7 +9,8 @@ $options = array(
     'allow_equal' => 1,
 );
 
-$count = new DrooPHP\Count($file, $options);
+$source = new DrooPHP\Source\File(array('filename' => $file) + $options);
+$count = new DrooPHP\Count($source, $options);
 
 $method = new DrooPHP\Method\Wikipedia($count);
 $method->run();

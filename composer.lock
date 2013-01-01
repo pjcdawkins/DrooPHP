@@ -1,0 +1,60 @@
+{
+    "hash": "e9c858110fadf88ef0136433859ae5d6",
+    "packages": [
+        {
+            "name": "tedivm/stash",
+            "version": "v0.10.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/tedivm/Stash.git",
+                "reference": "v0.10.1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://github.com/tedivm/Stash/archive/v0.10.1.zip",
+                "reference": "v0.10.1",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "time": "2012-11-15 19:09:21",
+            "type": "library",
+            "installation-source": "dist",
+            "autoload": {
+                "psr-0": {
+                    "Stash": "src/",
+                    "Stash\\Test": "tests/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD"
+            ],
+            "authors": [
+                {
+                    "name": "Robert Hafner",
+                    "email": "tedivm@tedivm.com"
+                },
+                {
+                    "name": "Josh Hall-Bachner",
+                    "email": "charlequin@gmail.com"
+                }
+            ],
+            "description": "A place to keep your cache",
+            "homepage": "http://github.com/tedivm/Stash",
+            "keywords": [
+                "cache",
+                "caching"
+            ]
+        }
+    ],
+    "packages-dev": null,
+    "aliases": [
+
+    ],
+    "minimum-stability": "stable",
+    "stability-flags": [
+
+    ]
+}

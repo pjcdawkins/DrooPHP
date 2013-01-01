@@ -3,7 +3,8 @@ require '../../../library.php';
 
 $file = 'data/simple.blt';
 
-$count = new DrooPHP\Count($file);
+$source = new DrooPHP\Source\File(array('filename' => $file));
+$count = new DrooPHP\Count($source);
 $method = new DrooPHP\Method\Wikipedia($count);
 
 $method->run();
