@@ -175,7 +175,7 @@ class Ers97 extends Method
         if ($this->isComplete()) {
             return TRUE;
         }
-        else if ($stage >= $this->config->max_stages) {
+        else if ($stage >= $this->config->getOption('max_stages')) {
             throw new Exception('Maximum number of stages reached before completing the count.');
             return FALSE;
         }

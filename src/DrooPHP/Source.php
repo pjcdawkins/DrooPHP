@@ -1,13 +1,12 @@
 <?php
 namespace DrooPHP;
 
-use \DrooPHP\Config\ConfigurableInterface;
 use \DrooPHP\Source\SourceInterface;
 
 /**
  * A source of election data.
  */
-abstract class Source implements SourceInterface, ConfigurableInterface
+abstract class Source implements SourceInterface
 {
 
     /** @var Config */
@@ -21,24 +20,17 @@ abstract class Source implements SourceInterface, ConfigurableInterface
      */
     public function __construct(array $options = array())
     {
-        $config = new Config($this);
-        $config->loadOptions($options);
+        $config = new Config($options, $this->getDefaultOptions());
         $this->config = $config;
         $this->election = new Election();
     }
 
     /**
-     * @see ConfigurableInterface::getDefaultOptions()
+     * Get an array of default config option values.
+     * 
+     * @see self::__construct()
      */
     public function getDefaultOptions()
-    {
-        return array();
-    }
-
-    /**
-     * @see ConfigurableInterface::getRequiredOptions()
-     */
-    public function getRequiredOptions()
     {
         return array();
     }

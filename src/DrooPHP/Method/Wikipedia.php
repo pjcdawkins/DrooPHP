@@ -95,7 +95,7 @@ class Wikipedia extends Method
                 $this->logChange($candidate, sprintf('Defeated at stage %d, with %s votes.', $stage, $candidate->votes), $stage);
                 if ($candidate->votes && !$this->isComplete()) {
                     $this->transferVotes($candidate->votes, $candidate, $stage);
-                    if ($this->config->allow_equal) {
+                    if ($this->config->getOption('allow_equal')) {
                         $candidate->votes = round($candidate->votes, 0); // compensate for rounding errors in transfer with equal rankings
                     }
                 }
@@ -126,10 +126,10 @@ class Wikipedia extends Method
         if ($this->isComplete()) {
             return TRUE;
         }
-        else if ($stage >= $this->config->max_stages) {
+        else if ($stage >= $this->config->getOption('max_stages')) {
             throw new \Exception(sprintf(
                 'Maximum number of stages reached (%d) before completing the count.',
-                $this->config->max_stages
+                $this->config->getOption('max_stages')
             ));
             return FALSE;
         }

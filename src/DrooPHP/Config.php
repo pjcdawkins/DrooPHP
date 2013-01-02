@@ -2,7 +2,6 @@
 namespace DrooPHP;
 
 use \DrooPHP\Config\ConfigInterface;
-use \DrooPHP\Config\ConfigurableInterface;
 
 class Config implements ConfigInterface
 {
@@ -16,11 +15,12 @@ class Config implements ConfigInterface
     /**
      * Constructor.
      */
-    public function __construct(ConfigurableInterface $object = NULL)
+    public function __construct(array $options = array(), array $defaults = array(), array $required = array())
     {
-        if ($object) {
-            $this->setDefaultOptions($object->getDefaultOptions())
-                ->setRequiredOptions($object->getRequiredOptions());
+        $this->setDefaultOptions($defaults);
+        $this->setRequiredOptions($required);
+        if ($options) {
+          $this->loadOptions($options);
         }
     }
 
@@ -87,22 +87,6 @@ class Config implements ConfigInterface
     {
         $this->options[$key] = $value;
         return $this;
-    }
-
-    /**
-     * Alias of self::getOption().
-     */
-    public function __get($key)
-    {
-        return $this->getOption($key);
-    }
-
-    /**
-     * Alias of self::setOption().
-     */
-    public function __set($key, $value)
-    {
-        return $this->setOption($key, $value);
     }
 
 }

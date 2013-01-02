@@ -1,13 +1,12 @@
 <?php
 namespace DrooPHP;
 
-use \DrooPHP\Config\ConfigurableInterface;
 use \DrooPHP\Method\MethodInterface;
 
 /**
  * Base class for a vote counting algorithm.
  */
-abstract class Method implements MethodInterface, ConfigurableInterface
+abstract class Method implements MethodInterface
 {
 
     /** @var int|float */
@@ -32,14 +31,14 @@ abstract class Method implements MethodInterface, ConfigurableInterface
      */
     public function __construct(array $options = array())
     {
-        $config = new Config($this);
-        $config->loadOptions($options);
-        $this->config = $config;
+        $this->config = new Config($options, $this->getDefaultOptions());
         $this->election = new Election();
     }
 
     /**
-     * @see ConfigurableInterface::getDefaultOptions()
+     * Get an array of default Config option values.
+     * 
+     * @see self::__construct()
      */
     public function getDefaultOptions()
     {
@@ -50,14 +49,6 @@ abstract class Method implements MethodInterface, ConfigurableInterface
             'allow_invalid' => 1,
             'max_stages' => 100,
         );
-    }
-
-    /**
-     * @see ConfigurableInterface::getRequiredOptions()
-     */
-    public function getRequiredOptions()
-    {
-        return array();
     }
 
     /**

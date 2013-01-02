@@ -48,7 +48,7 @@ class File extends Source
             'allow_repeat' => 0,
             'allow_invalid' => 1,
             'filename' => NULL,
-            'cache_enable' => TRUE,
+            'cache_enable' => FALSE,
             'cache_expire' => 3600,
             'cache_driver' => 'FileSystem',
         );
@@ -63,7 +63,7 @@ class File extends Source
     {
         static $pool;
         if ($pool === NULL) {
-            $driver_option = $this->config->cache_driver;
+            $driver_option = $this->config->getOption('cache_driver');
             if ($driver_option instanceof \Stash\Driver\DriverInterface) {
                 $driver = $driver_option;
             }
@@ -72,7 +72,7 @@ class File extends Source
             }
             else if ($driver_option == 'Apc') {
                 $driver = new \Stash\Driver\Apc(array(
-                    'ttl' => $this->config->cache_expire,
+                    'ttl' => $this->config->getOption('cache_expire'),
                 ));
             }
             else {
@@ -89,10 +89,10 @@ class File extends Source
     protected function getCacheKey()
     {
         return serialize(array(
-            'equal' => $this->config->allow_equal,
-            'skipped' => $this->config->allow_skipped,
-            'repeat' => $this->config->allow_repeat,
-            'invalid' => $this->config->allow_invalid,
+            'equal' => $this->config->getOption('allow_equal'),
+            'skipped' => $this->config->getOption('allow_skipped'),
+            'repeat' => $this->config->getOption('allow_repeat'),
+            'invalid' => $this->config->getOption('allow_invalid'),
         ));
     }
 
@@ -103,7 +103,7 @@ class File extends Source
      */
     public function loadElection()
     {
-        $filename = $this->config->filename;
+        $filename = $this->config->getOption('filename');
         // The filename is mandatory.
         if (empty($filename)) {
             throw new \Exception('Filename not specified.');
@@ -114,7 +114,7 @@ class File extends Source
         }
         $filename = $realpath;
         // If caching is disabled, just load and return the Election.
-        if (!$this->config->cache_enable) {
+        if (!$this->config->getOption('cache_enable')) {
             return $this->loadElectionWork($filename);
         }
         // Load the cache pool.
@@ -128,7 +128,7 @@ class File extends Source
             $stash_item->lock();
             $election = $this->loadElectionWork($filename);
             // Save to cache.
-            $stash_item->set($election, $this->config->cache_expire);
+            $stash_item->set($election, $this->config->getOption('cache_expire'));
         }
         return $election;
     }
@@ -299,6 +299,11 @@ class File extends Source
     {
         $line_number = 0; // actually, this is the line number ignoring comments
         rewind($this->file);
+        // Get config variables before looping (performance).
+        $allow_equal = $this->config->getOption('allow_equal');
+        $allow_invalid = $this->config->getOption('allow_invalid');
+        $allow_repeat =  $this->config->getOption('allow_repeat');
+        $allow_skipped = $this->config->getOption('allow_skipped');
         while (($line = fgets($this->file)) !== FALSE) {
             // Remove comments (starting with # or // until the end of the line).
             if (strpos($line, '#') !== FALSE || strpos($line, '//') !== FALSE) {
@@ -346,7 +351,7 @@ class File extends Source
                 foreach ($parts as $part) {
                     // Deal with skipped rankings: just move on.
                     if ($part == '-') {
-                        if (!$this->config->allow_skipped) {
+                        if (!$allow_skipped) {
                             throw new InvalidBallotException('Skipped rankings are not permitted in this count.');
                         }
                         continue;
@@ -354,7 +359,7 @@ class File extends Source
                     // If this is an 'equal ranking', split it into an array and
                     // validate each side against known candidates.
                     if (strpos($part, '=') !== FALSE) {
-                        if (!$this->config->allow_equal) {
+                        if (!$allow_equal) {
                             throw new InvalidBallotException('Equal rankings are not permitted in this count.');
                         }
                         $part = explode('=', $part);
@@ -372,7 +377,7 @@ class File extends Source
                     }
                     // Check for repeat rankings.
                     if (in_array($part, $ranking)) {
-                        if (!$this->config->allow_repeat) {
+                        if (!$allow_repeat) {
                             throw new InvalidBallotException('Repeat rankings are not allowed in this count.');
                         }
                         continue;
@@ -386,7 +391,7 @@ class File extends Source
             }
             catch (InvalidBallotException $e) {
                 $valid = FALSE;
-                if (!$this->config->allow_invalid) {
+                if (!$allow_invalid) {
                     throw new \Exception($e->getMessage(), $e->getCode(), $e);
                 }
             }

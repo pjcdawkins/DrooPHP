@@ -5,6 +5,11 @@ interface ConfigInterface
 {
 
     /**
+     * Constructor.
+     */
+    public function __construct(array $options = array(), array $defaults = array(), array $required = array());
+
+    /**
      * Set the required options.
      *
      * @param array $keys
@@ -42,15 +47,5 @@ interface ConfigInterface
      * @param string $value  The option value.
      */
     public function setOption($key, $value);
-
-    /**
-     * Alias of self::getOption().
-     */
-    public function __get($key);
-
-    /**
-     * Alias of self::setOption().
-     */
-    public function __set($key, $value);
 
 }
