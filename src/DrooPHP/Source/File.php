@@ -48,7 +48,7 @@ class File extends Source
             'allow_repeat' => 0,
             'allow_invalid' => 1,
             'filename' => NULL,
-            'cache_enable' => FALSE,
+            'cache_enable' => TRUE,
             'cache_expire' => 3600,
             'cache_driver' => 'FileSystem',
         );
@@ -342,6 +342,7 @@ class File extends Source
             if (count($parts) > $election->num_candidates) {
                 throw new InvalidBallotException('The number of rankings exceeds the number of candidates.');
             }
+            $no_equals = (strpos($line, '=') === FALSE);
             $ranking = array();
             $preference = 1;
             $valid = TRUE;
@@ -353,12 +354,13 @@ class File extends Source
                     if ($part == '-') {
                         if (!$allow_skipped) {
                             throw new InvalidBallotException('Skipped rankings are not permitted in this count.');
+                            continue;
                         }
-                        continue;
+                        $part = NULL;
                     }
                     // If this is an 'equal ranking', split it into an array and
                     // validate each side against known candidates.
-                    if (strpos($part, '=') !== FALSE) {
+                    if (!$no_equals && strpos($part, '=') !== FALSE) {
                         if (!$allow_equal) {
                             throw new InvalidBallotException('Equal rankings are not permitted in this count.');
                         }
@@ -370,16 +372,12 @@ class File extends Source
                         }
                     }
                     // Deal with normal rankings.
-                    else {
-                        if (!isset($election->candidates[$part])) {
-                            throw new InvalidBallotException("The candidate '$cid' does not exist.");
-                        }
+                    else if ($part && !isset($election->candidates[$part])) {
+                        throw new InvalidBallotException("The candidate '$part' does not exist.");
                     }
                     // Check for repeat rankings.
-                    if (in_array($part, $ranking)) {
-                        if (!$allow_repeat) {
-                            throw new InvalidBallotException('Repeat rankings are not allowed in this count.');
-                        }
+                    if ($part && !$allow_repeat && in_array($part, $ranking)) {
+                        throw new InvalidBallotException('Repeat rankings are not allowed in this count.');
                         continue;
                     }
                     $ranking[$preference] = $part;
