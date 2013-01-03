@@ -48,7 +48,6 @@ class File extends Source
     public function getDefaultOptions()
     {
         return parent::getDefaultOptions() + array(
-            'filename' => NULL,
             'cache_enable' => TRUE,
             'cache_expire' => 3600,
             'cache_driver' => 'FileSystem',
@@ -106,7 +105,7 @@ class File extends Source
     {
         $filename = $this->config->getOption('filename');
         // The filename is mandatory.
-        if (empty($filename)) {
+        if (!$filename) {
             throw new \Exception('Filename not specified.');
         }
         // If the file is readable, convert the filename to an absolute path.
@@ -144,7 +143,7 @@ class File extends Source
     public function loadElectionWork($filename)
     {
         // Parse the file, creating a new Election object.
-        $election = new Election;
+        $election = new Election();
         $election->file_last_loaded = time();
         // Open the file.
         $this->file = fopen($filename, 'r');

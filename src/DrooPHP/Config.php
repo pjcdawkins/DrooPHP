@@ -13,66 +13,38 @@ class Config implements ConfigInterface
 
     public $options = array();
 
-    public $default_options = array();
-
-    public $required_options = array();
+    public $defaults = array();
 
     /**
      * Constructor.
      */
-    public function __construct(array $options = array(), array $defaults = array(), array $required = array())
+    public function __construct(array $options = array(), array $defaults = array())
     {
-        $this->setDefaultOptions($defaults);
-        $this->setRequiredOptions($required);
-        if ($options) {
-          $this->loadOptions($options);
-        }
+        $this->setOptions($options);
+        $this->addDefaultOptions($defaults);
     }
 
     /**
-     * @see ConfigInterface::setRequiredOptions()
+     * @see ConfigInterface::addDefaultOptions()
      */
-    public function setRequiredOptions(array $keys)
+    public function addDefaultOptions(array $defaults)
     {
-        $this->required_options = $keys;
+        $this->defaults += $defaults;
+        $this->options = array_merge($defaults, $this->options);
         return $this;
     }
 
     /**
-     * @see ConfigInterface::setDefaultOptions()
+     * @see ConfigInterface::setOptions()
      */
-    public function setDefaultOptions(array $options)
+    public function setOptions(array $options)
     {
-        $this->default_options = $options;
+        $this->options = array_merge($this->defaults, $options);
         return $this;
     }
 
     /**
-     * @see ConfigInterface::loadOptions()
-     *
-     * @param array $options
-     */
-    public function loadOptions(array $options)
-    {
-        // Get default options.
-        $defaults = $this->default_options;
-        $options = array_merge($defaults, $options);
-        // Check required options.
-        $missing = array_diff($this->required_options, array_keys($options));
-        if (count($missing)) {
-            throw new \Exception(sprintf('Missing required option(s): %s.', implode(', ', $missing)));
-        }
-        $this->options = $options;
-        return $this;
-    }
-
-    /**
-     * Get the value of a single option.
-     *
-     * @param string $key  The option key.
-     *
-     * @return mixed
-     *     The option value, or FALSE if it doesn't exist.
+     * @see ConfigInterface::getOption()
      */
     public function getOption($key)
     {
@@ -83,10 +55,7 @@ class Config implements ConfigInterface
     }
 
     /**
-     * Set the value of a single option.
-     *
-     * @param string $key  The option key.
-     * @param string $value  The option value.
+     * @see ConfigInterface::setOption()
      */
     public function setOption($key, $value)
     {

@@ -4,14 +4,11 @@
  * @author Patrick Dawkins <pjcdawkins@gmail.com>
  */
 
-namespace DrooPHP\Source;
+namespace DrooPHP\Formatter;
 
 use \DrooPHP\Count;
 
-/**
- * Interface for a source of election data.
- */
-interface SourceInterface
+interface FormatterInterface
 {
 
     /**
@@ -20,10 +17,8 @@ interface SourceInterface
     public function __construct(Count $count);
 
     /**
-     * Load the election data.
-     *
-     * @return Election
+     * @return string
      */
-    public function loadElection();
+    public function getOutput();
 
 }

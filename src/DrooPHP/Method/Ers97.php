@@ -12,6 +12,8 @@ use \DrooPHP\Candidate;
 /**
  * Method for counting votes according to the Electoral Reform Society 1997
  * standard (ERS97) for single transferable vote (STV) elections.
+ *
+ * @todo This is incomplete and broken.
  */
 class Ers97 extends Method
 {
@@ -128,12 +130,14 @@ class Ers97 extends Method
                 if ($candidate->votes >= $quota || $candidate->votes >= ($active_vote / ($num_vacancies + 1))) {
                     // The candidate is now elected.
                     $candidate->state = Candidate::STATE_ELECTED;
-                    $candidate->log(sprintf('Elected at stage %d.', $stage));
                     $election->num_filled_seats++;
                     $anyone_elected = TRUE;
                     if ($candidate->votes > $quota) {
                         $candidate->surplus = $candidate->votes - $quota;
-                        $candidate->log(sprintf('Elected with a surplus: %s - %s = %s.', $candidate->votes, $quota, $candidate->surplus));
+                        $this->logChange($candidate, sprintf('Elected at stage %d with a surplus of %d votes.', $stage, $candidate->surplus), $stage);
+                    }
+                    else {
+                        $this->logChange($candidate, sprintf('Elected at stage %d.', $stage), $stage);
                     }
                 }
             }

@@ -9,24 +9,20 @@ namespace DrooPHP;
 use \DrooPHP\Source\SourceInterface;
 
 /**
- * A source of election data.
+ * A base class for a source of election data.
  */
 abstract class Source implements SourceInterface
 {
 
-    /** @var Config */
+    /** @var ConfigInterface */
     public $config;
-
-    /** @var Election */
-    public $election;
 
     /**
      * Constructor.
      */
-    public function __construct(array $options = array())
+    public function __construct(Count $count)
     {
-        $this->config = new Config($options, $this->getDefaultOptions());
-        $this->election = new Election();
+        $this->config = $count->config->addDefaultOptions($this->getDefaultOptions());
     }
 
     /**

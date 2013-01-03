@@ -6,6 +6,8 @@
 
 namespace DrooPHP\Method;
 
+use DrooPHP\Count;
+
 /**
  * Interface for a vote counting method.
  */
@@ -15,7 +17,7 @@ interface MethodInterface
     /**
      * Constructor.
      */
-    public function __construct(array $options = array());
+    public function __construct(Count $count);
 
     /**
      * Run the count.

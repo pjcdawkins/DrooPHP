@@ -2,11 +2,16 @@
 /**
  * @file Example vote count.
  *
- * @see README.txt
+ * @see ./README.txt
  *
  * @package DrooPHP
  */
 
+// Display errors (just for testing).
+ini_set('display_errors', TRUE);
+ini_set('display_startup_errors', TRUE);
+
+// Load the DrooPHP library.
 require '../../../library.php';
 
 $file = 'data/SanFrancisco-Mayor-2011.blt';
@@ -18,14 +23,5 @@ $options = array(
     'allow_equal' => TRUE,
 );
 
-$count = new DrooPHP\Count(
-    new DrooPHP\Source\File(),
-    new DrooPHP\Method\Wikipedia(),
-    $options
-);
-
-$output = $count->run();
-
-header('Content-Type: text/plain; charset=UTF-8');
-
-print_r($output);
+$count = new DrooPHP\Count($options);
+print $count->run();

@@ -12,28 +12,25 @@ interface ConfigInterface
     /**
      * Constructor.
      */
-    public function __construct(array $options = array(), array $defaults = array(), array $required = array());
-
-    /**
-     * Set the required options.
-     *
-     * @param array $keys
-     */
-    public function setRequiredOptions(array $keys);
+    public function __construct(array $options = array(), array $defaults = array());
 
     /**
      * Set default options and their values.
      *
-     * @return array
+     * Default options are merged with given options.
+     *
+     * @return self
      */
-    public function setDefaultOptions(array $options);
+    public function addDefaultOptions(array $defaults);
 
     /**
-     * Load user-supplied options, validating them, and merging with defaults.
+     * Set the user-supplied options. These are merged with defaults.
      *
      * @param array $options
+     *
+     * @return self
      */
-    public function loadOptions(array $options);
+    public function setOptions(array $options);
 
     /**
      * Get the value of a single option.

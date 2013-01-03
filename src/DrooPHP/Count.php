@@ -6,68 +6,155 @@
 
 namespace DrooPHP;
 
-use \DrooPHP\Config;
-use \DrooPHP\Method\MethodInterface;
-use \DrooPHP\Source\SourceInterface;
-
 /**
- * Main class for a count, containing configuration and an election.
+ * Main class for an election count.
  */
 class Count
 {
 
-    /** @var SourceInterface */
-    public $source;
+    public $config;
 
-    /** @var MethodInterface */
-    public $method;
-
-    /** @var Election */
-    public $election;
+    protected $election;
+    protected $formatter;
+    protected $method;
+    protected $source;
 
     /**
-     * Constructor.
+     * Constructor. Sets up configuration.
      *
-     * @param SourceInterface $source   The source of the election data.
-     * @param MethodInterface $method   The counting method.
-     * @param array $options            An array of options to pass to $config.
-     *
-     * Possible options:
-     *   allow_invalid  bool    Whether to continue counting despite
-     *                          encountering an invalid or spoiled ballot.
-     *   allow_equal    bool    Whether to allow equal rankings (e.g. 2=3).
-     *   allow_repeat   bool    Whether to allow repeat rankings (e.g. 3 2 2).
-     *   allow_skipped  bool    Whether to allow skipped rankings (e.g. -).
-     *   max_stages      string  The maximum number of counting stages.
-     *
-     * @todo sort this out
+     * @param mixed $config  Configuration: an array of options, or an object
+     *                       whose class implements ConfigInterface.
      */
-    public function __construct(SourceInterface $source, MethodInterface $method, array $options = array())
+    public function __construct($config)
     {
-        $this->source = $source;
-        $this->method = $method;
-        if ($options) {
-             $source->config->loadOptions($options);
-             $method->config->loadOptions($options);
+        if (is_array($config)) {
+            $config = new Config($config);
         }
+        else if (!$config instanceof ConfigInterface) {
+            throw new \Exception('Invalid configuration');
+        }
+        $this->config = $config->addDefaultOptions($this->getDefaultOptions());
     }
 
     /**
      * Run the count.
      *
-     * @todo this should return something like an Output object
+     * @see MethodInterface::run()
      *
-     * @see Method::run()
-     *
-     * @return Method
+     * @return string
      */
     public function run()
     {
-        $method = $this->method;
-        $method->election = $this->source->loadElection();
-        $method->run();
-        return $method;
+        $method = $this->getMethod();
+        $method->setElection($this->getElection())->run();
+        return $this->getFormatter()->getOutput();
     }
 
+    /**
+     * Get an array of default options.
+     *
+     * @return array
+     */
+    public function getDefaultOptions() {
+        return array(
+            'source' => 'file',
+            'method' => 'wikipedia',
+            'formatter' => 'html',
+        );
+    }
+
+    /**
+     * Get the election object.
+     *
+     * @return Election
+     */
+    public function getElection()
+    {
+        if (!$this->election) {
+            $this->election = $this->getSource()->loadElection();
+        }
+        return $this->election;
+    }
+
+    /**
+     * Get the source object.
+     *
+     * It should be provided in the configuration as either an object or a class
+     * name which must implement MethodInterface. Class names can be relative to
+     * \DrooPHP\Method.
+     *
+     * @return \DrooPHP\Source\SourceInterface
+     */
+    public function getSource()
+    {
+        if (!$this->source) {
+            $option = $this->config->getOption('source');
+            $namespace = __NAMESPACE__ . '\\Source';
+            $interface_name = $namespace . '\\SourceInterface';
+            if ($option = Utility::validateConfigOption($option, $interface_name, $namespace)) {
+                $this->source = is_object($option) ? $option : new $option($this);
+            }
+            else {
+                throw new \Exception(
+                    '"source" must be an object or class name, implementing \DrooPHP\Source\SourceInterface.'
+                );
+            }
+        }
+        return $this->source;
+    }
+
+    /**
+     * Get the counting method object.
+     *
+     * It should be provided in the configuration as either an object or a class
+     * name which must implement MethodInterface. Class names can be relative to
+     * \DrooPHP\Method.
+     *
+     * @return \DrooPHP\Method\MethodInterface
+     */
+    public function getMethod()
+    {
+        if (!$this->method) {
+            $option = $this->config->getOption('method');
+            $namespace = __NAMESPACE__ . '\\Method';
+            $interface_name = $namespace . '\\MethodInterface';
+            if ($option = Utility::validateConfigOption($option, $interface_name, $namespace)) {
+                $this->method = is_object($option) ? $option : new $option($this);
+            }
+            else {
+                throw new \Exception(
+                    '"method" must be an object or class name, implementing \DrooPHP\Method\MethodInterface.'
+                );
+            }
+        }
+        return $this->method;
+    }
+
+    /**
+     * Get the output format object.
+     *
+     * It should be provided in the configuration as either an object or a class
+     * name which must implement FormatterInterface. Class names can be
+     * relative to \DrooPHP\Formatter.
+     *
+     * @return \DrooPHP\Formatter\FormatterInterface
+     */
+    public function getFormatter()
+    {
+        if (!$this->formatter) {
+            $option = $this->config->getOption('formatter');
+            $namespace = __NAMESPACE__ . '\\Formatter';
+            $interface_name = $namespace . '\\FormatterInterface';
+            if ($option = Utility::validateConfigOption($option, $interface_name, $namespace)) {
+                $this->formatter = is_object($option) ? $option : new $option($this);
+            }
+            else {
+                throw new \Exception(
+                    '"formatter" must be an object or class name, implementing \DrooPHP\Formatter\FormatterInterface.'
+                );
+            }
+        }
+        return $this->formatter;
+    }
 
 }

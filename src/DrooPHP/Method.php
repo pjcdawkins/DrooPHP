@@ -32,10 +32,9 @@ abstract class Method implements MethodInterface
     /**
      * Constructor
      */
-    public function __construct(array $options = array())
+    public function __construct(Count $count)
     {
-        $this->config = new Config($options, $this->getDefaultOptions());
-        $this->election = new Election();
+        $this->config = $count->config->addDefaultOptions($this->getDefaultOptions());
     }
 
     /**
@@ -52,6 +51,18 @@ abstract class Method implements MethodInterface
             'allow_invalid' => TRUE,
             'max_stages' => 100,
         );
+    }
+
+    /**
+     * Load in the election.
+     *
+     * @param Election $election
+     *
+     * @return self
+     */
+    public function setElection(Election $election) {
+        $this->election = $election;
+        return $this;
     }
 
     /**

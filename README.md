@@ -6,15 +6,8 @@ Summary
 
 DrooPHP will be a PHP library to enable counting results for an STV election.
 
-Counts are based on the contents of a ballot (.blt) file.
-
-An aim is to emulate Droop - the Python project. See:
+It's inspired by the Python project "Droop". See:
 http://code.google.com/p/droop/
-
-Significant .blt parsing differences between DrooPHP and Droop:
-* DrooPHP needs new lines (LF or CRLF) to separate BLT file information, as is
-  customary (but not required) in the BLT standard.
-* DrooPHP does not support multi-line or C-style comments /* like this */.
 
 References
 ----------
