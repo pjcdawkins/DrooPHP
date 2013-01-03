@@ -25,17 +25,12 @@ class Count
     /** @var Election */
     public $election;
 
-    /** @var Config */
-    public $config;
-
     /**
      * Constructor.
      *
-     * @param array $source   The source of the election data: an object whose
-     *                        class implements SourceInterface.
-     * @param array $method   The counting method: an object whose class
-     *                        implements MethodInterface.
-     * @param array $options  Optional: an array of options to pass to $config.
+     * @param SourceInterface $source   The source of the election data.
+     * @param MethodInterface $method   The counting method.
+     * @param array $options            An array of options to pass to $config.
      *
      * Possible options:
      *   allow_invalid  bool    Whether to continue counting despite
@@ -49,13 +44,12 @@ class Count
      */
     public function __construct(SourceInterface $source, MethodInterface $method, array $options = array())
     {
-        $config = new Config();
-        $config->loadOptions($options);
-        $this->config = $config;
-        $source->config->loadOptions($options);
         $this->source = $source;
-        $method->config->loadOptions($options);
         $this->method = $method;
+        if ($options) {
+             $source->config->loadOptions($options);
+             $method->config->loadOptions($options);
+        }
     }
 
     /**

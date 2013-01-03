@@ -13,6 +13,11 @@ interface MethodInterface
 {
 
     /**
+     * Constructor.
+     */
+    public function __construct(array $options = array());
+
+    /**
      * Run the count.
      */
     public function run();

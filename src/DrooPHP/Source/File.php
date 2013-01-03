@@ -47,11 +47,7 @@ class File extends Source
      */
     public function getDefaultOptions()
     {
-        return array(
-            'allow_equal' => 0,
-            'allow_skipped' => 0,
-            'allow_repeat' => 0,
-            'allow_invalid' => 1,
+        return parent::getDefaultOptions() + array(
             'filename' => NULL,
             'cache_enable' => TRUE,
             'cache_expire' => 3600,

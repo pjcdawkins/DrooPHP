@@ -25,19 +25,30 @@ abstract class Source implements SourceInterface
      */
     public function __construct(array $options = array())
     {
-        $config = new Config($options, $this->getDefaultOptions());
-        $this->config = $config;
+        $this->config = new Config($options, $this->getDefaultOptions());
         $this->election = new Election();
     }
 
     /**
      * Get an array of default config option values.
      *
+     * Possible options:
+     *   allow_invalid  bool    Whether to continue loading despite encountering
+     *                          invalid or spoiled ballots.
+     *   allow_equal    bool    Whether to allow equal rankings (e.g. 2=3).
+     *   allow_repeat   bool    Whether to allow repeat rankings (e.g. 3 2 2).
+     *   allow_skipped  bool    Whether to allow skipped rankings (e.g. -).
+     *
      * @see self::__construct()
      */
     public function getDefaultOptions()
     {
-        return array();
+        return array(
+            'allow_equal' => FALSE,
+            'allow_skipped' => FALSE,
+            'allow_repeat' => FALSE,
+            'allow_invalid' => FALSE,
+        );
     }
 
 }

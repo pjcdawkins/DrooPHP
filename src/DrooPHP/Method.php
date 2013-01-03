@@ -31,8 +31,6 @@ abstract class Method implements MethodInterface
 
     /**
      * Constructor
-     *
-     * @param array $options  The configuration for this count.
      */
     public function __construct(array $options = array())
     {
@@ -48,10 +46,10 @@ abstract class Method implements MethodInterface
     public function getDefaultOptions()
     {
         return array(
-            'allow_equal' => 0,
-            'allow_skipped' => 0,
-            'allow_repeat' => 0,
-            'allow_invalid' => 1,
+            'allow_equal' => FALSE,
+            'allow_skipped' => FALSE,
+            'allow_repeat' => FALSE,
+            'allow_invalid' => TRUE,
             'max_stages' => 100,
         );
     }
