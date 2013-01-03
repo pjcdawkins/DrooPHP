@@ -1,4 +1,9 @@
 <?php
+/**
+ * @package DrooPHP
+ * @author Patrick Dawkins <pjcdawkins@gmail.com>
+ */
+
 namespace DrooPHP\Source;
 
 use \DrooPHP\Config\ConfigInterface;

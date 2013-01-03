@@ -1,13 +1,24 @@
 <?php
+/**
+ * @file Example vote count.
+ *
+ * @see README.txt
+ *
+ * @package DrooPHP
+ */
+
+ini_set('display_errors', TRUE);
+ini_set('display_startup_errors', TRUE);
+
 require '../../../library.php';
 
 $file = 'data/SanFrancisco-Sheriff-2011.blt';
 
 $options = array(
     'filename' => $file,
-    'allow_skipped' => 1,
-    'allow_repeat' => 1,
-    'allow_equal' => 1,
+    'allow_skipped' => TRUE,
+    'allow_repeat' => TRUE,
+    'allow_equal' => TRUE,
 );
 
 $count = new DrooPHP\Count(

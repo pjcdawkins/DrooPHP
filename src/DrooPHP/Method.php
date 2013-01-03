@@ -1,4 +1,9 @@
 <?php
+/**
+ * @package DrooPHP
+ * @author Patrick Dawkins <pjcdawkins@gmail.com>
+ */
+
 namespace DrooPHP;
 
 use \DrooPHP\Method\MethodInterface;
@@ -37,7 +42,7 @@ abstract class Method implements MethodInterface
 
     /**
      * Get an array of default Config option values.
-     * 
+     *
      * @see self::__construct()
      */
     public function getDefaultOptions()

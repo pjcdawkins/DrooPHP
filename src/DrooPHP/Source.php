@@ -1,4 +1,9 @@
 <?php
+/**
+ * @package DrooPHP
+ * @author Patrick Dawkins <pjcdawkins@gmail.com>
+ */
+
 namespace DrooPHP;
 
 use \DrooPHP\Source\SourceInterface;
@@ -27,7 +32,7 @@ abstract class Source implements SourceInterface
 
     /**
      * Get an array of default config option values.
-     * 
+     *
      * @see self::__construct()
      */
     public function getDefaultOptions()

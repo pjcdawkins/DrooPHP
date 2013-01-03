@@ -1,4 +1,12 @@
 <?php
+/**
+ * @file Example vote count.
+ *
+ * @see README.txt
+ *
+ * @package DrooPHP
+ */
+
 require '../../../library.php';
 
 $file = 'data/simple.blt';
