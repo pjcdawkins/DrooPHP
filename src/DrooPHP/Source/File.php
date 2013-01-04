@@ -26,6 +26,9 @@ class File extends Source
 
     /** @var int */
     protected $ballot_first_line;
+    
+    /** @var \Stash\Pool */
+    protected $pool;
 
     /**
      * Overrides parent::getDefaultOptions().
@@ -51,6 +54,7 @@ class File extends Source
             'cache_enable' => TRUE,
             'cache_expire' => 3600,
             'cache_driver' => 'FileSystem',
+            'cache_dir' => NULL,
         );
     }
 
@@ -61,14 +65,18 @@ class File extends Source
      */
     public function getStashPool()
     {
-        static $pool;
-        if ($pool === NULL) {
+        if ($this->pool === NULL) {
             $driver_option = $this->config->getOption('cache_driver');
             if ($driver_option instanceof \Stash\Driver\DriverInterface) {
                 $driver = $driver_option;
             }
             else if ($driver_option == 'FileSystem') {
-                $driver = new \Stash\Driver\FileSystem();
+                // Allow cache_dir option to set the filesystem cache directory.
+                $options = NULL;
+                if (($cache_dir = $this->config->getOption('cache_dir')) && is_writable($cache_dir)) {
+                    $options = array('path' => realpath($cache_dir));
+                }
+                $driver = new \Stash\Driver\FileSystem($options);
             }
             else if ($driver_option == 'Apc') {
                 $driver = new \Stash\Driver\Apc(array(
@@ -78,22 +86,25 @@ class File extends Source
             else {
                 throw new \Exception('Invalid value provided for option cache_driver.');
             }
-            $pool = new \Stash\Pool($driver);
+            $this->pool = new \Stash\Pool($driver);
         }
-        return $pool;
+        return $this->pool;
     }
 
     /**
      * Get a cache key representing all the options affecting Election loading.
      */
-    protected function getCacheKey()
+    protected function getCacheKey($filename)
     {
-        return serialize(array(
-            'equal' => $this->config->getOption('allow_equal'),
-            'skipped' => $this->config->getOption('allow_skipped'),
-            'repeat' => $this->config->getOption('allow_repeat'),
-            'invalid' => $this->config->getOption('allow_invalid'),
-        ));
+        // Stash cache directories are based on the / separator in the key.
+        return md5(dirname($filename)) . '/'
+            . basename($filename) . '/'
+            . serialize(array(
+                'equal' => $this->config->getOption('allow_equal'),
+                'skipped' => $this->config->getOption('allow_skipped'),
+                'repeat' => $this->config->getOption('allow_repeat'),
+                'invalid' => $this->config->getOption('allow_invalid'),
+            ));
     }
 
     /**
@@ -119,7 +130,7 @@ class File extends Source
         }
         // Load the cache pool.
         $stash_pool = $this->getStashPool();
-        $stash_item = $stash_pool->getItem($filename, $this->getCacheKey());
+        $stash_item = $stash_pool->getItem($this->getCacheKey($filename));
         $election = $stash_item->get(\Stash\Item::SP_OLD);
         // Invalidate the cache if the file changed since it was last loaded.
         $file_updated = (isset($election->file_last_loaded) && filemtime($filename) > $election->file_last_loaded);
