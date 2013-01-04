@@ -70,7 +70,7 @@ class Html extends Formatter
 
         $table = '<table class="droophp-output">' . $table_header . $table_body . '</table>';
 
-        $title = sprintf('Results: %s', $election->title);
+        $title = sprintf('Results: %s', htmlspecialchars($election->title));
 
         $elected_names = array();
         foreach ($candidates as $candidate) {
