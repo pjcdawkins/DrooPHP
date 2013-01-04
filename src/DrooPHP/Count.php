@@ -37,17 +37,18 @@ class Count
     }
 
     /**
-     * Run the count.
-     *
-     * @see MethodInterface::run()
+     * Run the count, and generate output.
      *
      * @return string
      */
     public function run()
     {
         $method = $this->getMethod();
-        $method->setElection($this->getElection())->run();
-        return $this->getFormatter()->getOutput();
+        $election = $this->getElection();
+        $formatter = $this->getFormatter();
+        $method->setElection($election)->run();
+        $output = $formatter->getOutput();
+        return $output;
     }
 
     /**
@@ -79,10 +80,6 @@ class Count
     /**
      * Get the source object.
      *
-     * It should be provided in the configuration as either an object or a class
-     * name which must implement MethodInterface. Class names can be relative to
-     * \DrooPHP\Method.
-     *
      * @return \DrooPHP\Source\SourceInterface
      */
     public function getSource()
@@ -106,10 +103,6 @@ class Count
     /**
      * Get the counting method object.
      *
-     * It should be provided in the configuration as either an object or a class
-     * name which must implement MethodInterface. Class names can be relative to
-     * \DrooPHP\Method.
-     *
      * @return \DrooPHP\Method\MethodInterface
      */
     public function getMethod()
@@ -132,10 +125,6 @@ class Count
 
     /**
      * Get the output format object.
-     *
-     * It should be provided in the configuration as either an object or a class
-     * name which must implement FormatterInterface. Class names can be
-     * relative to \DrooPHP\Formatter.
      *
      * @return \DrooPHP\Formatter\FormatterInterface
      */

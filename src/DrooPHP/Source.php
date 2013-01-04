@@ -22,7 +22,8 @@ abstract class Source implements SourceInterface
      */
     public function __construct(Count $count)
     {
-        $this->config = $count->config->addDefaultOptions($this->getDefaultOptions());
+        $this->config = $count->config;
+        $this->config->addDefaultOptions($this->getDefaultOptions());
     }
 
     /**

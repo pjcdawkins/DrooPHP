@@ -30,15 +30,16 @@ abstract class Method implements MethodInterface
     public $config;
 
     /**
-     * Constructor
+     * @see MethodInterface::__construct()
      */
     public function __construct(Count $count)
     {
-        $this->config = $count->config->addDefaultOptions($this->getDefaultOptions());
+        $this->config = $count->config;
+        $this->config->addDefaultOptions($this->getDefaultOptions());
     }
 
     /**
-     * Get an array of default Config option values.
+     * Get an array of default config option values.
      *
      * @see self::__construct()
      */
@@ -54,11 +55,7 @@ abstract class Method implements MethodInterface
     }
 
     /**
-     * Load in the election.
-     *
-     * @param Election $election
-     *
-     * @return self
+     * @see MethodInterface::setElection()
      */
     public function setElection(Election $election) {
         $this->election = $election;
