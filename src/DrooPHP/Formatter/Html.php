@@ -6,6 +6,7 @@
 
 namespace DrooPHP\Formatter;
 
+use \DrooPHP\Candidate;
 use \DrooPHP\Formatter;
 
 /**
@@ -71,8 +72,23 @@ class Html extends Formatter
 
         $title = sprintf('Results: %s', $election->title);
 
+        $elected_names = array();
+        foreach ($candidates as $candidate) {
+            if ($candidate->state === Candidate::STATE_ELECTED) {
+                $elected_names[] = $candidate->name;
+            }
+        }
+
         $output = '<h1 class="droophp-heading">' . $title . '</h1>';
-        $output .= sprintf('<p class="droophp-quota"><strong>Quota:</strong> %s</p>', number_format($method->quota));
+        $output .= '<dl>';
+        $output .= sprintf('<dt>Elected:</dt><dd>%s</dd>', htmlspecialchars(implode(', ', $elected_names)));
+        $output .= sprintf('<dt>Number of candidates:</dt><dd>%s</dd>', number_format($election->num_candidates));
+        $output .= sprintf('<dt>Vacancies:</dt><dd>%s</dd>', number_format($election->num_seats));
+        $output .= sprintf('<dt>Valid ballots:</dt><dd>%s</dd>', number_format($election->num_valid_ballots));
+        $output .= sprintf('<dt>Invalid ballots:</dt><dd>%s</dd>', number_format($election->num_invalid_ballots));
+        $output .= sprintf('<dt>Quota:</dt><dd>%s</dd>', number_format($method->quota));
+        $output .= sprintf('<dt>Stages:</dt><dd>%d</dd>', count($stages));
+        $output .= '</dl>';
         $output .= $table;
 
         // Optionally, output as an HTML fragment (excluding DOCTYPE, etc).
@@ -101,7 +117,10 @@ class Html extends Formatter
     protected function getCss() {
         return 'body { font: 14px/1.4em sans-serif; }'
             . 'table { border-collapse: collapse; }'
-            . 'td, th { border: 1px solid #CCC; padding: 0.5em; vertical-align: top; }';
+            . 'td, th { border: 1px solid #CCC; padding: 0.5em; vertical-align: top; }'
+            . 'dt { font-weight: bold; } '
+            . 'ul { list-style-type: none; padding: 0; margin: 0; font-size: 0.9em; color: #777; }'
+            . 'li { margin-top: 0.5em; line-height: 1.1em; }';
     }
 
 }
