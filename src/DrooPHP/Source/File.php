@@ -26,7 +26,7 @@ class File extends Source
 
     /** @var int */
     protected $ballot_first_line;
-    
+
     /** @var \Stash\Pool */
     protected $pool;
 
@@ -72,11 +72,13 @@ class File extends Source
             }
             else if ($driver_option == 'FileSystem') {
                 // Allow cache_dir option to set the filesystem cache directory.
-                $options = NULL;
                 if (($cache_dir = $this->config->getOption('cache_dir')) && is_writable($cache_dir)) {
                     $options = array('path' => realpath($cache_dir));
+                    $driver = new \Stash\Driver\FileSystem($options);
                 }
-                $driver = new \Stash\Driver\FileSystem($options);
+                else {
+                    $driver = new \Stash\Driver\FileSystem();
+                }
             }
             else if ($driver_option == 'Apc') {
                 $driver = new \Stash\Driver\Apc(array(
