@@ -6,14 +6,13 @@
 
 namespace DrooPHP\Method;
 
-use \DrooPHP\Method;
 use \DrooPHP\Candidate;
 
 /**
  * Method for counting votes described in the Wikipedia article "Single
  * transferable vote".
  */
-class Wikipedia extends Method
+class Wikipedia extends MethodBase
 {
 
     /**

@@ -9,12 +9,11 @@ namespace DrooPHP\Source;
 use \DrooPHP\Ballot;
 use \DrooPHP\Election;
 use \DrooPHP\Exception\InvalidBallotException;
-use \DrooPHP\Source;
 
 /**
  * Load an election from a ballot (.blt) file.
  */
-class File extends Source
+class File extends SourceBase
 {
 
     /**

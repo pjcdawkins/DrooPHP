@@ -4,14 +4,14 @@
  * @author Patrick Dawkins <pjcdawkins@gmail.com>
  */
 
-namespace DrooPHP;
+namespace DrooPHP\Formatter;
 
-use \DrooPHP\Formatter\FormatterInterface;
+use \DrooPHP\Count;
 
 /**
  * A base class for an output formatter.
  */
-abstract class Formatter implements FormatterInterface
+abstract class FormatterBase implements FormatterInterface
 {
 
     public $count;

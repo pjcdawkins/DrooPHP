@@ -7,12 +7,11 @@
 namespace DrooPHP\Formatter;
 
 use \DrooPHP\Candidate;
-use \DrooPHP\Formatter;
 
 /**
  * An HTML output format.
  */
-class Html extends Formatter
+class Html extends FormatterBase
 {
 
     /**

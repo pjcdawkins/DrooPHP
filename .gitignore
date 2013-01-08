@@ -1,3 +1,3 @@
 vendor
-/var/www/DrooPHP/doc/examples/cache/*
-!/var/www/DrooPHP/doc/examples/cache/README.txt
+doc/examples/cache/*
+!doc/examples/cache/README.txt

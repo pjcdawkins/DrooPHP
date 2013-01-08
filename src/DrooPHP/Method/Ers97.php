@@ -6,7 +6,6 @@
 
 namespace DrooPHP\Method;
 
-use \DrooPHP\Method;
 use \DrooPHP\Candidate;
 
 /**
@@ -15,7 +14,7 @@ use \DrooPHP\Candidate;
  *
  * @todo This is incomplete and broken.
  */
-class Ers97 extends Method
+class Ers97 extends MethodBase
 {
 
     /**

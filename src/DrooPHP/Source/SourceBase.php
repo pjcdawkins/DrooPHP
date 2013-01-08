@@ -4,14 +4,14 @@
  * @author Patrick Dawkins <pjcdawkins@gmail.com>
  */
 
-namespace DrooPHP;
+namespace DrooPHP\Source;
 
-use \DrooPHP\Source\SourceInterface;
+use \DrooPHP\Count;
 
 /**
  * A base class for a source of election data.
  */
-abstract class Source implements SourceInterface
+abstract class SourceBase implements SourceInterface
 {
 
     /** @var ConfigInterface */

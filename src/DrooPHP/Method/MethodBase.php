@@ -4,14 +4,16 @@
  * @author Patrick Dawkins <pjcdawkins@gmail.com>
  */
 
-namespace DrooPHP;
+namespace DrooPHP\Method;
 
-use \DrooPHP\Method\MethodInterface;
+use DrooPHP\Candidate;
+use DrooPHP\Count;
+use DrooPHP\Election;
 
 /**
  * Base class for a vote counting algorithm.
  */
-abstract class Method implements MethodInterface
+abstract class MethodBase implements MethodInterface
 {
 
     /** @var int|float */
