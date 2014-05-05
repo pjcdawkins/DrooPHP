@@ -1,7 +1,7 @@
 <?php
 /**
- * @package DrooPHP
- * @author Patrick Dawkins <pjcdawkins@gmail.com>
+ * @file
+ * Load an election from a ballot (.blt) file.
  */
 
 namespace DrooPHP\Source;
@@ -10,9 +10,6 @@ use DrooPHP\Ballot;
 use DrooPHP\Election;
 use DrooPHP\Exception\InvalidBallotException;
 
-/**
- * Load an election from a ballot (.blt) file.
- */
 class File extends SourceBase {
 
   /**

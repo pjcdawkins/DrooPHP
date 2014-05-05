@@ -1,14 +1,11 @@
 <?php
 /**
- * @package DrooPHP
- * @author Patrick Dawkins <pjcdawkins@gmail.com>
+ * @file
+ * Some utility methods for DrooPHP.
  */
 
 namespace DrooPHP;
 
-/**
- * Main class for an election count.
- */
 abstract class Utility {
 
   /**

@@ -1,7 +1,10 @@
 <?php
 /**
- * @package DrooPHP
- * @author Patrick Dawkins <pjcdawkins@gmail.com>
+ * @file
+ * Method for counting votes according to the Electoral Reform Society 1997
+ * standard (ERS97) for single transferable vote (STV) elections.
+ *
+ * @todo This is incomplete and broken.
  */
 
 namespace DrooPHP\Method;
@@ -9,12 +12,6 @@ namespace DrooPHP\Method;
 use DrooPHP\Candidate;
 use Exception;
 
-/**
- * Method for counting votes according to the Electoral Reform Society 1997
- * standard (ERS97) for single transferable vote (STV) elections.
- *
- * @todo This is incomplete and broken.
- */
 class Ers97 extends MethodBase {
 
   /**

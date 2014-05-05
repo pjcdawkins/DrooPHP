@@ -1,7 +1,7 @@
 <?php
 /**
- * @package DrooPHP
- * @author Patrick Dawkins <pjcdawkins@gmail.com>
+ * @file
+ * An interface for an output formatter.
  */
 
 namespace DrooPHP\Formatter;

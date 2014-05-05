@@ -1,7 +1,7 @@
 <?php
 /**
- * @package DrooPHP
- * @author Patrick Dawkins <pjcdawkins@gmail.com>
+ * @file
+ * Interface for configuration management.
  */
 
 namespace DrooPHP\Config;

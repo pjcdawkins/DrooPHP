@@ -1,7 +1,7 @@
 <?php
 /**
- * @package DrooPHP
- * @author Patrick Dawkins <pjcdawkins@gmail.com>
+ * @file
+ * Interface for a source of election data.
  */
 
 namespace DrooPHP\Source;
@@ -9,9 +9,6 @@ namespace DrooPHP\Source;
 use DrooPHP\Count;
 use DrooPHP\Election;
 
-/**
- * Interface for a source of election data.
- */
 interface SourceInterface {
 
   /**

@@ -1,7 +1,7 @@
 <?php
 /**
- * @package DrooPHP
- * @author Patrick Dawkins <pjcdawkins@gmail.com>
+ * @file
+ * Interface for a vote counting method.
  */
 
 namespace DrooPHP\Method;
@@ -9,9 +9,6 @@ namespace DrooPHP\Method;
 use DrooPHP\Count;
 use DrooPHP\Election;
 
-/**
- * Interface for a vote counting method.
- */
 interface MethodInterface {
 
   /**

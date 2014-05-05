@@ -1,7 +1,7 @@
 <?php
 /**
- * @package DrooPHP
- * @author Patrick Dawkins <pjcdawkins@gmail.com>
+ * @file
+ * Base class for a vote counting method.
  */
 
 namespace DrooPHP\Method;
@@ -11,9 +11,6 @@ use DrooPHP\Config\ConfigInterface;
 use DrooPHP\Count;
 use DrooPHP\Election;
 
-/**
- * Base class for a vote counting algorithm.
- */
 abstract class MethodBase implements MethodInterface {
 
   /** @var int|float */

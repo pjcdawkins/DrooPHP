@@ -1,15 +1,11 @@
 <?php
 /**
- * @package DrooPHP
- * @author Patrick Dawkins <pjcdawkins@gmail.com>
+ * @file
+ * Class representing a ballot.
  */
 
 namespace DrooPHP;
 
-/**
- * Container for a ballot, i.e. an individual "ballot paper", cast by a single
- * voter.
- */
 class Ballot {
 
   /** @var array */

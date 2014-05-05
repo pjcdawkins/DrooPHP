@@ -1,17 +1,14 @@
 <?php
 /**
- * @package DrooPHP
- * @author Patrick Dawkins <pjcdawkins@gmail.com>
+ * @file
+ * Method for counting votes described in the Wikipedia article "Single
+ * transferable vote".
  */
 
 namespace DrooPHP\Method;
 
 use DrooPHP\Candidate;
 
-/**
- * Method for counting votes described in the Wikipedia article "Single
- * transferable vote".
- */
 class Wikipedia extends MethodBase {
 
   /**

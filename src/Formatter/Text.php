@@ -1,16 +1,13 @@
 <?php
 /**
- * @package DrooPHP
- * @author Patrick Dawkins <pjcdawkins@gmail.com>
+ * @file
+ * A plain-text output formatter.
  */
 
 namespace DrooPHP\Formatter;
 
 use DrooPHP\Candidate;
 
-/**
- * A plain-text output format.
- */
 class Text extends FormatterBase {
 
   /**

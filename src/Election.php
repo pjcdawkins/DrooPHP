@@ -1,14 +1,11 @@
 <?php
 /**
- * @package DrooPHP
- * @author Patrick Dawkins <pjcdawkins@gmail.com>
+ * @file
+ * Class representing an election.
  */
 
 namespace DrooPHP;
 
-/**
- * Contains details about an election.
- */
 class Election {
 
   /** @var string */

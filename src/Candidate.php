@@ -1,14 +1,11 @@
 <?php
 /**
- * @package DrooPHP
- * @author Patrick Dawkins <pjcdawkins@gmail.com>
+ * @file
+ * Class representing a candidate in an election.
  */
 
 namespace DrooPHP;
 
-/**
- * Container for a candidate in an election.
- */
 class Candidate {
 
   const STATE_ELECTED = 2;

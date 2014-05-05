@@ -1,15 +1,13 @@
 <?php
 /**
- * @package DrooPHP
- * @author Patrick Dawkins <pjcdawkins@gmail.com>
+ * @file
+ * Main class for an election count.
  */
 
 namespace DrooPHP;
+
 use DrooPHP\Config\ConfigInterface;
 
-/**
- * Main class for an election count.
- */
 class Count {
 
   public $config;
