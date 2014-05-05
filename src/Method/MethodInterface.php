@@ -6,18 +6,16 @@
 
 namespace DrooPHP\Method;
 
-use DrooPHP\CountInterface;
+use DrooPHP\ElectionInterface;
 
 interface MethodInterface {
 
   /**
-   * Constructor.
-   */
-  public function __construct(CountInterface $count);
-
-  /**
    * Run the count.
+   *
+   * @param ElectionInterface $election
+   * @param int $stage
    */
-  public function run();
+  public function run(ElectionInterface $election, $stage = 1);
 
 }

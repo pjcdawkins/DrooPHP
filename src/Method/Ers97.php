@@ -10,6 +10,8 @@
 namespace DrooPHP\Method;
 
 use DrooPHP\Candidate;
+use DrooPHP\Election;
+use DrooPHP\ElectionInterface;
 use Exception;
 
 class Ers97 extends MethodBase {
@@ -63,18 +65,16 @@ class Ers97 extends MethodBase {
   /**
    * Overrides parent::run().
    */
-  public function run($stage = 1) {
+  public function run(ElectionInterface $election, $stage = 1) {
 
     // Log the current status of the count (i.e. the status reached at the end of the previous stage).
     if ($stage > 1) {
       $this->logStage($stage - 1);
     }
 
-    $election = $this->election;
-
     // First stage. // ERS97 5.1
     if ($stage == 1) {
-      $this->calculateQuota();
+      $this->calculateQuota($election);
       // Count the first preference votes and add them to each candidate // ERS97 5.1.4
       $total = 0;
       foreach ($election->ballots as $ballot) {
@@ -109,12 +109,12 @@ class Ers97 extends MethodBase {
                     active vote, divided by one more than the number of places not yet filled.
         up to the number of places to be filled, subject to paragraph 5.6.2. // ERS97 5.6.2 refers to ties
      */
-    $candidates = $this->orderCandidates(); // sort into descending order of votes
-    $active_vote = $this->getActiveVote();
+    $candidates = $this->getCandidatesOrder($election); // sort into descending order of votes
+    $active_vote = $this->getActiveVote($election);
     $quota = $this->quota;
     $anyone_elected = FALSE;
     foreach ($candidates as $candidate) {
-      $num_vacancies = $this->getNumVacancies();
+      $num_vacancies = $this->getNumVacancies($election);
       if ($num_vacancies == 0) {
         // If all seats are filled, the election has finished.
         return TRUE;
@@ -138,16 +138,16 @@ class Ers97 extends MethodBase {
 
     if ($stage == 1) {
       // If we're on the first stage, it's now complete, the next actions are part of stage 2. // ERS97 5.1.8
-      return $this->run($stage + 1);
+      return $this->run($election, $stage + 1);
     }
 
     if ($anyone_elected) {
       // If anyone has been elected in this stage, then it's now complete.
-      return $this->run($stage + 1);
+      return $this->run($election, $stage + 1);
     }
 
     // If one or more candidates have surpluses, the largest of these should now be transferred. // ERS97 5.2.2
-    $surpluses = $this->getSurpluses();
+    $surpluses = $this->getSurpluses($election);
     if (!empty($surpluses)) {
       // @todo work out what to do with the deferment rules in ERS97 5.2.2
       /*
@@ -180,17 +180,18 @@ class Ers97 extends MethodBase {
     elseif ($stage >= $this->config->getOption('max_stages')) {
       throw new Exception('Maximum number of stages reached before completing the count.');
     }
-    return $this->run($stage + 1);
+    return $this->run($election, $stage + 1);
   }
 
   /**
    * Get candidates in descending order of their votes. // ERS97 5.1.7
    *
+   * @param ElectionInterface $election
+   *
    * @return array
    * Array of Candidate objects, keyed by candidate ID.
    */
-  public function orderCandidates() {
-    $election = $this->election;
+  public function getCandidatesOrder(ElectionInterface $election) {
     $candidates_votes = array(); // array of vote amounts keyed by candidate ID
     foreach ($election->candidates as $cid => $candidate) {
       $candidates_votes[$cid] = $candidate->votes;
@@ -216,11 +217,12 @@ class Ers97 extends MethodBase {
   /**
    * Get candidates' surpluses in descending order of size. // ERS97 5.2.3
    *
+   * @param ElectionInterface $election
+   *
    * @return array
    * Array of surpluses (floats), keyed by candidate ID.
    */
-  public function getSurpluses() {
-    $candidates = $this->election->candidates;
+  public function getSurpluses(ElectionInterface $election) {
     $surpluses = array();
     foreach ($candidates as $cid => $candidate) {
       if ($candidate->surplus > 0) {
@@ -244,8 +246,7 @@ class Ers97 extends MethodBase {
    *
    * @return float
    */
-  protected function calculateQuota() {
-    $election = $this->election;
+  protected function calculateQuota(ElectionInterface $election) {
     $num = $election->num_valid_ballots / ($election->num_seats + 1);
     $quota = ceil($num * 100) / 100;
     $this->quota = $quota;

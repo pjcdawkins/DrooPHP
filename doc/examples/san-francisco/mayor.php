@@ -22,5 +22,6 @@ $options = array(
     'cache_dir' => '../cache',
 );
 
-$count = new DrooPHP\Count($options);
+$count = new DrooPHP\Count();
+$count->getSource()->setOptions($options);
 print $count->run();

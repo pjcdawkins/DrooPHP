@@ -15,7 +15,7 @@ class Config implements ConfigInterface {
   public $defaults = array();
 
   /**
-   * Constructor.
+   * @{inheritdoc}
    */
   public function __construct(array $options = array(), array $defaults = array()) {
     $this->setOptions($options);
@@ -23,7 +23,7 @@ class Config implements ConfigInterface {
   }
 
   /**
-   * @see ConfigInterface::addDefaultOptions()
+   * @{inheritdoc}
    */
   public function addDefaultOptions(array $defaults) {
     $this->defaults += $defaults;

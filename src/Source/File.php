@@ -174,7 +174,8 @@ class File extends SourceBase {
       $this->parseHead($election);
       $this->parseTail($election);
       $this->parseBallots($election);
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $n = 10; // Number of characters to display for debugging.
       $position = ftell($this->file);
       fseek($this->file, -$n, SEEK_CUR);

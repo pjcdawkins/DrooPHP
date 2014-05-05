@@ -15,13 +15,13 @@ require '../../../library.php';
 $file = 'data/SanFrancisco-DA-2011.blt';
 
 $options = array(
-    'filename' => $file,
-    'allow_skipped' => TRUE,
-    'allow_repeat' => TRUE,
-    'allow_equal' => TRUE,
-    'cache_dir' => '../cache',
-    'formatter' => 'text',
+  'filename' => $file,
+  'allow_skipped' => TRUE,
+  'allow_repeat' => TRUE,
+  'allow_equal' => TRUE,
+  'cache_dir' => '../cache',
 );
 
-$count = new DrooPHP\Count($options);
+$count = new DrooPHP\Count();
+$count->getSource()->setOptions($options);
 print $count->run();

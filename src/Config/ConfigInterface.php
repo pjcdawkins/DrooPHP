@@ -10,6 +10,9 @@ interface ConfigInterface {
 
   /**
    * Constructor.
+   *
+   * @param array $options
+   * @param array $defaults
    */
   public function __construct(array $options = array(), array $defaults = array());
 

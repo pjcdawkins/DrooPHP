@@ -7,15 +7,15 @@
 namespace DrooPHP\Formatter;
 
 use DrooPHP\Candidate;
+use DrooPHP\ElectionInterface;
+use DrooPHP\Method\MethodInterface;
 
 class Text extends FormatterBase {
 
   /**
    * @{inheritdoc}
    */
-  public function getOutput() {
-    $election = $this->count->getElection();
-    $method = $this->count->getMethod();
+  public function getOutput(MethodInterface $method, ElectionInterface $election) {
 
     $candidates = $election->candidates;
     $stages = $method->stages;
@@ -43,18 +43,18 @@ class Text extends FormatterBase {
 
     $table = $table_header . $table_body;
 
-    $title = sprintf('Results: %s', htmlspecialchars($election->title));
+    $title = sprintf('Results: %s', trim($election->title));
 
     $elected_names = array();
     foreach ($candidates as $candidate) {
       if ($candidate->state === Candidate::STATE_ELECTED) {
-        $elected_names[] = $candidate->name;
+        $elected_names[] = trim($candidate->name);
       }
     }
 
     $output = "$title\n\n";
 
-    $output .= sprintf("Elected: %s\n", htmlspecialchars(implode(', ', $elected_names)));
+    $output .= sprintf("Elected: %s\n", implode(', ', $elected_names));
     $output .= sprintf("Number of candidates: %s\n", number_format($election->num_candidates));
     $output .= sprintf("Vacancies: %s\n", number_format($election->num_seats));
     $output .= sprintf("Valid ballots: %s\n", number_format($election->num_valid_ballots));

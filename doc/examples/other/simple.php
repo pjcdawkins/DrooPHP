@@ -11,7 +11,6 @@ ini_set('display_startup_errors', TRUE);
 require '../../../library.php';
 
 $file = 'data/simple.blt';
-$source = new DrooPHP\Source\File(array('filename' => $file));
 
-$count = new DrooPHP\Count(NULL, $source);
+$count = new DrooPHP\Count(array('filename' => $file));
 print $count->run();

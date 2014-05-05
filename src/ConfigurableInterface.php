@@ -21,6 +21,8 @@ interface ConfigurableInterface {
    * Set options.
    *
    * @param array $options
+   *
+   * @return self
    */
   public function setOptions(array $options);
 

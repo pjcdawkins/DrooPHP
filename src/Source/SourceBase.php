@@ -66,6 +66,7 @@ abstract class SourceBase implements SourceInterface, ConfigurableInterface {
    */
   public function setOptions(array $options) {
     $this->getConfig()->setOptions($options);
+    return $this;
   }
 
 }

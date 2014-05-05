@@ -6,7 +6,6 @@
 
 namespace DrooPHP;
 
-use DrooPHP\ElectionInterface;
 use DrooPHP\Method\MethodInterface;
 use DrooPHP\Source\SourceInterface;
 use DrooPHP\Formatter\FormatterInterface;
@@ -19,13 +18,6 @@ interface CountInterface {
    * @return string
    */
   public function run();
-
-  /**
-   * Get the election object.
-   *
-   * @return ElectionInterface
-   */
-  public function getElection();
 
   /**
    * Get the source object.

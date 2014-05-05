@@ -7,6 +7,8 @@
 namespace DrooPHP\Formatter;
 
 use DrooPHP\Candidate;
+use DrooPHP\ElectionInterface;
+use DrooPHP\Method\MethodInterface;
 
 class Html extends FormatterBase {
 
@@ -20,12 +22,9 @@ class Html extends FormatterBase {
   }
 
   /**
-   * @see FormatterInterface::getOutput()
+   * @{inheritdoc}
    */
-  public function getOutput() {
-    $election = $this->count->getElection();
-    $method = $this->count->getMethod();
-
+  public function getOutput(MethodInterface $method, ElectionInterface $election) {
     $candidates = $election->candidates;
     $stages = $method->stages;
 
