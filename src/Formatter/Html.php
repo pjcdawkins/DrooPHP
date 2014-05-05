@@ -81,7 +81,7 @@ class Html extends FormatterBase {
     $output .= $table;
 
     // Optionally, output as an HTML fragment (excluding DOCTYPE, etc).
-    if ($this->config->getOption('html_fragment')) {
+    if ($this->getConfig()->getOption('html_fragment')) {
       return $output;
     }
 

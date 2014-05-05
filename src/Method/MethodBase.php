@@ -80,6 +80,7 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
    * Log information about a voting stage, e.g. the number of votes for each
    * candidate.
    *
+   * @param ElectionInterface $election
    * @param int $stage
    */
   public function logStage(ElectionInterface $election, $stage) {

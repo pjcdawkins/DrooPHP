@@ -34,6 +34,7 @@ class Wikipedia extends MethodBase {
    * See:
    * http://en.wikipedia.org/wiki/Single_transferable_vote#Finding_the_winners
    *
+   * @param ElectionInterface $election
    * @param int $stage The stage number.
    *
    * @throws \Exception
@@ -139,6 +140,8 @@ class Wikipedia extends MethodBase {
   /**
    * Get the hopeful candidate with the fewest votes.
    *
+   * @param ElectionInterface $election
+   *
    * @return Candidate
    */
   public function findDefeatableCandidate(ElectionInterface $election) {
@@ -159,6 +162,7 @@ class Wikipedia extends MethodBase {
   /**
    * Transfer a candidate's votes or surplus to other hopefuls.
    *
+   * @param ElectionInterface $election
    * @param float $num_to_transfer
    * @param Candidate $from_candidate
    * @param int $stage

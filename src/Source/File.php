@@ -10,6 +10,7 @@ use DrooPHP\Ballot;
 use DrooPHP\Election;
 use DrooPHP\ElectionInterface;
 use DrooPHP\Exception\InvalidBallotException;
+use Stash;
 
 class File extends SourceBase {
 
@@ -23,7 +24,7 @@ class File extends SourceBase {
   /** @var int */
   protected $ballot_first_line;
 
-  /** @var \Stash\Pool */
+  /** @var Stash\Pool */
   protected $pool;
 
   /**
@@ -42,7 +43,7 @@ class File extends SourceBase {
    *                          object.
    *   cache_expire   int|\DateTime
    *                          A TTL (seconds) or DateTime expiry date.
-   *   cache_driver   string|\Stash\Driver\DriverInterface
+   *   cache_driver   string|Stash\Driver\DriverInterface
    *                          The Stash cache driver.
    */
   public function getDefaultOptions() {
@@ -58,27 +59,27 @@ class File extends SourceBase {
    * Get a Stash pool (caching).
    *
    * @throws \Exception
-   * @return \Stash\Pool
+   * @return Stash\Pool
    */
   public function getStashPool() {
     if ($this->pool === NULL) {
       $driver_option = $this->getConfig()->getOption('cache_driver');
-      if ($driver_option instanceof \Stash\Driver\DriverInterface) {
+      if ($driver_option instanceof Stash\Driver\DriverInterface) {
         $driver = $driver_option;
       }
       else if ($driver_option == 'FileSystem') {
         // Allow cache_dir option to set the filesystem cache directory.
         if (($cache_dir = $this->getConfig()->getOption('cache_dir')) && is_writable($cache_dir)) {
           $options = array('path' => realpath($cache_dir));
-          $driver = new \Stash\Driver\FileSystem($options);
+          $driver = new Stash\Driver\FileSystem($options);
         }
         else {
-          $driver = new \Stash\Driver\FileSystem();
+          $driver = new Stash\Driver\FileSystem();
         }
       }
       else {
         if ($driver_option == 'Apc') {
-          $driver = new \Stash\Driver\Apc(array(
+          $driver = new Stash\Driver\Apc(array(
             'ttl' => $this->getConfig()->getOption('cache_expire'),
           ));
         }
@@ -86,7 +87,7 @@ class File extends SourceBase {
           throw new \Exception('Invalid value provided for option cache_driver.');
         }
       }
-      $this->pool = new \Stash\Pool($driver);
+      $this->pool = new Stash\Pool($driver);
     }
     return $this->pool;
   }
@@ -130,7 +131,7 @@ class File extends SourceBase {
     // Load the cache pool.
     $stash_pool = $this->getStashPool();
     $stash_item = $stash_pool->getItem($this->getCacheKey($filename));
-    $election = $stash_item->get(\Stash\Item::SP_OLD);
+    $election = $stash_item->get(Stash\Item::SP_OLD);
     // Invalidate the cache if the file changed since it was last loaded.
     $file_updated = (isset($election->file_last_loaded) && filemtime($filename) > $election->file_last_loaded);
     // Do the work again if the cache missed or should be refreshed.

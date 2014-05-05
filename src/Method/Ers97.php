@@ -10,7 +10,6 @@
 namespace DrooPHP\Method;
 
 use DrooPHP\Candidate;
-use DrooPHP\Election;
 use DrooPHP\ElectionInterface;
 use Exception;
 
@@ -55,11 +54,11 @@ class Ers97 extends MethodBase {
   /**
    * Overrides parent::logStage().
    */
-  public function logStage($stage) {
-    parent::logStage($stage);
+  public function logStage(ElectionInterface $election, $stage) {
+    parent::logStage($election, $stage);
     $log = & $this->stages[$stage];
-    $log['surpluses'] = $this->getSurpluses();
-    $log['active_vote'] = $this->getActiveVote();
+    $log['surpluses'] = $this->getSurpluses($election);
+    $log['active_vote'] = $this->getActiveVote($election);
   }
 
   /**
@@ -69,7 +68,7 @@ class Ers97 extends MethodBase {
 
     // Log the current status of the count (i.e. the status reached at the end of the previous stage).
     if ($stage > 1) {
-      $this->logStage($stage - 1);
+      $this->logStage($election, $stage - 1);
     }
 
     // First stage. // ERS97 5.1
@@ -174,7 +173,7 @@ class Ers97 extends MethodBase {
     //$this->defeatCandidates();
 
     // Proceed to the next stage or stop if the election is complete.
-    if ($this->isComplete()) {
+    if ($this->isComplete($election)) {
       return TRUE;
     }
     elseif ($stage >= $this->config->getOption('max_stages')) {
@@ -224,7 +223,7 @@ class Ers97 extends MethodBase {
    */
   public function getSurpluses(ElectionInterface $election) {
     $surpluses = array();
-    foreach ($candidates as $cid => $candidate) {
+    foreach ($election->candidates as $cid => $candidate) {
       if ($candidate->surplus > 0) {
         $surpluses[$cid] = $candidate->surplus;
       }
@@ -243,6 +242,8 @@ class Ers97 extends MethodBase {
    * valid vote by one more than the number of places to be filled. Take the
    * division to two decimal places. If the result is exact that is the quota.
    * Otherwise ignore the remainder, and add 0.01".
+   *
+   * @param ElectionInterface $election
    *
    * @return float
    */

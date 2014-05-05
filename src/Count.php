@@ -52,7 +52,7 @@ class Count implements CountInterface, ConfigurableInterface {
    * @{inheritdoc}
    */
   public function setOptions(array $options) {
-    $this->config->setOptions($options);
+    $this->getConfig()->setOptions($options);
     return $this;
   }
 
@@ -102,7 +102,7 @@ class Count implements CountInterface, ConfigurableInterface {
    */
   public function getMethod() {
     if (!$this->method) {
-      $option = $this->config->getOption('method');
+      $option = $this->getConfig()->getOption('method');
       if (is_object($option)) {
         $this->method = $option;
       }
@@ -119,7 +119,7 @@ class Count implements CountInterface, ConfigurableInterface {
    */
   public function getFormatter() {
     if (!$this->formatter) {
-      $option = $this->config->getOption('formatter');
+      $option = $this->getConfig()->getOption('formatter');
       if (is_object($option)) {
         $this->formatter = $option;
       }
