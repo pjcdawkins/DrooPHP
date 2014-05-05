@@ -6,7 +6,7 @@
 
 namespace DrooPHP;
 
-class Candidate {
+class Candidate implements CandidateInterface {
 
   const STATE_ELECTED = 2;
   const STATE_HOPEFUL = 1;
@@ -22,10 +22,7 @@ class Candidate {
   public $votes = 0;
 
   /**
-   * Constructor.
-   *
-   * @param string $name The name of the candidate.
-   * @param bool $withdrawn Whether the candidate has been withdrawn.
+   * @{inheritdoc}
    */
   public function __construct($name, $withdrawn = FALSE) {
     $this->name = $name;

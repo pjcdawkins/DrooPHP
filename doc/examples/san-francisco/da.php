@@ -3,8 +3,6 @@
  * @file Example vote count.
  *
  * @see ./README.txt
- *
- * @package DrooPHP
  */
 
 // Display errors (just for testing).
@@ -22,6 +20,7 @@ $options = array(
     'allow_repeat' => TRUE,
     'allow_equal' => TRUE,
     'cache_dir' => '../cache',
+    'formatter' => 'text',
 );
 
 $count = new DrooPHP\Count($options);

@@ -6,7 +6,7 @@
 
 namespace DrooPHP;
 
-class Election {
+class Election implements ElectionInterface {
 
   /** @var string */
   public $title;
@@ -61,7 +61,7 @@ class Election {
   public $num_exhausted_ballots = 0;
 
   /**
-   * The ballots: array of Ballot objects.
+   * The ballots: array of BallotInterface objects.
    *
    * @var array
    */

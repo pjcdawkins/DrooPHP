@@ -1,8 +1,6 @@
 <?php
 /**
  * @file Example vote count.
- *
- * @package DrooPHP
  */
 
 // Display errors (just for testing).

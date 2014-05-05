@@ -6,36 +6,34 @@
 
 namespace DrooPHP\Source;
 
+use DrooPHP\Config;
 use DrooPHP\Config\ConfigInterface;
-use DrooPHP\Count;
+use DrooPHP\ConfigurableInterface;
 
 /**
  * A base class for a source of election data.
  */
-abstract class SourceBase implements SourceInterface {
+abstract class SourceBase implements SourceInterface, ConfigurableInterface {
 
   /** @var ConfigInterface */
-  public $config;
+  protected $config;
 
   /**
    * Constructor.
+   *
+   * @param array $options
+   *   Configuration options.
    */
-  public function __construct(Count $count) {
-    $this->config = $count->config;
-    $this->config->addDefaultOptions($this->getDefaultOptions());
+  public function __construct(array $options = array()) {
+    $this->getConfig()
+      ->addDefaultOptions($this->getDefaultOptions())
+      ->setOptions($options);
   }
 
   /**
-   * Get an array of default config option values.
+   * Get default options.
    *
-   * Possible options:
-   *   allow_invalid  bool    Whether to continue loading despite encountering
-   *                          invalid or spoiled ballots.
-   *   allow_equal    bool    Whether to allow equal rankings (e.g. 2=3).
-   *   allow_repeat   bool    Whether to allow repeat rankings (e.g. 3 2 2).
-   *   allow_skipped  bool    Whether to allow skipped rankings (e.g. -).
-   *
-   * @see self::__construct()
+   * @return array
    */
   public function getDefaultOptions() {
     return array(
@@ -44,6 +42,30 @@ abstract class SourceBase implements SourceInterface {
       'allow_repeat' => FALSE,
       'allow_invalid' => FALSE,
     );
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function getConfig() {
+    if (!$this->config) {
+      $this->config = new Config();
+    }
+    return $this->config;
+  }
+
+  /**
+   * @{inheritdoc}
+   *
+   * Possible options:
+   *   allow_invalid  bool    Whether to continue loading despite encountering
+   *                          invalid or spoiled ballots.
+   *   allow_equal    bool    Whether to allow equal rankings (e.g. 2=3).
+   *   allow_repeat   bool    Whether to allow repeat rankings (e.g. 3 2 2).
+   *   allow_skipped  bool    Whether to allow skipped rankings (e.g. -).
+   */
+  public function setOptions(array $options) {
+    $this->getConfig()->setOptions($options);
   }
 
 }

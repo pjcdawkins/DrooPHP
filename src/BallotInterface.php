@@ -1,18 +1,12 @@
 <?php
 /**
  * @file
- * Class representing a ballot.
+ * Interface for a ballot.
  */
 
 namespace DrooPHP;
 
-class Ballot implements BallotInterface {
-
-  /** @var array */
-  public $ranking;
-
-  /** @var int|float */
-  public $value;
+interface BallotInterface {
 
   /**
    * Constructor.
@@ -24,9 +18,6 @@ class Ballot implements BallotInterface {
    * @param int|float $value
    *    The value of this ballot (default: 1).
    */
-  public function __construct(array $ranking, $value = 1) {
-    $this->ranking = $ranking;
-    $this->value = $value;
-  }
+  public function __construct(array $ranking, $value = 1);
 
 }

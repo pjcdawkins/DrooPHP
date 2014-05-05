@@ -1,9 +1,6 @@
 <?php
 /**
  * @file Include this file to load the DrooPHP library.
- *
- * @package DrooPHP
- * @author Patrick Dawkins <pjcdawkins@gmail.com>
  */
 
 // The library requires Composer (see getcomposer.org). Composer creates an

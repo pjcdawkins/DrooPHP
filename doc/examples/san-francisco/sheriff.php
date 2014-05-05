@@ -3,8 +3,6 @@
  * @file Example vote count.
  *
  * @see ./README.txt
- *
- * @package DrooPHP
  */
 
 // Display errors (just for testing).

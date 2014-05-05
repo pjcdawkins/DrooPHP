@@ -6,14 +6,14 @@
 
 namespace DrooPHP\Formatter;
 
-use DrooPHP\Count;
+use DrooPHP\CountInterface;
 
 interface FormatterInterface {
 
   /**
    * Constructor.
    */
-  public function __construct(Count $count);
+  public function __construct(CountInterface $count);
 
   /**
    * @return string

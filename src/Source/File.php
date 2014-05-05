@@ -8,6 +8,7 @@ namespace DrooPHP\Source;
 
 use DrooPHP\Ballot;
 use DrooPHP\Election;
+use DrooPHP\ElectionInterface;
 use DrooPHP\Exception\InvalidBallotException;
 
 class File extends SourceBase {
@@ -37,7 +38,8 @@ class File extends SourceBase {
    *   allow_equal    bool    Whether to allow equal rankings (e.g. 2=3).
    *   allow_repeat   bool    Whether to allow repeat rankings (e.g. 3 2 2).
    *   allow_skipped  bool    Whether to allow skipped rankings (e.g. -).
-   *   cache_enable   bool    Whether to cache the loaded Election.
+   *   cache_enable   bool    Whether to cache the loaded ElectionInterface
+   *                          object.
    *   cache_expire   int|\DateTime
    *                          A TTL (seconds) or DateTime expiry date.
    *   cache_driver   string|\Stash\Driver\DriverInterface
@@ -60,13 +62,13 @@ class File extends SourceBase {
    */
   public function getStashPool() {
     if ($this->pool === NULL) {
-      $driver_option = $this->config->getOption('cache_driver');
+      $driver_option = $this->getConfig()->getOption('cache_driver');
       if ($driver_option instanceof \Stash\Driver\DriverInterface) {
         $driver = $driver_option;
       }
       else if ($driver_option == 'FileSystem') {
         // Allow cache_dir option to set the filesystem cache directory.
-        if (($cache_dir = $this->config->getOption('cache_dir')) && is_writable($cache_dir)) {
+        if (($cache_dir = $this->getConfig()->getOption('cache_dir')) && is_writable($cache_dir)) {
           $options = array('path' => realpath($cache_dir));
           $driver = new \Stash\Driver\FileSystem($options);
         }
@@ -77,7 +79,7 @@ class File extends SourceBase {
       else {
         if ($driver_option == 'Apc') {
           $driver = new \Stash\Driver\Apc(array(
-            'ttl' => $this->config->getOption('cache_expire'),
+            'ttl' => $this->getConfig()->getOption('cache_expire'),
           ));
         }
         else {
@@ -97,10 +99,10 @@ class File extends SourceBase {
     return md5(dirname($filename)) . '/'
     . basename($filename) . '/'
     . serialize(array(
-      'equal' => $this->config->getOption('allow_equal'),
-      'skipped' => $this->config->getOption('allow_skipped'),
-      'repeat' => $this->config->getOption('allow_repeat'),
-      'invalid' => $this->config->getOption('allow_invalid'),
+      'equal' => $this->getConfig()->getOption('allow_equal'),
+      'skipped' => $this->getConfig()->getOption('allow_skipped'),
+      'repeat' => $this->getConfig()->getOption('allow_repeat'),
+      'invalid' => $this->getConfig()->getOption('allow_invalid'),
     ));
   }
 
@@ -108,10 +110,10 @@ class File extends SourceBase {
    * Overrides parent::loadElection().
    *
    * @throws \Exception
-   * @return Election
+   * @return ElectionInterface
    */
   public function loadElection() {
-    $filename = $this->config->getOption('filename');
+    $filename = $this->getConfig()->getOption('filename');
     // The filename is mandatory.
     if (!$filename) {
       throw new \Exception('Filename not specified.');
@@ -122,7 +124,7 @@ class File extends SourceBase {
     }
     $filename = $realpath;
     // If caching is disabled, just load and return the Election.
-    if (!$this->config->getOption('cache_enable')) {
+    if (!$this->getConfig()->getOption('cache_enable')) {
       return $this->loadElectionWork($filename);
     }
     // Load the cache pool.
@@ -136,7 +138,7 @@ class File extends SourceBase {
       $stash_item->lock();
       $election = $this->loadElectionWork($filename);
       // Save to cache.
-      $stash_item->set($election, $this->config->getOption('cache_expire'));
+      $stash_item->set($election, $this->getConfig()->getOption('cache_expire'));
     }
     return $election;
   }
@@ -233,7 +235,7 @@ class File extends SourceBase {
   /**
    * Read information from the end (tail) of the BLT file.
    */
-  protected function parseTail(Election $election) {
+  protected function parseTail(ElectionInterface $election) {
     $num_candidates = $election->num_candidates;
     // There can be a maximum of $num_candidates + 3 tail lines: each
     // candidate's name is given, and then there are optionally election,
@@ -302,10 +304,10 @@ class File extends SourceBase {
     $line_number = 0; // actually, this is the line number ignoring comments
     rewind($this->file);
     // Get config variables before looping (performance).
-    $allow_equal = $this->config->getOption('allow_equal');
-    $allow_invalid = $this->config->getOption('allow_invalid');
-    $allow_repeat = $this->config->getOption('allow_repeat');
-    $allow_skipped = $this->config->getOption('allow_skipped');
+    $allow_equal = $this->getConfig()->getOption('allow_equal');
+    $allow_invalid = $this->getConfig()->getOption('allow_invalid');
+    $allow_repeat = $this->getConfig()->getOption('allow_repeat');
+    $allow_skipped = $this->getConfig()->getOption('allow_skipped');
     while (($line = fgets($this->file)) !== FALSE) {
       // Remove comments (starting with # or // until the end of the line).
       if (strpos($line, '#') !== FALSE || strpos($line, '//') !== FALSE) {

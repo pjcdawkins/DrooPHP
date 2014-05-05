@@ -6,20 +6,14 @@
 
 namespace DrooPHP\Source;
 
-use DrooPHP\Count;
-use DrooPHP\Election;
+use DrooPHP\ElectionInterface;
 
 interface SourceInterface {
 
   /**
-   * Constructor.
-   */
-  public function __construct(Count $count);
-
-  /**
-   * Load the election data.
+   * Load the election.
    *
-   * @return Election
+   * @return ElectionInterface
    */
   public function loadElection();
 

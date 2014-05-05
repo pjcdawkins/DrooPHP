@@ -6,7 +6,7 @@
 
 namespace DrooPHP\Formatter;
 
-use DrooPHP\Count;
+use DrooPHP\CountInterface;
 
 /**
  * A base class for an output formatter.
@@ -16,10 +16,10 @@ abstract class FormatterBase implements FormatterInterface {
   public $count;
 
   /**
-   * Constructor.
+   * @{inheritdoc}
    */
-  public function __construct(Count $count) {
-    $this->config = $count->config->addDefaultOptions($this->getDefaultOptions());
+  public function __construct(CountInterface $count) {
+    $this->config = $count->getConfig()->addDefaultOptions($this->getDefaultOptions());
     $this->count = $count;
   }
 

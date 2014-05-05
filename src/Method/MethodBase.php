@@ -6,10 +6,10 @@
 
 namespace DrooPHP\Method;
 
-use DrooPHP\Candidate;
+use DrooPHP\CandidateInterface;
 use DrooPHP\Config\ConfigInterface;
-use DrooPHP\Count;
-use DrooPHP\Election;
+use DrooPHP\CountInterface;
+use DrooPHP\ElectionInterface;
 
 abstract class MethodBase implements MethodInterface {
 
@@ -22,18 +22,18 @@ abstract class MethodBase implements MethodInterface {
    */
   public $stages = array();
 
-  /** @var Election */
+  /** @var ElectionInterface */
   public $election;
 
   /** @var ConfigInterface */
   public $config;
 
   /**
-   * @see MethodInterface::__construct()
+   * @{inheritdoc}
    */
-  public function __construct(Count $count) {
-    $this->config = $count->config;
-    $this->config->addDefaultOptions($this->getDefaultOptions());
+  public function __construct(CountInterface $count) {
+    $this->config = $count->getConfig()->addDefaultOptions($this->getDefaultOptions());
+    $this->election = $count->getElection();
   }
 
   /**
@@ -83,7 +83,7 @@ abstract class MethodBase implements MethodInterface {
   /**
    * Log a change about a candidate.
    *
-   * @param Candidate $candidate
+   * @param CandidateInterface $candidate
    * @param string $message
    * @param int $stage
    */
