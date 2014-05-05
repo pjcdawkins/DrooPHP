@@ -18,8 +18,8 @@
     "tedivm/stash": "0.10.*"
   },
   "autoload": {
-    "psr-0": {
-      "DrooPHP": "src"
+    "psr-4": {
+      "DrooPHP\\": "src"
     }
   }
 }
