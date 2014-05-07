@@ -4,7 +4,9 @@
  * Class to contain and manage configuration.
  */
 
-namespace DrooPHP\Config;
+namespace DrooPHP;
+
+use DrooPHP\Config\ConfigInterface;
 
 class Config implements ConfigInterface {
 

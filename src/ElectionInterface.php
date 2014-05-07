@@ -13,19 +13,20 @@ interface ElectionInterface {
    *
    * @param mixed $cid
    *
-   * @return Candidate
+   * @return CandidateInterface
    */
   public function getCandidate($cid);
 
   /**
-   * Get an array of candidates who have the given state.
+   * Get an array of candidates, optionally filtered by state
    *
    * @param $state
+   *   The candidate state (see CandidateInterface constants).
    *
-   * @return array
-   * Array of Candidate objects keyed by candidate ID.
+   * @return CandidateInterface[]
+   *   An array of CandidateInterface objects keyed by candidate ID.
    */
-  public function getCandidatesByState($state);
+  public function getCandidates($state = NULL);
 
   /**
    * Add a candidate.

@@ -75,20 +75,12 @@ class Election implements ElectionInterface {
   public $num_candidates = 0;
 
   /**
-   * The candidates: array of Candidate objects keyed by candidate ID.
-   *
-   * @var array
-   */
-  public $candidates = [];
-
-
-  /**
    * The set of withdrawn candidate IDs.
    * @var array
    */
   public $withdrawn = [];
 
-  /** @var int */
+  protected $candidates = [];
   protected $cid_increment = 1;
 
   /**
@@ -96,29 +88,25 @@ class Election implements ElectionInterface {
    *
    * @param mixed $cid
    *
-   * @throws \Exception
-   *
-   * @return Candidate
+   * @return CandidateInterface
    */
   public function getCandidate($cid) {
     if (!isset($this->candidates[$cid])) {
-      throw new \Exception(sprintf('The candidate "%s" does not exist.', $cid));
+      return FALSE;
     }
     return $this->candidates[$cid];
   }
 
   /**
-   * Get an array of candidates who have the given state.
-   *
-   * @param $state
-   *
-   * @return array
-   * Array of Candidate objects keyed by candidate ID.
+   * @{inheritdoc}
    */
-  public function getCandidatesByState($state) {
+  public function getCandidates($state = NULL) {
+    if ($state === NULL) {
+      return $this->candidates;
+    }
     $candidates = [];
     foreach ($this->candidates as $cid => $candidate) {
-      if ($candidate->state === $state) {
+      if ($candidate->getState() === $state) {
         $candidates[$cid] = $candidate;
       }
     }
@@ -138,8 +126,7 @@ class Election implements ElectionInterface {
       throw new \Exception('Attempted to add too many candidate names.');
     }
     $withdrawn = in_array($cid, $this->withdrawn);
-    $candidate = new Candidate($name, $withdrawn);
-    $candidate->cid = $cid;
+    $candidate = new Candidate($name, $cid, $withdrawn);
     $this->candidates[$cid] = $candidate;
     $this->cid_increment++;
   }

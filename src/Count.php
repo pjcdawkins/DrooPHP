@@ -6,7 +6,6 @@
 
 namespace DrooPHP;
 
-use DrooPHP\Config\Config;
 use DrooPHP\Config\ConfigurableInterface;
 
 class Count implements CountInterface, ConfigurableInterface {
@@ -64,9 +63,9 @@ class Count implements CountInterface, ConfigurableInterface {
    */
   public function run() {
     $method = $this->getMethod();
-    $election = $this->getSource()->loadElection();
-    $method->run($election);
-    $output = $this->getFormatter()->getOutput($method, $election);
+    $method->setElection($this->getSource()->loadElection());
+    $method->run();
+    $output = $this->getFormatter()->getOutput($method);
     return $output;
   }
 

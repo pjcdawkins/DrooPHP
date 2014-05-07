@@ -7,8 +7,7 @@
 
 namespace DrooPHP\Method;
 
-use DrooPHP\Candidate;
-use DrooPHP\ElectionInterface;
+use DrooPHP\CandidateInterface;
 
 class Wikipedia extends MethodBase {
 
@@ -41,17 +40,18 @@ class Wikipedia extends MethodBase {
    * See:
    * http://en.wikipedia.org/wiki/Single_transferable_vote#Finding_the_winners
    *
-   * @param ElectionInterface $election
    * @param int $stage The stage number.
    *
    * @throws \Exception
    * @return bool
    */
-  public function run(ElectionInterface $election, $stage = 1) {
+  public function run($stage = 1) {
+
+    $election = $this->getElection();
 
     // First stage.
     if ($stage == 1) {
-      $this->calculateQuota($election);
+      $this->calculateQuota();
       // Count the first preference votes and add them to each candidate.
       foreach ($election->ballots as $ballot) {
         // The vote is an array of one or more candidate IDs (usually just one, unless equal rankings are allowed).
@@ -59,36 +59,36 @@ class Wikipedia extends MethodBase {
         $num_equal = count($first_preference);
         foreach ($first_preference as $cid) {
           $candidate = $election->getCandidate($cid);
-          // The worth of a vote is inversly proportional to the number of equal rankings in the vote, e.g. for B=C both B and C receive half a vote.
-          $candidate->votes += (1 / $num_equal) * $ballot->value;
+          // The worth of a vote is inversely proportional to the number of equal rankings in the vote, e.g. for B=C both B and C receive half a vote.
+          $candidate->addVotes((1 / $num_equal) * $ballot->value);
         }
         $ballot->last_used_level = 1;
       }
-      $this->logStage($election, 0);
+      $this->logStage(0);
       // If there are any withdrawn candidates, transfer their votes.
-      $withdrawn = $election->getCandidatesByState(Candidate::STATE_WITHDRAWN);
+      $withdrawn = $election->getCandidates(CandidateInterface::STATE_WITHDRAWN);
       foreach ($withdrawn as $candidate) {
-        if ($candidate->votes) {
-          $this->logChange($candidate, sprintf('Withdrawn: all %d votes will be transferred.', $candidate->votes), $stage);
-          $this->transferVotes($election, $candidate->votes, $candidate, $stage);
+        if ($candidate->getVotes()) {
+          $this->logChange($candidate, sprintf('Withdrawn: all %d votes will be transferred.', $candidate->getVotes()), $stage);
+          $this->transferVotes($candidate->getVotes(), $candidate, $stage);
         }
       }
     }
 
     // Elect candidates
-    $hopefuls = $election->getCandidatesByState(Candidate::STATE_HOPEFUL);
-    $quota = $this->quota;
+    $hopefuls = $election->getCandidates(CandidateInterface::STATE_HOPEFUL);
+    $quota = $this->getQuota();
     $anyone_elected = FALSE;
     foreach ($hopefuls as $candidate) {
       // A candidate is elected if their votes equal or exceed the quota.
-      if ($candidate->votes >= $quota) {
-        $candidate->state = Candidate::STATE_ELECTED;
+      if ($candidate->getVotes() >= $quota) {
+        $candidate->setState(CandidateInterface::STATE_ELECTED);
         $election->num_filled_seats++;
         $anyone_elected = TRUE;
-        $surplus = $candidate->votes - $quota;
+        $surplus = $candidate->getVotes() - $quota;
         $this->logChange($candidate, sprintf('Elected at stage %d, with a surplus of %s votes.', $stage, $surplus), $stage);
-        if ($surplus > 0 && !$this->isComplete($election)) {
-          $this->transferVotes($election, $surplus, $candidate, $stage);
+        if ($surplus > 0 && !$this->isComplete()) {
+          $this->transferVotes($surplus, $candidate, $stage);
         }
       }
     }
@@ -96,25 +96,25 @@ class Wikipedia extends MethodBase {
     // Eliminate candidates.
     // "If no one new meets the quota, the candidate with the fewest votes is eliminated and that candidate's votes are transferred."
     if (!$anyone_elected) {
-      $candidate = $this->findDefeatableCandidate($election);
+      $candidate = $this->findDefeatableCandidate();
       if ($candidate) {
-        $candidate->state = Candidate::STATE_DEFEATED;
-        $this->logChange($candidate, sprintf('Defeated at stage %d, with %s votes.', $stage, $candidate->votes), $stage);
-        if ($candidate->votes && !$this->isComplete($election)) {
-          $this->transferVotes($election, $candidate->votes, $candidate, $stage);
-          if ($this->config->getOption('allow_equal')) {
-            $candidate->votes = round($candidate->votes, 0); // compensate for rounding errors in transfer with equal rankings
+        $candidate->setState(CandidateInterface::STATE_DEFEATED);
+        $this->logChange($candidate, sprintf('Defeated at stage %d, with %s votes.', $stage, $candidate->getVotes()), $stage);
+        if ($candidate->getVotes() && !$this->isComplete()) {
+          $this->transferVotes($candidate->getVotes(), $candidate, $stage);
+          if ($this->getConfig()->getOption('allow_equal')) {
+            $candidate->setVotes(round($candidate->getVotes(), 0)); // compensate for rounding errors in transfer with equal rankings
           }
         }
       }
     }
 
-    $hopefuls = $election->getCandidatesByState(Candidate::STATE_HOPEFUL);
+    $hopefuls = $election->getCandidates(CandidateInterface::STATE_HOPEFUL);
     // If there are as many seats as remaining candidates, all the remaining candidates are elected.
-    $num_vacancies = $this->getNumVacancies($election);
+    $num_vacancies = $this->getNumVacancies();
     if (count($hopefuls) == $num_vacancies) {
       foreach ($hopefuls as $candidate) {
-        $candidate->state = Candidate::STATE_ELECTED;
+        $candidate->setState(CandidateInterface::STATE_ELECTED);
         $this->logChange($candidate, sprintf('Elected at stage %d, by default.', $stage), $stage);
         $election->num_filled_seats++;
       }
@@ -123,43 +123,41 @@ class Wikipedia extends MethodBase {
     else {
       if ($num_vacancies == 0) {
         foreach ($hopefuls as $candidate) {
-          $candidate->state = Candidate::STATE_DEFEATED;
+          $candidate->setState(CandidateInterface::STATE_DEFEATED);
           $this->logChange($candidate, sprintf('Defeated at stage %d, by default.', $stage), $stage);
         }
       }
     }
 
-    $this->logStage($election, $stage);
+    $this->logStage($stage);
 
     // Proceed to the next stage or stop if the election is complete.
-    if ($this->isComplete($election)) {
+    if ($this->isComplete()) {
       return TRUE;
     }
-    else if ($stage >= $this->config->getOption('max_stages')) {
+    else if ($stage >= $this->getConfig()->getOption('max_stages')) {
       throw new \Exception(sprintf(
         'Maximum number of stages reached (%d) before completing the count.',
-        $this->config->getOption('max_stages')
+        $this->getConfig()->getOption('max_stages')
       ));
     }
-    return $this->run($election, $stage + 1);
+    return $this->run($stage + 1);
   }
 
   /**
    * Get the hopeful candidate with the fewest votes.
    *
-   * @param ElectionInterface $election
-   *
-   * @return Candidate
+   * @return CandidateInterface
    */
-  public function findDefeatableCandidate(ElectionInterface $election) {
-    $hopefuls = $election->getCandidatesByState(Candidate::STATE_HOPEFUL);
+  public function findDefeatableCandidate() {
+    $hopefuls = $this->getElection()->getCandidates(CandidateInterface::STATE_HOPEFUL);
     // Candidates can only be defeated if sufficient candidates remain to fill all the vacancies.
-    if (count($hopefuls) <= $this->getNumVacancies($election)) {
+    if (count($hopefuls) <= $this->getNumVacancies()) {
       return FALSE;
     }
     $defeatable = FALSE;
     foreach ($hopefuls as $candidate) {
-      if ($defeatable === FALSE || $candidate->votes < $defeatable->votes) {
+      if (!($defeatable instanceof CandidateInterface && $candidate->getVotes() < $defeatable->getVotes())) {
         $defeatable = $candidate;
       }
     }
@@ -169,18 +167,18 @@ class Wikipedia extends MethodBase {
   /**
    * Transfer a candidate's votes or surplus to other hopefuls.
    *
-   * @param ElectionInterface $election
    * @param float $num_to_transfer
-   * @param Candidate $from_candidate
+   * @param CandidateInterface $from_candidate
    * @param int $stage
    */
-  public function transferVotes(ElectionInterface $election, $num_to_transfer, Candidate $from_candidate, $stage) {
-    $hopefuls = $election->getCandidatesByState(Candidate::STATE_HOPEFUL);
+  public function transferVotes($num_to_transfer, CandidateInterface $from_candidate, $stage) {
+    $election = $this->getElection();
+    $hopefuls = $election->getCandidates(CandidateInterface::STATE_HOPEFUL);
     $votes = [];
     foreach ($election->ballots as $ballot) {
       $ranking = $ballot->ranking;
       $last_used_level = $ballot->last_used_level;
-      if (!isset($ranking[$last_used_level]) || $ranking[$last_used_level] != $from_candidate->cid) {
+      if (!isset($ranking[$last_used_level]) || $ranking[$last_used_level] != $from_candidate->getId()) {
         // Not a relevant ballot.
         continue;
       }
@@ -216,10 +214,10 @@ class Wikipedia extends MethodBase {
     foreach ($votes as $to_cid => $num_votes) {
       $amount = ($num_to_transfer / $total_votes) * $num_votes;
       $to_candidate = $hopefuls[$to_cid];
-      $from_candidate->votes -= $amount;
-      $to_candidate->votes += $amount;
-      $this->logChange($from_candidate, sprintf('Transferred %s votes to %s.', $amount, $to_candidate->name, $stage), $stage);
-      $this->logChange($to_candidate, sprintf('Received %s votes from %s.', $amount, $from_candidate->name, $stage), $stage);
+      $from_candidate->addVotes(- $amount);
+      $to_candidate->addVotes($amount);
+      $this->logChange($from_candidate, sprintf('Transferred %s votes to %s.', $amount, $to_candidate->getName(), $stage), $stage);
+      $this->logChange($to_candidate, sprintf('Received %s votes from %s.', $amount, $from_candidate->getName(), $stage), $stage);
     }
   }
 

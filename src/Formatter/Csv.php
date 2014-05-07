@@ -6,8 +6,7 @@
 
 namespace DrooPHP\Formatter;
 
-use DrooPHP\Candidate;
-use DrooPHP\ElectionInterface;
+use DrooPHP\CandidateInterface;
 use DrooPHP\Method\MethodInterface;
 
 class Csv extends FormatterBase {
@@ -22,10 +21,10 @@ class Csv extends FormatterBase {
   /**
    * @{inheritdoc}
    */
-  public function getOutput(MethodInterface $method, ElectionInterface $election) {
-
-    $candidates = $election->candidates;
-    $stages = $method->stages;
+  public function getOutput(MethodInterface $method) {
+    $election = $method->getElection();
+    $candidates = $election->getCandidates();
+    $stages = $method->getStages();
 
     $delimiter = $this->getConfig()->getOption('delimiter');
     $enclosure = $this->getConfig()->getOption('enclosure');
@@ -38,8 +37,8 @@ class Csv extends FormatterBase {
 
     $elected_names = [];
     foreach ($candidates as $candidate) {
-      if ($candidate->state === Candidate::STATE_ELECTED) {
-        $elected_names[] = trim($candidate->name);
+      if ($candidate->getState() === CandidateInterface::STATE_ELECTED) {
+        $elected_names[] = trim($candidate->getName());
       }
     }
 
@@ -49,7 +48,7 @@ class Csv extends FormatterBase {
     $info[] = ['Vacancies:', number_format($election->num_seats)];
     $info[] = ['Valid ballots:', number_format($election->num_valid_ballots)];
     $info[] = ['Invalid ballots:', number_format($election->num_invalid_ballots)];
-    $info[] = ['Quota:', number_format($method->quota)];
+    $info[] = ['Quota:', number_format($method->getQuota())];
     $info[] = ['Stages:', number_format(count($stages))];
     $info[] = ['Count method:', $method->getName()];
 
@@ -66,9 +65,9 @@ class Csv extends FormatterBase {
     fputcsv($csv, $header, $delimiter, $enclosure);
 
     foreach ($candidates as $candidate) {
-      $row = [htmlspecialchars($candidate->name)];
+      $row = [htmlspecialchars($candidate->getName())];
       foreach ($stages as $stage) {
-        $row[] = number_format($stage['votes'][$candidate->cid]);
+        $row[] = number_format($stage['votes'][$candidate->getId()]);
       }
       fputcsv($csv, $row, $delimiter, $enclosure);
     }

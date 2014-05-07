@@ -6,7 +6,7 @@
 
 namespace DrooPHP\Source;
 
-use DrooPHP\Config\Config;
+use DrooPHP\Config;
 use DrooPHP\Config\ConfigInterface;
 use DrooPHP\Config\ConfigurableInterface;
 

@@ -6,8 +6,7 @@
 
 namespace DrooPHP\Formatter;
 
-use DrooPHP\Candidate;
-use DrooPHP\ElectionInterface;
+use DrooPHP\CandidateInterface;
 use DrooPHP\Method\MethodInterface;
 
 class Text extends FormatterBase {
@@ -15,10 +14,10 @@ class Text extends FormatterBase {
   /**
    * @{inheritdoc}
    */
-  public function getOutput(MethodInterface $method, ElectionInterface $election) {
-
-    $candidates = $election->candidates;
-    $stages = $method->stages;
+  public function getOutput(MethodInterface $method) {
+    $election = $method->getElection();
+    $candidates = $election->getCandidates();
+    $stages = $method->getStages();
 
     $table_header = "Candidates";
     foreach (array_keys($stages) as $stage_id) {
@@ -29,9 +28,9 @@ class Text extends FormatterBase {
     $table_rows = [];
     foreach ($candidates as $candidate) {
       $row = [];
-      $row[] = htmlspecialchars($candidate->name);
+      $row[] = htmlspecialchars($candidate->getName());
       foreach ($stages as $stage) {
-        $row[] = number_format($stage['votes'][$candidate->cid]);
+        $row[] = number_format($stage['votes'][$candidate->getId()]);
       }
       $table_rows[] = $row;
     }
@@ -47,8 +46,8 @@ class Text extends FormatterBase {
 
     $elected_names = [];
     foreach ($candidates as $candidate) {
-      if ($candidate->state === Candidate::STATE_ELECTED) {
-        $elected_names[] = trim($candidate->name);
+      if ($candidate->getState() === CandidateInterface::STATE_ELECTED) {
+        $elected_names[] = trim($candidate->getName());
       }
     }
 
@@ -59,7 +58,7 @@ class Text extends FormatterBase {
     $output .= sprintf("Vacancies: %s\n", number_format($election->num_seats));
     $output .= sprintf("Valid ballots: %s\n", number_format($election->num_valid_ballots));
     $output .= sprintf("Invalid ballots: %s\n", number_format($election->num_invalid_ballots));
-    $output .= sprintf("Quota: %s\n", number_format($method->quota));
+    $output .= sprintf("Quota: %s\n", number_format($method->getQuota()));
     $output .= sprintf("Stages: %d\n", count($stages));
     $output .= sprintf("Count method: %d\n", $method->getName());
 

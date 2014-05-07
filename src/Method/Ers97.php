@@ -9,8 +9,7 @@
 
 namespace DrooPHP\Method;
 
-use DrooPHP\Candidate;
-use DrooPHP\ElectionInterface;
+use DrooPHP\CandidateInterface;
 
 class Ers97 extends MethodBase {
 
@@ -40,17 +39,16 @@ class Ers97 extends MethodBase {
    * @return int
    */
   public function getActiveVote() {
-    $candidates = $this->election->candidates;
     $active_vote = 0;
-    foreach ($candidates as $candidate) {
-      switch ($candidate->state) {
-        case Candidate::STATE_ELECTED:
+    foreach ($this->getElection()->getCandidates() as $candidate) {
+      switch ($candidate->getState()) {
+        case CandidateInterface::STATE_ELECTED:
           $active_vote += $candidate->surplus;
           break;
-        case Candidate::STATE_HOPEFUL:
-        case Candidate::STATE_DEFEATED:
-        case Candidate::STATE_WITHDRAWN:
-          $active_vote += $candidate->votes;
+        case CandidateInterface::STATE_HOPEFUL:
+        case CandidateInterface::STATE_DEFEATED:
+        case CandidateInterface::STATE_WITHDRAWN:
+          $active_vote += $candidate->getVotes();
           break;
       }
     }
@@ -60,26 +58,28 @@ class Ers97 extends MethodBase {
   /**
    * Overrides parent::logStage().
    */
-  public function logStage(ElectionInterface $election, $stage) {
-    parent::logStage($election, $stage);
+  public function logStage($stage) {
+    parent::logStage($stage);
     $log = & $this->stages[$stage];
-    $log['surpluses'] = $this->getSurpluses($election);
-    $log['active_vote'] = $this->getActiveVote($election);
+    $log['surpluses'] = $this->getSurpluses();
+    $log['active_vote'] = $this->getActiveVote();
   }
 
   /**
    * Overrides parent::run().
    */
-  public function run(ElectionInterface $election, $stage = 1) {
+  public function run($stage = 1) {
+
+    $election = $this->getElection();
 
     // Log the current status of the count (i.e. the status reached at the end of the previous stage).
     if ($stage > 1) {
-      $this->logStage($election, $stage - 1);
+      $this->logStage($stage - 1);
     }
 
     // First stage. // ERS97 5.1
     if ($stage == 1) {
-      $this->calculateQuota($election);
+      $this->calculateQuota();
       // Count the first preference votes and add them to each candidate // ERS97 5.1.4
       $total = 0;
       foreach ($election->ballots as $ballot) {
@@ -89,13 +89,13 @@ class Ers97 extends MethodBase {
           $num = count($first_preference);
           foreach ($first_preference as $cid) {
             $candidate = $election->getCandidate($cid);
-            $candidate->votes += (1 / $num) * $ballot->value;
+            $candidate->addVotes((1 / $num) * $ballot->value);
             $total += (1 / $num) * $ballot->value;
           }
         }
         else {
           $candidate = $election->getCandidate($first_preference);
-          $candidate->votes += $ballot->value;
+          $candidate->addVotes($ballot->value);
           $total += $ballot->value;
         }
       }
@@ -114,24 +114,24 @@ class Ers97 extends MethodBase {
                     active vote, divided by one more than the number of places not yet filled.
         up to the number of places to be filled, subject to paragraph 5.6.2. // ERS97 5.6.2 refers to ties
      */
-    $candidates = $this->getCandidatesOrder($election); // sort into descending order of votes
-    $active_vote = $this->getActiveVote($election);
-    $quota = $this->quota;
+    $candidates = $this->getCandidatesOrder(); // sort into descending order of votes
+    $active_vote = $this->getActiveVote();
+    $quota = $this->getQuota();
     $anyone_elected = FALSE;
     foreach ($candidates as $candidate) {
-      $num_vacancies = $this->getNumVacancies($election);
+      $num_vacancies = $this->getNumVacancies();
       if ($num_vacancies == 0) {
         // If all seats are filled, the election has finished.
         return TRUE;
       }
-      if ($candidate->state === Candidate::STATE_HOPEFUL) {
-        if ($candidate->votes >= $quota || $candidate->votes >= ($active_vote / ($num_vacancies + 1))) {
+      if ($candidate->getState() === CandidateInterface::STATE_HOPEFUL) {
+        if ($candidate->getVotes() >= $quota || $candidate->getVotes() >= ($active_vote / ($num_vacancies + 1))) {
           // The candidate is now elected.
-          $candidate->state = Candidate::STATE_ELECTED;
+          $candidate->setState(CandidateInterface::STATE_ELECTED);
           $election->num_filled_seats++;
           $anyone_elected = TRUE;
-          if ($candidate->votes > $quota) {
-            $candidate->surplus = $candidate->votes - $quota;
+          if ($candidate->getVotes() > $quota) {
+            $candidate->surplus = $candidate->getVotes() - $quota;
             $this->logChange($candidate, sprintf('Elected at stage %d with a surplus of %d votes.', $stage, $candidate->surplus), $stage);
           }
           else {
@@ -143,26 +143,26 @@ class Ers97 extends MethodBase {
 
     if ($stage == 1) {
       // If we're on the first stage, it's now complete, the next actions are part of stage 2. // ERS97 5.1.8
-      return $this->run($election, $stage + 1);
+      return $this->run($stage + 1);
     }
 
     if ($anyone_elected) {
       // If anyone has been elected in this stage, then it's now complete.
-      return $this->run($election, $stage + 1);
+      return $this->run($stage + 1);
     }
 
     // If one or more candidates have surpluses, the largest of these should now be transferred. // ERS97 5.2.2
-    $surpluses = $this->getSurpluses($election);
+    $surpluses = $this->getSurpluses();
     if (!empty($surpluses)) {
       // @todo work out what to do with the deferment rules in ERS97 5.2.2
       /*
                   $candidate_fewest_votes_diff = 0;
                   foreach (array_slice($candidates, -2) as $cid => $candidate) {
                       if (isset($candidate_second_fewest_votes)) {
-                          $candidate_fewest_votes_diff = $candidate_second_fewest_votes - $candidate->votes;
+                          $candidate_fewest_votes_diff = $candidate_second_fewest_votes - $candidate->getVotes();
                           break;
                       }
-                      $candidates_second_fewest_votes = $candidate->votes;
+                      $candidates_second_fewest_votes = $candidate->getVotes();
                   }
                   $total_surplus = array_sum($surpluses);
       */
@@ -171,42 +171,37 @@ class Ers97 extends MethodBase {
       //return $this->run($stage + 1); // not ready to loop yet
     }
 
-    return; //debugging
-
     // @todo eliminate candidates
     // @todo transfer after elimination
     // @todo transfer from withdrawn candidates
     //$this->defeatCandidates();
 
     // Proceed to the next stage or stop if the election is complete.
-    if ($this->isComplete($election)) {
+    if ($this->isComplete()) {
       return TRUE;
     }
-    elseif ($stage >= $this->config->getOption('max_stages')) {
+    elseif ($stage >= $this->getConfig()->getOption('max_stages')) {
       throw new \Exception('Maximum number of stages reached before completing the count.');
     }
-    return $this->run($election, $stage + 1);
+    return $this->run($stage + 1);
   }
 
   /**
    * Get candidates in descending order of their votes. // ERS97 5.1.7
    *
-   * @param ElectionInterface $election
-   *
-   * @return array
-   * Array of Candidate objects, keyed by candidate ID.
+   * @return CandidateInterface[]
+   *   Array of Candidate objects, keyed by candidate ID.
    */
-  public function getCandidatesOrder(ElectionInterface $election) {
+  public function getCandidatesOrder() {
     $candidates_votes = []; // array of vote amounts keyed by candidate ID
-    foreach ($election->candidates as $cid => $candidate) {
-      $candidates_votes[$cid] = $candidate->votes;
+    foreach ($this->getElection()->getCandidates() as $cid => $candidate) {
+      $candidates_votes[$cid] = $candidate->getVotes();
     }
     arsort($candidates_votes, SORT_NUMERIC);
     $candidates = [];
     foreach ($candidates_votes as $cid => $votes) {
-      $candidate = $election->candidates[$cid];
-      $candidates[$cid] = $candidate;
-      if (isset($previous_cid) && $votes == $previous_votes) {
+      $candidates[$cid] = $this->getElection()->getCandidate($cid);
+      if (isset($previous_cid) && isset($previous_votes) && $votes == $previous_votes) {
         // This candidate has equal votes to the previous one, so neither can exist in $this->$unambiguous_order.
         unset($this->unambiguous_order[$previous_cid]);
       }
@@ -222,14 +217,12 @@ class Ers97 extends MethodBase {
   /**
    * Get candidates' surpluses in descending order of size. // ERS97 5.2.3
    *
-   * @param ElectionInterface $election
-   *
    * @return array
-   * Array of surpluses (floats), keyed by candidate ID.
+   *   Array of surpluses (floats), keyed by candidate ID.
    */
-  public function getSurpluses(ElectionInterface $election) {
+  public function getSurpluses() {
     $surpluses = [];
-    foreach ($election->candidates as $cid => $candidate) {
+    foreach ($this->getElection()->getCandidates() as $cid => $candidate) {
       if ($candidate->surplus > 0) {
         $surpluses[$cid] = $candidate->surplus;
       }
@@ -249,12 +242,10 @@ class Ers97 extends MethodBase {
    * division to two decimal places. If the result is exact that is the quota.
    * Otherwise ignore the remainder, and add 0.01".
    *
-   * @param ElectionInterface $election
-   *
    * @return float
    */
-  protected function calculateQuota(ElectionInterface $election) {
-    $num = $election->num_valid_ballots / ($election->num_seats + 1);
+  protected function calculateQuota() {
+    $num = $this->getElection()->num_valid_ballots / ($this->getElection()->num_seats + 1);
     $quota = ceil($num * 100) / 100;
     $this->quota = $quota;
     return $quota;

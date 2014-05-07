@@ -6,7 +6,7 @@
 
 namespace DrooPHP\Formatter;
 
-use DrooPHP\Config\Config;
+use DrooPHP\Config;
 use DrooPHP\Config\ConfigurableInterface;
 
 /**

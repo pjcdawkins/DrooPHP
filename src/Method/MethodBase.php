@@ -7,27 +7,16 @@
 namespace DrooPHP\Method;
 
 use DrooPHP\CandidateInterface;
-use DrooPHP\Config\Config;
-use DrooPHP\Config\ConfigInterface;
+use DrooPHP\Config;
 use DrooPHP\Config\ConfigurableInterface;
 use DrooPHP\ElectionInterface;
 
 abstract class MethodBase implements MethodInterface, ConfigurableInterface {
 
-  /** @var int|float */
-  public $quota;
-
-  /**
-   * @see self::logStage()
-   * @var array
-   */
-  public $stages = [];
-
-  /** @var ElectionInterface */
-  protected $election;
-
-  /** @var ConfigInterface */
+  protected $quota;
+  protected $stages = [];
   protected $config;
+  protected $election;
 
   /**
    * Constructor.
@@ -39,8 +28,19 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
   /**
    * @{inheritdoc}
    */
-  public function run(ElectionInterface $election, $stage = 1) {
+  public function setElection(ElectionInterface $election) {
     $this->election = $election;
+    return $this;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function getElection() {
+    if (!isset($this->election)) {
+      throw new \Exception('Election not defined');
+    }
+    return $this->election;
   }
 
   /**
@@ -77,20 +77,33 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
   }
 
   /**
+   * @{inheritdoc}
+   */
+  public function getStages() {
+    return $this->stages;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function getQuota() {
+    return $this->quota;
+  }
+
+  /**
    * Log information about a voting stage, e.g. the number of votes for each
    * candidate.
    *
-   * @param ElectionInterface $election
    * @param int $stage
    */
-  public function logStage(ElectionInterface $election, $stage) {
+  public function logStage($stage) {
     if (!isset($this->stages[$stage])) {
       $this->stages[$stage] = ['votes' => [], 'state' => [], 'changes' => []];
     }
     $log = &$this->stages[$stage];
-    foreach ($election->candidates as $cid => $candidate) {
-      $log['votes'][$cid] = round($candidate->votes, 2);
-      $log['state'][$cid] = $candidate->getFormattedState();
+    foreach ($this->getElection()->getCandidates() as $cid => $candidate) {
+      $log['votes'][$cid] = round($candidate->getVotes(), 2);
+      $log['state'][$cid] = $candidate->getState(TRUE);
     }
   }
 
@@ -105,20 +118,19 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
     if (!isset($this->stages[$stage])) {
       $this->stages[$stage] = ['votes' => [], 'state' => [], 'changes' => []];
     }
-    if (!isset($this->stages[$stage]['changes'][$candidate->cid])) {
-      $this->stages[$stage]['changes'][$candidate->cid] = [];
+    if (!isset($this->stages[$stage]['changes'][$candidate->getId()])) {
+      $this->stages[$stage]['changes'][$candidate->getId()] = [];
     }
-    $this->stages[$stage]['changes'][$candidate->cid][] = $message;
+    $this->stages[$stage]['changes'][$candidate->getId()][] = $message;
   }
 
   /**
    * Test whether the election is complete.
    *
-   * @param ElectionInterface $election
-   *
    * @return bool
    */
-  public function isComplete(ElectionInterface $election) {
+  public function isComplete() {
+    $election = $this->getElection();
     $num_seats = $election->num_seats;
     $num_candidates = $election->num_candidates;
     $must_be_elected = $num_seats;
@@ -131,12 +143,10 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
   /**
    * Find the number of seats yet to be filled.
    *
-   * @param ElectionInterface $election
-   *
    * @return int
    */
-  public function getNumVacancies(ElectionInterface $election) {
-    return $election->num_seats - $election->num_filled_seats;
+  public function getNumVacancies() {
+    return $this->getElection()->num_seats - $this->getElection()->num_filled_seats;
   }
 
   /**
@@ -146,12 +156,10 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
    * By default this is the Droop quota:
    *     floor((number of valid ballots / (number of seats + 1)) + 1)
    *
-   * @param ElectionInterface $election
-   *
    * @return int
    */
-  protected function calculateQuota(ElectionInterface $election) {
-    $num = ($election->num_valid_ballots / ($election->num_seats + 1)) + 1;
+  protected function calculateQuota() {
+    $num = ($this->getElection()->num_valid_ballots / ($this->getElection()->num_seats + 1)) + 1;
     $quota = floor($num);
     $this->quota = $quota;
     return $quota;
