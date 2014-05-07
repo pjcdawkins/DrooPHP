@@ -65,7 +65,7 @@ class Election implements ElectionInterface {
    *
    * @var array
    */
-  public $ballots = array();
+  public $ballots = [];
 
   /**
    * The total number of candidates standing.
@@ -79,14 +79,14 @@ class Election implements ElectionInterface {
    *
    * @var array
    */
-  public $candidates = array();
+  public $candidates = [];
 
 
   /**
    * The set of withdrawn candidate IDs.
    * @var array
    */
-  public $withdrawn = array();
+  public $withdrawn = [];
 
   /** @var int */
   protected $cid_increment = 1;
@@ -116,7 +116,7 @@ class Election implements ElectionInterface {
    * Array of Candidate objects keyed by candidate ID.
    */
   public function getCandidatesByState($state) {
-    $candidates = array();
+    $candidates = [];
     foreach ($this->candidates as $cid => $candidate) {
       if ($candidate->state === $state) {
         $candidates[$cid] = $candidate;

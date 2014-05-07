@@ -4,28 +4,26 @@
  * Class to contain and manage configuration.
  */
 
-namespace DrooPHP;
-
-use DrooPHP\Config\ConfigInterface;
+namespace DrooPHP\Config;
 
 class Config implements ConfigInterface {
 
-  public $options = array();
+  public $options = [];
 
-  public $defaults = array();
+  public $defaults = [];
 
   /**
    * @{inheritdoc}
    */
-  public function __construct(array $options = array(), array $defaults = array()) {
+  public function __construct(array $options = [], array $defaults = []) {
     $this->setOptions($options);
-    $this->addDefaultOptions($defaults);
+    $this->addDefaults($defaults);
   }
 
   /**
    * @{inheritdoc}
    */
-  public function addDefaultOptions(array $defaults) {
+  public function addDefaults(array $defaults) {
     $this->defaults += $defaults;
     $this->options = array_merge($defaults, $this->options);
     return $this;

@@ -28,7 +28,7 @@ class File extends SourceBase {
   protected $pool;
 
   /**
-   * Overrides parent::getDefaultOptions().
+   * Overrides parent::getDefaults().
    *
    * Get the default options for loading a file.
    *
@@ -46,13 +46,13 @@ class File extends SourceBase {
    *   cache_driver   string|Stash\Driver\DriverInterface
    *                          The Stash cache driver.
    */
-  public function getDefaultOptions() {
-    return parent::getDefaultOptions() + array(
+  public function getDefaults() {
+    return parent::getDefaults() + [
       'cache_enable' => TRUE,
       'cache_expire' => 3600,
       'cache_driver' => 'FileSystem',
       'cache_dir' => NULL,
-    );
+    ];
   }
 
   /**
@@ -70,7 +70,7 @@ class File extends SourceBase {
       else if ($driver_option == 'FileSystem') {
         // Allow cache_dir option to set the filesystem cache directory.
         if (($cache_dir = $this->getConfig()->getOption('cache_dir')) && is_writable($cache_dir)) {
-          $options = array('path' => realpath($cache_dir));
+          $options = ['path' => realpath($cache_dir)];
           $driver = new Stash\Driver\FileSystem($options);
         }
         else {
@@ -79,9 +79,9 @@ class File extends SourceBase {
       }
       else {
         if ($driver_option == 'Apc') {
-          $driver = new Stash\Driver\Apc(array(
+          $driver = new Stash\Driver\Apc([
             'ttl' => $this->getConfig()->getOption('cache_expire'),
-          ));
+          ]);
         }
         else {
           throw new \Exception('Invalid value provided for option cache_driver.');
@@ -99,12 +99,12 @@ class File extends SourceBase {
     // Stash cache directories are based on the / separator in the key.
     return md5(dirname($filename)) . '/'
     . basename($filename) . '/'
-    . serialize(array(
+    . serialize([
       'equal' => $this->getConfig()->getOption('allow_equal'),
       'skipped' => $this->getConfig()->getOption('allow_skipped'),
       'repeat' => $this->getConfig()->getOption('allow_repeat'),
       'invalid' => $this->getConfig()->getOption('allow_invalid'),
-    ));
+    ]);
   }
 
   /**
@@ -245,7 +245,7 @@ class File extends SourceBase {
     $lines_to_read = $num_candidates + 3;
     // Read the tail of the file.
     $pos = -1;
-    $tail = array();
+    $tail = [];
     // Keep seeking backwards through the file until the number of lines
     // left to read is 0.
     while ($lines_to_read > 0) {
@@ -349,7 +349,7 @@ class File extends SourceBase {
         throw new InvalidBallotException('The number of rankings exceeds the number of candidates.');
       }
       $no_equals = (strpos($line, '=') === FALSE);
-      $ranking = array();
+      $ranking = [];
       $preference = 1;
       $valid = TRUE;
       try {

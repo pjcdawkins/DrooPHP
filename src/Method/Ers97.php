@@ -11,7 +11,6 @@ namespace DrooPHP\Method;
 
 use DrooPHP\Candidate;
 use DrooPHP\ElectionInterface;
-use Exception;
 
 class Ers97 extends MethodBase {
 
@@ -23,7 +22,14 @@ class Ers97 extends MethodBase {
    *
    * See ERS97 5.2.3, ERS97 5.2.5, ERS97 5.6.2.
    */
-  public $unambiguous_order = array();
+  public $unambiguous_order = [];
+
+  /**
+   * @{inheritdoc}
+   */
+  public function getName() {
+    return 'ERS 1997';
+  }
 
   /**
    * Calculate the total active vote: "The sum of the votes credited to all
@@ -177,7 +183,7 @@ class Ers97 extends MethodBase {
       return TRUE;
     }
     elseif ($stage >= $this->config->getOption('max_stages')) {
-      throw new Exception('Maximum number of stages reached before completing the count.');
+      throw new \Exception('Maximum number of stages reached before completing the count.');
     }
     return $this->run($election, $stage + 1);
   }
@@ -191,12 +197,12 @@ class Ers97 extends MethodBase {
    * Array of Candidate objects, keyed by candidate ID.
    */
   public function getCandidatesOrder(ElectionInterface $election) {
-    $candidates_votes = array(); // array of vote amounts keyed by candidate ID
+    $candidates_votes = []; // array of vote amounts keyed by candidate ID
     foreach ($election->candidates as $cid => $candidate) {
       $candidates_votes[$cid] = $candidate->votes;
     }
     arsort($candidates_votes, SORT_NUMERIC);
-    $candidates = array();
+    $candidates = [];
     foreach ($candidates_votes as $cid => $votes) {
       $candidate = $election->candidates[$cid];
       $candidates[$cid] = $candidate;
@@ -222,7 +228,7 @@ class Ers97 extends MethodBase {
    * Array of surpluses (floats), keyed by candidate ID.
    */
   public function getSurpluses(ElectionInterface $election) {
-    $surpluses = array();
+    $surpluses = [];
     foreach ($election->candidates as $cid => $candidate) {
       if ($candidate->surplus > 0) {
         $surpluses[$cid] = $candidate->surplus;

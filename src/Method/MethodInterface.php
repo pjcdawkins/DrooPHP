@@ -11,6 +11,13 @@ use DrooPHP\ElectionInterface;
 interface MethodInterface {
 
   /**
+   * Get the method name.
+   *
+   * @return string
+   */
+  public function getName();
+
+  /**
    * Run the count.
    *
    * @param ElectionInterface $election

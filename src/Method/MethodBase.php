@@ -7,9 +7,9 @@
 namespace DrooPHP\Method;
 
 use DrooPHP\CandidateInterface;
-use DrooPHP\Config;
+use DrooPHP\Config\Config;
 use DrooPHP\Config\ConfigInterface;
-use DrooPHP\ConfigurableInterface;
+use DrooPHP\Config\ConfigurableInterface;
 use DrooPHP\ElectionInterface;
 
 abstract class MethodBase implements MethodInterface, ConfigurableInterface {
@@ -21,7 +21,7 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
    * @see self::logStage()
    * @var array
    */
-  public $stages = array();
+  public $stages = [];
 
   /** @var ElectionInterface */
   protected $election;
@@ -33,7 +33,7 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
    * Constructor.
    */
   public function __construct() {
-    $this->getConfig()->addDefaultOptions($this->getDefaultOptions());
+    $this->getConfig()->addDefaults($this->getDefaults());
   }
 
   /**
@@ -66,14 +66,14 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
    *
    * @see self::__construct()
    */
-  public function getDefaultOptions() {
-    return array(
+  public function getDefaults() {
+    return [
       'allow_equal' => FALSE,
       'allow_skipped' => FALSE,
       'allow_repeat' => FALSE,
       'allow_invalid' => TRUE,
       'max_stages' => 100,
-    );
+    ];
   }
 
   /**
@@ -85,13 +85,9 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
    */
   public function logStage(ElectionInterface $election, $stage) {
     if (!isset($this->stages[$stage])) {
-      $this->stages[$stage] = array(
-        'votes' => array(),
-        'state' => array(),
-        'changes' => array(),
-      );
+      $this->stages[$stage] = ['votes' => [], 'state' => [], 'changes' => []];
     }
-    $log = & $this->stages[$stage];
+    $log = &$this->stages[$stage];
     foreach ($election->candidates as $cid => $candidate) {
       $log['votes'][$cid] = round($candidate->votes, 2);
       $log['state'][$cid] = $candidate->getFormattedState();
@@ -107,14 +103,10 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
    */
   public function logChange(CandidateInterface $candidate, $message, $stage) {
     if (!isset($this->stages[$stage])) {
-      $this->stages[$stage] = array(
-        'votes' => array(),
-        'state' => array(),
-        'changes' => array(),
-      );
+      $this->stages[$stage] = ['votes' => [], 'state' => [], 'changes' => []];
     }
     if (!isset($this->stages[$stage]['changes'][$candidate->cid])) {
-      $this->stages[$stage]['changes'][$candidate->cid] = array();
+      $this->stages[$stage]['changes'][$candidate->cid] = [];
     }
     $this->stages[$stage]['changes'][$candidate->cid][] = $message;
   }

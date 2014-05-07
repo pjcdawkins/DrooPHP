@@ -6,9 +6,9 @@
 
 namespace DrooPHP\Source;
 
-use DrooPHP\Config;
+use DrooPHP\Config\Config;
 use DrooPHP\Config\ConfigInterface;
-use DrooPHP\ConfigurableInterface;
+use DrooPHP\Config\ConfigurableInterface;
 
 /**
  * A base class for a source of election data.
@@ -24,9 +24,9 @@ abstract class SourceBase implements SourceInterface, ConfigurableInterface {
    * @param array $options
    *   Configuration options.
    */
-  public function __construct(array $options = array()) {
+  public function __construct(array $options = []) {
     $this->getConfig()
-      ->addDefaultOptions($this->getDefaultOptions())
+      ->addDefaults($this->getDefaults())
       ->setOptions($options);
   }
 
@@ -35,13 +35,13 @@ abstract class SourceBase implements SourceInterface, ConfigurableInterface {
    *
    * @return array
    */
-  public function getDefaultOptions() {
-    return array(
+  public function getDefaults() {
+    return [
       'allow_equal' => FALSE,
       'allow_skipped' => FALSE,
       'allow_repeat' => FALSE,
       'allow_invalid' => FALSE,
-    );
+    ];
   }
 
   /**

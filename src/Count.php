@@ -6,8 +6,8 @@
 
 namespace DrooPHP;
 
-use DrooPHP\Config;
-use DrooPHP\Source\File;
+use DrooPHP\Config\Config;
+use DrooPHP\Config\ConfigurableInterface;
 
 class Count implements CountInterface, ConfigurableInterface {
 
@@ -24,18 +24,10 @@ class Count implements CountInterface, ConfigurableInterface {
    *
    * @throws \Exception
    */
-  public function __construct(array $options = array()) {
+  public function __construct(array $options = []) {
     $this->getConfig()
-      ->addDefaultOptions($this->getDefaultOptions())
+      ->addDefaults($this->getDefaults())
       ->setOptions($options);
-    if (isset($options['filename'])) {
-      $source = $this->getSource();
-      if (!$source instanceof File) {
-        throw new \Exception('Cannot set filename');
-      }
-      $source->setOptions(array('filename' => $options['filename']));
-      unset($options['filename']);
-    }
   }
 
   /**
@@ -59,12 +51,12 @@ class Count implements CountInterface, ConfigurableInterface {
   /**
    * @return array
    */
-  public function getDefaultOptions() {
-    return array(
+  public function getDefaults() {
+    return [
       'formatter' => new Formatter\Html(),
       'method' => new Method\Wikipedia(),
       'source' => new Source\File(),
-    );
+    ];
   }
 
   /**

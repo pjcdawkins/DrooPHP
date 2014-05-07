@@ -3,14 +3,11 @@
  * @file Example vote count.
  */
 
-// Display errors (just for testing).
-ini_set('display_errors', TRUE);
-ini_set('display_startup_errors', TRUE);
-
 // Load the DrooPHP library.
-require '../../../library.php';
+require __DIR__ . '/../../../library.php';
 
-$file = 'data/simple.blt';
+$file = __DIR__ . '/data/simple.blt';
 
-$count = new DrooPHP\Count(array('filename' => $file));
+$source = new DrooPHP\Source\File(['filename' => $file]);
+$count = new DrooPHP\Count(['source' => $source]);
 print $count->run();

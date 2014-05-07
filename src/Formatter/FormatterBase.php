@@ -6,8 +6,8 @@
 
 namespace DrooPHP\Formatter;
 
-use DrooPHP\Config;
-use DrooPHP\ConfigurableInterface;
+use DrooPHP\Config\Config;
+use DrooPHP\Config\ConfigurableInterface;
 
 /**
  * A base class for an output formatter.
@@ -20,7 +20,7 @@ abstract class FormatterBase implements FormatterInterface, ConfigurableInterfac
    * @{inheritdoc}
    */
   public function __construct() {
-    $this->getConfig()->addDefaultOptions($this->getDefaultOptions());
+    $this->getConfig()->addDefaults($this->getDefaults());
   }
 
   /**
@@ -46,8 +46,8 @@ abstract class FormatterBase implements FormatterInterface, ConfigurableInterfac
    *
    * @see self::__construct()
    */
-  public function getDefaultOptions() {
-    return array();
+  public function getDefaults() {
+    return [];
   }
 
 }

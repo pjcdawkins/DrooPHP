@@ -13,6 +13,13 @@ use DrooPHP\ElectionInterface;
 class Wikipedia extends MethodBase {
 
   /**
+   * @{inheritdoc}
+   */
+  public function getName() {
+    return 'Wikipedia example';
+  }
+
+  /**
    * Overrides parent::run().
    *
    * Run a count.
@@ -169,7 +176,7 @@ class Wikipedia extends MethodBase {
    */
   public function transferVotes(ElectionInterface $election, $num_to_transfer, Candidate $from_candidate, $stage) {
     $hopefuls = $election->getCandidatesByState(Candidate::STATE_HOPEFUL);
-    $votes = array();
+    $votes = [];
     foreach ($election->ballots as $ballot) {
       $ranking = $ballot->ranking;
       $last_used_level = $ballot->last_used_level;
@@ -183,9 +190,7 @@ class Wikipedia extends MethodBase {
         continue;
       }
       $to_cids = $ballot->ranking[$last_used_level + 1];
-      if (!is_array($to_cids)) {
-        $to_cids = array($to_cids); // this is to deal with equal rankings
-      }
+      $to_cids = (array) $to_cids; // this is to deal with equal rankings
       $count_to_cids = count($to_cids);
       foreach ($to_cids as $to_cid) {
         if (!isset($hopefuls[$to_cid])) {

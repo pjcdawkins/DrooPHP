@@ -26,9 +26,9 @@ class Text extends FormatterBase {
     }
     $table_header .= "\n";
 
-    $table_rows = array();
+    $table_rows = [];
     foreach ($candidates as $candidate) {
-      $row = array();
+      $row = [];
       $row[] = htmlspecialchars($candidate->name);
       foreach ($stages as $stage) {
         $row[] = number_format($stage['votes'][$candidate->cid]);
@@ -45,7 +45,7 @@ class Text extends FormatterBase {
 
     $title = sprintf('Results: %s', trim($election->title));
 
-    $elected_names = array();
+    $elected_names = [];
     foreach ($candidates as $candidate) {
       if ($candidate->state === Candidate::STATE_ELECTED) {
         $elected_names[] = trim($candidate->name);
@@ -61,6 +61,7 @@ class Text extends FormatterBase {
     $output .= sprintf("Invalid ballots: %s\n", number_format($election->num_invalid_ballots));
     $output .= sprintf("Quota: %s\n", number_format($method->quota));
     $output .= sprintf("Stages: %d\n", count($stages));
+    $output .= sprintf("Count method: %d\n", $method->getName());
 
     $output .= "\n$table";
 

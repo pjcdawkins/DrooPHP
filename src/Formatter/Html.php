@@ -13,12 +13,10 @@ use DrooPHP\Method\MethodInterface;
 class Html extends FormatterBase {
 
   /**
-   * Overrides parent::getDefaultOptions().
+   * Overrides parent::getDefaults().
    */
-  public function getDefaultOptions() {
-    return array(
-      'html_fragment' => FALSE,
-    );
+  public function getDefaults() {
+    return ['html_fragment' => FALSE];
   }
 
   /**
@@ -34,9 +32,9 @@ class Html extends FormatterBase {
     }
     $table_header .= '</tr></thead>';
 
-    $table_rows = array();
+    $table_rows = [];
     foreach ($candidates as $candidate) {
-      $row = array();
+      $row = [];
       $row[] = htmlspecialchars($candidate->name);
       foreach ($stages as $stage) {
         $cell = '<div class="droophp-votes">' . number_format($stage['votes'][$candidate->cid]) . '</div>';
@@ -61,7 +59,7 @@ class Html extends FormatterBase {
 
     $title = sprintf('Results: %s', htmlspecialchars($election->title));
 
-    $elected_names = array();
+    $elected_names = [];
     foreach ($candidates as $candidate) {
       if ($candidate->state === Candidate::STATE_ELECTED) {
         $elected_names[] = $candidate->name;
@@ -77,6 +75,7 @@ class Html extends FormatterBase {
     $output .= sprintf('<dt>Invalid ballots:</dt><dd>%s</dd>', number_format($election->num_invalid_ballots));
     $output .= sprintf('<dt>Quota:</dt><dd>%s</dd>', number_format($method->quota));
     $output .= sprintf('<dt>Stages:</dt><dd>%d</dd>', count($stages));
+    $output .= sprintf('<dt>Count method:</dt><dd>%d</dd>', htmlspecialchars($method->getName()));
     $output .= '</dl>';
     $output .= $table;
 

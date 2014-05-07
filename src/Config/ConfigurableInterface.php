@@ -4,9 +4,7 @@
  * Interface for a configurable.
  */
 
-namespace DrooPHP;
-
-use DrooPHP\Config\ConfigInterface;
+namespace DrooPHP\Config;
 
 interface ConfigurableInterface {
 

@@ -14,7 +14,7 @@ interface ConfigInterface {
    * @param array $options
    * @param array $defaults
    */
-  public function __construct(array $options = array(), array $defaults = array());
+  public function __construct(array $options = [], array $defaults = []);
 
   /**
    * Set default options and their values.
@@ -25,7 +25,7 @@ interface ConfigInterface {
    *
    * @return self
    */
-  public function addDefaultOptions(array $defaults);
+  public function addDefaults(array $defaults);
 
   /**
    * Set the user-supplied options. These are merged with defaults.

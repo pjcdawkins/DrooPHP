@@ -3,7 +3,7 @@
         "This file locks the dependencies of your project to a known state",
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file"
     ],
-    "hash": "fffa127be34ed3375f7916fdb2715387",
+    "hash": "1fd4d31b2e72b0fefd72b74964d53d10",
     "packages": [
         {
             "name": "tedivm/stash",
@@ -64,7 +64,7 @@
 
     ],
     "platform": {
-        "php": ">=5.3.0"
+        "php": ">=5.4.0"
     },
     "platform-dev": [
 
