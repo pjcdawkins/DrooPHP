@@ -53,9 +53,9 @@ class Count implements CountInterface, ConfigurableInterface {
    */
   public function getDefaults() {
     return [
-      'formatter' => new Formatter\Html(),
-      'method' => new Method\Wikipedia(),
-      'source' => new Source\File(),
+      'formatter' => 'Html',
+      'method' => 'Wikipedia',
+      'source' => 'File',
     ];
   }
 
@@ -100,7 +100,7 @@ class Count implements CountInterface, ConfigurableInterface {
       }
       else {
         $class_name = 'DrooPHP\\Method\\' . $option;
-        $this->method = new $class_name($this->getElection());
+        $this->method = new $class_name();
       }
     }
     return $this->method;
