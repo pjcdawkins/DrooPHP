@@ -1,8 +1,13 @@
+DrooPHP
+=======
+
+[![Build Status](https://travis-ci.org/pjcdawkins/DrooPHP.svg?branch=cleanup)](https://travis-ci.org/pjcdawkins/DrooPHP)
+
 Summary
 -------
 * Author: Patrick Dawkins <pjcdawkins@gmail.com>
 * License: GPL
-* Requires: PHP >= 5.3
+* Requires: PHP >= 5.4
 
 DrooPHP will be a PHP library to enable counting results for an STV election.
 
