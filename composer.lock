@@ -3,24 +3,27 @@
         "This file locks the dependencies of your project to a known state",
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file"
     ],
-    "hash": "1fd4d31b2e72b0fefd72b74964d53d10",
+    "hash": "e8129f1fc49d2e79fe930bb0ef79a8d3",
     "packages": [
         {
             "name": "tedivm/stash",
-            "version": "v0.10.5",
+            "version": "v0.11.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tedivm/Stash.git",
-                "reference": "8a337d73226886972cdb8b4ebef5cff06937d25f"
+                "reference": "4a99597aa2fc363b321ff90ab1a781e1cd6b5491"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tedivm/Stash/zipball/8a337d73226886972cdb8b4ebef5cff06937d25f",
-                "reference": "8a337d73226886972cdb8b4ebef5cff06937d25f",
+                "url": "https://api.github.com/repos/tedivm/Stash/zipball/4a99597aa2fc363b321ff90ab1a781e1cd6b5491",
+                "reference": "4a99597aa2fc363b321ff90ab1a781e1cd6b5491",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "3.7.*"
             },
             "type": "library",
             "autoload": {
@@ -42,15 +45,17 @@
                     "email": "charlequin@gmail.com"
                 }
             ],
-            "description": "A place to keep your cache",
+            "description": "The place to keep your cache.",
             "homepage": "http://github.com/tedivm/Stash",
             "keywords": [
+                "apc",
+                "cache",
                 "caching",
-                "performance",
-                "scalability",
+                "memcached",
+                "redis",
                 "sessions"
             ],
-            "time": "2013-06-21 04:09:01"
+            "time": "2014-03-30 06:32:48"
         }
     ],
     "packages-dev": [
