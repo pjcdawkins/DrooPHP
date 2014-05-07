@@ -75,7 +75,7 @@ class Html extends FormatterBase {
     $output .= sprintf('<dt>Invalid ballots:</dt><dd>%s</dd>', number_format($election->num_invalid_ballots));
     $output .= sprintf('<dt>Quota:</dt><dd>%s</dd>', number_format($method->quota));
     $output .= sprintf('<dt>Stages:</dt><dd>%d</dd>', count($stages));
-    $output .= sprintf('<dt>Count method:</dt><dd>%d</dd>', htmlspecialchars($method->getName()));
+    $output .= sprintf('<dt>Count method:</dt><dd>%s</dd>', htmlspecialchars($method->getName()));
     $output .= '</dl>';
     $output .= $table;
 
