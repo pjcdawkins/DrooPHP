@@ -50,7 +50,7 @@ class File extends SourceBase {
     return parent::getDefaults() + [
       'cache_enable' => TRUE,
       'cache_expire' => 3600,
-      'cache_driver' => 'FileSystem',
+      'cache_driver' => extension_loaded('apc') ? 'Apc' : 'FileSystem',
       'cache_dir' => NULL,
     ];
   }
@@ -67,7 +67,7 @@ class File extends SourceBase {
       if ($driver_option instanceof Stash\Driver\DriverInterface) {
         $driver = $driver_option;
       }
-      else if ($driver_option == 'FileSystem') {
+      elseif ($driver_option == 'FileSystem') {
         // Allow cache_dir option to set the filesystem cache directory.
         if (($cache_dir = $this->getConfig()->getOption('cache_dir')) && is_writable($cache_dir)) {
           $options = ['path' => realpath($cache_dir)];
@@ -77,15 +77,13 @@ class File extends SourceBase {
           $driver = new Stash\Driver\FileSystem();
         }
       }
+      elseif ($driver_option == 'Apc') {
+        $driver = new Stash\Driver\Apc([
+          'ttl' => $this->getConfig()->getOption('cache_expire'),
+        ]);
+      }
       else {
-        if ($driver_option == 'Apc') {
-          $driver = new Stash\Driver\Apc([
-            'ttl' => $this->getConfig()->getOption('cache_expire'),
-          ]);
-        }
-        else {
-          throw new \Exception('Invalid value provided for option cache_driver.');
-        }
+        throw new \Exception('Invalid value provided for option cache_driver.');
       }
       $this->pool = new Stash\Pool($driver);
     }
