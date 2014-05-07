@@ -68,14 +68,16 @@ class File extends SourceBase {
         $driver = $driver_option;
       }
       elseif ($driver_option == 'FileSystem') {
+        $options = [];
         // Allow cache_dir option to set the filesystem cache directory.
-        if (($cache_dir = $this->getConfig()->getOption('cache_dir')) && is_writable($cache_dir)) {
-          $options = ['path' => realpath($cache_dir)];
-          $driver = new Stash\Driver\FileSystem($options);
+        $cache_dir = $this->getConfig()->getOption('cache_dir');
+        if ($cache_dir) {
+          if (!is_writable($cache_dir)) {
+            throw new \Exception('The specified cache directory is not writable: ' . $cache_dir);
+          }
+          $options['path'] = $cache_dir;
         }
-        else {
-          $driver = new Stash\Driver\FileSystem();
-        }
+        $driver = new Stash\Driver\FileSystem($options);
       }
       elseif ($driver_option == 'Apc') {
         $driver = new Stash\Driver\Apc([
