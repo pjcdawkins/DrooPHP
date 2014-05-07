@@ -9,5 +9,5 @@ require __DIR__ . '/../../../library.php';
 $file = __DIR__ . '/data/wikipedia-stv.blt';
 
 $count = new DrooPHP\Count();
-$count->getSource()->setOptions(['filename' => $file]);
+$count->getSource()->setOptions(['filename' => $file, 'cache_enable' => FALSE]);
 print $count->run();
