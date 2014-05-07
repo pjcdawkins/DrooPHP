@@ -1,10 +1,15 @@
 <?php
 /**
  * @file
- * Tests for setting up a counting method.
+ * Tests for vote counting methods.
  */
 
-namespace DrooPHP;
+namespace DrooPHP\Test;
+
+use DrooPHP\Ballot;
+use DrooPHP\Election;
+use DrooPHP\ElectionInterface;
+use DrooPHP\Method;
 
 class MethodTest extends \PHPUnit_Framework_TestCase {
 
@@ -29,7 +34,8 @@ class MethodTest extends \PHPUnit_Framework_TestCase {
    */
   public function testRun() {
     $method = new Method\Wikipedia();
-    $result = $method->run($this->getTestElection());
+    $method->setElection($this->getTestElection());
+    $result = $method->run();
     $this->assertTrue($result, 'Count runs');
   }
 

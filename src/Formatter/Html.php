@@ -6,8 +6,7 @@
 
 namespace DrooPHP\Formatter;
 
-use DrooPHP\Candidate;
-use DrooPHP\ElectionInterface;
+use DrooPHP\CandidateInterface;
 use DrooPHP\Method\MethodInterface;
 
 class Html extends FormatterBase {
@@ -22,9 +21,10 @@ class Html extends FormatterBase {
   /**
    * @{inheritdoc}
    */
-  public function getOutput(MethodInterface $method, ElectionInterface $election) {
-    $candidates = $election->candidates;
-    $stages = $method->stages;
+  public function getOutput(MethodInterface $method) {
+    $election = $method->getElection();
+    $candidates = $election->getCandidates();
+    $stages = $method->getStages();
 
     $table_header = '<thead><tr><th rowspan="2">Candidates</th><th colspan="' . count($stages) . '">Number of votes</th></tr><tr>';
     foreach (array_keys($stages) as $stage_id) {
@@ -35,13 +35,13 @@ class Html extends FormatterBase {
     $table_rows = [];
     foreach ($candidates as $candidate) {
       $row = [];
-      $row[] = htmlspecialchars($candidate->name);
+      $row[] = htmlspecialchars($candidate->getName());
       foreach ($stages as $stage) {
-        $cell = '<div class="droophp-votes">' . number_format($stage['votes'][$candidate->cid]) . '</div>';
-        if (!empty($stage['changes'][$candidate->cid])) {
+        $cell = '<div class="droophp-votes">' . number_format($stage['votes'][$candidate->getId()]) . '</div>';
+        if (!empty($stage['changes'][$candidate->getId()])) {
           $cell .= '<ul class="droophp-changes"><li>' . implode(
               '</li><li>',
-              array_map('htmlspecialchars', $stage['changes'][$candidate->cid])
+              array_map('htmlspecialchars', $stage['changes'][$candidate->getId()])
             ) . '</li></ul>';
         }
         $row[] = $cell;
@@ -61,8 +61,8 @@ class Html extends FormatterBase {
 
     $elected_names = [];
     foreach ($candidates as $candidate) {
-      if ($candidate->state === Candidate::STATE_ELECTED) {
-        $elected_names[] = $candidate->name;
+      if ($candidate->getState() === CandidateInterface::STATE_ELECTED) {
+        $elected_names[] = trim($candidate->getName());
       }
     }
 
@@ -73,7 +73,7 @@ class Html extends FormatterBase {
     $output .= sprintf('<dt>Vacancies:</dt><dd>%s</dd>', number_format($election->num_seats));
     $output .= sprintf('<dt>Valid ballots:</dt><dd>%s</dd>', number_format($election->num_valid_ballots));
     $output .= sprintf('<dt>Invalid ballots:</dt><dd>%s</dd>', number_format($election->num_invalid_ballots));
-    $output .= sprintf('<dt>Quota:</dt><dd>%s</dd>', number_format($method->quota));
+    $output .= sprintf('<dt>Quota:</dt><dd>%s</dd>', number_format($method->getQuota()));
     $output .= sprintf('<dt>Stages:</dt><dd>%d</dd>', count($stages));
     $output .= sprintf('<dt>Count method:</dt><dd>%s</dd>', htmlspecialchars($method->getName()));
     $output .= '</dl>';

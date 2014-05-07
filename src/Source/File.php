@@ -108,10 +108,9 @@ class File extends SourceBase {
   }
 
   /**
-   * Overrides parent::loadElection().
+   * @{inheritdoc}
    *
    * @throws \Exception
-   * @return ElectionInterface
    */
   public function loadElection() {
     $filename = $this->getConfig()->getOption('filename');
@@ -149,7 +148,7 @@ class File extends SourceBase {
    *
    * @param string $filename The absolute pathname to the ballot file.
    *
-   * @return Election
+   * @return ElectionInterface
    */
   public function loadElectionWork($filename) {
     // Parse the file, creating a new Election object.
@@ -170,7 +169,7 @@ class File extends SourceBase {
    * @see self::parseTail()
    * @see self::parseBallots()
    */
-  protected function parse($election) {
+  protected function parse(ElectionInterface $election) {
     try {
       $this->parseHead($election);
       $this->parseTail($election);
@@ -196,7 +195,7 @@ class File extends SourceBase {
   /**
    * Read information from the beginning (head) of the BLT file.
    */
-  protected function parseHead($election) {
+  protected function parseHead(ElectionInterface $election) {
     $line_number = 0;
     while (($line = fgets($this->file)) !== FALSE && $line_number <= 2) {
       // Remove comments (starting with # or // until the end of the line).
@@ -302,7 +301,7 @@ class File extends SourceBase {
   /**
    * Read the ballot lines of the BLT file, counting and validating.
    */
-  protected function parseBallots($election) {
+  protected function parseBallots(ElectionInterface $election) {
     $line_number = 0; // actually, this is the line number ignoring comments
     rewind($this->file);
     // Get config variables before looping (performance).
@@ -372,13 +371,13 @@ class File extends SourceBase {
             }
             $part = explode('=', $part);
             foreach ($part as $cid) {
-              if (!isset($election->candidates[$cid])) {
+              if (!$election->getCandidate($cid)) {
                 throw new InvalidBallotException("The candidate '$cid' does not exist.");
               }
             }
           }
           // Deal with normal rankings.
-          else if ($part && !isset($election->candidates[$part])) {
+          else if ($part && !$election->getCandidate($part)) {
             throw new InvalidBallotException("The candidate '$part' does not exist.");
           }
           // Check for repeat rankings.
