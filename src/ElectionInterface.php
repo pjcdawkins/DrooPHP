@@ -91,4 +91,63 @@ interface ElectionInterface {
    */
   public function setNumSeats($num);
 
+  /**
+   * Set the total number of candidates.
+   *
+   * @param int $num
+   *
+   * @return self
+   */
+  public function setNumCandidates($num);
+
+  /**
+   * Get the total number of candidates.
+   *
+   * This might not be the same as count($this->getCandidates()) because the
+   * total count of candidates can be defined before all the candidates are
+   * added.
+   *
+   * @return int
+   */
+  public function getNumCandidates();
+
+  /**
+   * Get the total number of ballots.
+   *
+   * @return int
+   */
+  public function getNumBallots();
+
+  /**
+   * Add to the number of valid ballots.
+   *
+   * @param int $amount
+   *
+   * @return self
+   */
+  public function addNumValidBallots($amount);
+
+  /**
+   * Get the number of valid ballots.
+   *
+   * @return int
+   */
+  public function getNumValidBallots();
+
+  /**
+   * Add to the number of invalid ballots.
+   *
+   * @param int $amount
+   *
+   * @return self
+   */
+  public function addNumInvalidBallots($amount);
+
+  /**
+   * Get the number of invalid ballots.
+   *
+   * @return int
+   */
+  public function getNumInvalidBallots();
+
 }

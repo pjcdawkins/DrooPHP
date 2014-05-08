@@ -10,6 +10,7 @@ use DrooPHP\Ballot;
 use DrooPHP\Election;
 use DrooPHP\ElectionInterface;
 use DrooPHP\Method;
+use DrooPHP\ResultInterface;
 
 class MethodTest extends \PHPUnit_Framework_TestCase {
 
@@ -20,7 +21,7 @@ class MethodTest extends \PHPUnit_Framework_TestCase {
    */
   public function getTestElection() {
     $election = new Election();
-    $election->num_candidates = 2;
+    $election->setNumCandidates(2);
     $election->setNumSeats(1);
     $election->addCandidate('Test candidate 1');
     $election->addCandidate('Test candidate 2');
@@ -36,7 +37,7 @@ class MethodTest extends \PHPUnit_Framework_TestCase {
     $method = new Method\Wikipedia();
     $method->setElection($this->getTestElection());
     $result = $method->run();
-    $this->assertTrue($result, 'Count runs');
+    $this->assertTrue($result instanceof ResultInterface, 'Count runs');
   }
 
 }

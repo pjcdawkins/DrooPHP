@@ -7,17 +7,17 @@
 namespace DrooPHP\Formatter;
 
 use DrooPHP\CandidateInterface;
-use DrooPHP\Method\MethodInterface;
+use DrooPHP\ResultInterface;
 
 class Text extends FormatterBase {
 
   /**
    * @{inheritdoc}
    */
-  public function getOutput(MethodInterface $method) {
-    $election = $method->getElection();
+  public function getOutput(ResultInterface $result) {
+    $election = $result->getElection();
     $candidates = $election->getCandidates();
-    $stages = $method->getStages();
+    $stages = $result->getStages();
 
     $table_header = "Candidates";
     foreach (array_keys($stages) as $stage_id) {
@@ -54,13 +54,13 @@ class Text extends FormatterBase {
     $output = "$title\n\n";
 
     $output .= sprintf("Elected: %s\n", implode(', ', $elected_names));
-    $output .= sprintf("Number of candidates: %s\n", number_format($election->num_candidates));
+    $output .= sprintf("Number of candidates: %s\n", number_format(count($candidates)));
     $output .= sprintf("Vacancies: %s\n", number_format($election->getNumSeats()));
-    $output .= sprintf("Valid ballots: %s\n", number_format($election->num_valid_ballots));
-    $output .= sprintf("Invalid ballots: %s\n", number_format($election->num_invalid_ballots));
-    $output .= sprintf("Quota: %s\n", number_format($method->getQuota()));
+    $output .= sprintf("Valid ballots: %s\n", number_format($election->getNumValidBallots()));
+    $output .= sprintf("Invalid ballots: %s\n", number_format($election->getNumInvalidBallots()));
+    $output .= sprintf("Quota: %s\n", number_format($result->getQuota()));
     $output .= sprintf("Stages: %d\n", count($stages));
-    $output .= sprintf("Count method: %d\n", $method->getName());
+    $output .= sprintf("Count method: %d\n", $result->getMethodName());
 
     $output .= "\n$table";
 

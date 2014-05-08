@@ -7,7 +7,7 @@
 namespace DrooPHP\Formatter;
 
 use DrooPHP\CandidateInterface;
-use DrooPHP\Method\MethodInterface;
+use DrooPHP\ResultInterface;
 
 class Html extends FormatterBase {
 
@@ -21,10 +21,10 @@ class Html extends FormatterBase {
   /**
    * @{inheritdoc}
    */
-  public function getOutput(MethodInterface $method) {
-    $election = $method->getElection();
+  public function getOutput(ResultInterface $result) {
+    $election = $result->getElection();
     $candidates = $election->getCandidates();
-    $stages = $method->getStages();
+    $stages = $result->getStages();
 
     $table_header = '<thead><tr><th rowspan="2">Candidates</th><th colspan="' . count($stages) . '">Number of votes</th></tr><tr>';
     foreach (array_keys($stages) as $stage_id) {
@@ -69,13 +69,13 @@ class Html extends FormatterBase {
     $output = '<h1 class="droophp-heading">' . $title . '</h1>';
     $output .= '<dl>';
     $output .= sprintf('<dt>Elected:</dt><dd>%s</dd>', htmlspecialchars(implode(', ', $elected_names)));
-    $output .= sprintf('<dt>Number of candidates:</dt><dd>%s</dd>', number_format($election->num_candidates));
+    $output .= sprintf('<dt>Number of candidates:</dt><dd>%s</dd>', number_format(count($candidates)));
     $output .= sprintf('<dt>Vacancies:</dt><dd>%s</dd>', number_format($election->getNumSeats()));
-    $output .= sprintf('<dt>Valid ballots:</dt><dd>%s</dd>', number_format($election->num_valid_ballots));
-    $output .= sprintf('<dt>Invalid ballots:</dt><dd>%s</dd>', number_format($election->num_invalid_ballots));
-    $output .= sprintf('<dt>Quota:</dt><dd>%s</dd>', number_format($method->getQuota()));
+    $output .= sprintf('<dt>Valid ballots:</dt><dd>%s</dd>', number_format($election->getNumValidBallots()));
+    $output .= sprintf('<dt>Invalid ballots:</dt><dd>%s</dd>', number_format($election->getNumInvalidBallots()));
+    $output .= sprintf('<dt>Quota:</dt><dd>%s</dd>', number_format($result->getQuota()));
     $output .= sprintf('<dt>Stages:</dt><dd>%d</dd>', count($stages));
-    $output .= sprintf('<dt>Count method:</dt><dd>%s</dd>', htmlspecialchars($method->getName()));
+    $output .= sprintf('<dt>Count method:</dt><dd>%s</dd>', htmlspecialchars($result->getMethodName()));
     $output .= '</dl>';
     $output .= $table;
 

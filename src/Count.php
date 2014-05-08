@@ -64,8 +64,8 @@ class Count implements CountInterface, ConfigurableInterface {
   public function run() {
     $method = $this->getMethod();
     $method->setElection($this->getSource()->loadElection());
-    $method->run();
-    $output = $this->getFormatter()->getOutput($method);
+    $result = $method->run();
+    $output = $this->getFormatter()->getOutput($result);
     return $output;
   }
 

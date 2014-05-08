@@ -10,6 +10,7 @@ use DrooPHP\CandidateInterface;
 use DrooPHP\Config;
 use DrooPHP\Config\ConfigurableInterface;
 use DrooPHP\ElectionInterface;
+use DrooPHP\Result;
 
 abstract class MethodBase implements MethodInterface, ConfigurableInterface {
 
@@ -17,12 +18,14 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
   protected $stages = [];
   protected $config;
   protected $election;
+  protected $result;
 
   /**
    * Constructor.
    */
   public function __construct() {
     $this->getConfig()->addDefaults($this->getDefaults());
+    $this->result = new Result($this);
   }
 
   /**
@@ -100,7 +103,7 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
     if (!isset($this->stages[$stage])) {
       $this->stages[$stage] = ['votes' => [], 'state' => [], 'changes' => []];
     }
-    $log = &$this->stages[$stage];
+    $log = & $this->stages[$stage];
     foreach ($this->getElection()->getCandidates() as $cid => $candidate) {
       $log['votes'][$cid] = round($candidate->getVotes(), 2);
       $log['state'][$cid] = $candidate->getState(TRUE);
@@ -132,12 +135,13 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
   public function isComplete() {
     $election = $this->getElection();
     $num_seats = $election->getNumSeats();
-    $num_candidates = count($election->getCandidates());
+    $num_candidates = $election->getNumCandidates();
     $must_be_elected = $num_seats;
     if ($num_seats > $num_candidates) {
       $must_be_elected = $num_candidates;
     }
-    return $election->num_filled_seats >= $must_be_elected;
+    $filled_seats = count($election->getCandidates(CandidateInterface::STATE_ELECTED));
+    return $filled_seats >= $must_be_elected;
   }
 
   /**
@@ -146,7 +150,9 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
    * @return int
    */
   public function getNumVacancies() {
-    return $this->getElection()->getNumSeats() - $this->getElection()->num_filled_seats;
+    $election = $this->getElection();
+    $filled_seats = count($election->getCandidates(CandidateInterface::STATE_ELECTED));
+    return $election->getNumSeats() - $filled_seats;
   }
 
   /**
@@ -159,7 +165,7 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
    * @return int
    */
   protected function calculateQuota() {
-    $num = ($this->getElection()->num_valid_ballots / ($this->getElection()->getNumSeats() + 1)) + 1;
+    $num = ($this->getElection()->getNumValidBallots() / ($this->getElection()->getNumSeats() + 1)) + 1;
     $quota = floor($num);
     $this->quota = $quota;
     return $quota;

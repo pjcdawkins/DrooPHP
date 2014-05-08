@@ -6,15 +6,15 @@
 
 namespace DrooPHP\Formatter;
 
-use DrooPHP\Method\MethodInterface;
+use DrooPHP\ResultInterface;
 
 interface FormatterInterface {
 
   /**
-   * @param MethodInterface $method
+   * @param ResultInterface $result
    *
    * @return string
    */
-  public function getOutput(MethodInterface $method);
+  public function getOutput(ResultInterface $result);
 
 }
