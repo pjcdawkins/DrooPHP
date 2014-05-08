@@ -8,25 +8,46 @@ namespace DrooPHP;
 
 class Ballot implements BallotInterface {
 
-  /** @var array */
-  public $ranking;
-
-  /** @var int|float */
-  public $value;
+  protected $ranking;
+  protected $value;
 
   /**
-   * Constructor.
-   *
-   * @param array $ranking
-   *    The ranking, expressed as an array of candidate IDs keyed by their
-   *    preference level (e.g. the second preference candidate is keyed by 2).
-   *
-   * @param int|float $value
-   *    The value of this ballot (default: 1).
+   * @{inheritdoc}
    */
   public function __construct(array $ranking, $value = 1) {
     $this->ranking = $ranking;
     $this->value = $value;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function getRanking() {
+    return $this->ranking;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function getPreference($level) {
+    if (!isset($this->ranking[$level])) {
+      return FALSE;
+    }
+    return (array) $this->ranking[$level];
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function getValue() {
+    return $this->value;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function addValue($amount) {
+    $this->value += $amount;
   }
 
 }

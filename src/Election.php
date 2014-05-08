@@ -63,7 +63,7 @@ class Election implements ElectionInterface {
   /**
    * The ballots: array of BallotInterface objects.
    *
-   * @var array
+   * @var BallotInterface[]
    */
   public $ballots = [];
 
@@ -80,15 +80,18 @@ class Election implements ElectionInterface {
    */
   public $withdrawn = [];
 
+  /**
+   * @var CandidateInterface[]
+   */
   protected $candidates = [];
+
+  /**
+   * @var int
+   */
   protected $cid_increment = 1;
 
   /**
-   * Get a single candidate by ID.
-   *
-   * @param mixed $cid
-   *
-   * @return CandidateInterface
+   * @{inheritdoc}
    */
   public function getCandidate($cid) {
     if (!isset($this->candidates[$cid])) {
@@ -114,9 +117,7 @@ class Election implements ElectionInterface {
   }
 
   /**
-   * Add a candidate.
-   *
-   * @param string $name The name of the candidate.
+   * @{inheritdoc}
    *
    * @throws \Exception
    */
@@ -129,6 +130,30 @@ class Election implements ElectionInterface {
     $candidate = new Candidate($name, $cid, $withdrawn);
     $this->candidates[$cid] = $candidate;
     $this->cid_increment++;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function getBallots() {
+    return $this->ballots;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function getBallot($key) {
+    if (!isset($this->ballots[$key])) {
+      return FALSE;
+    }
+    return $this->ballots[$key];
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function addBallot(BallotInterface $ballot, $key) {
+    $this->ballots[$key] = $ballot;
   }
 
 }

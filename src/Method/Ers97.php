@@ -82,21 +82,14 @@ class Ers97 extends MethodBase {
       $this->calculateQuota();
       // Count the first preference votes and add them to each candidate // ERS97 5.1.4
       $total = 0;
-      foreach ($election->ballots as $ballot) {
-        $first_preference = $ballot->ranking[1];
-        if (is_array($first_preference)) {
-          // Deal with equal rankings (probably not permitted in ERS97 but this can be dealt with as an edge case).
-          $num = count($first_preference);
-          foreach ($first_preference as $cid) {
-            $candidate = $election->getCandidate($cid);
-            $candidate->addVotes((1 / $num) * $ballot->value);
-            $total += (1 / $num) * $ballot->value;
-          }
-        }
-        else {
-          $candidate = $election->getCandidate($first_preference);
-          $candidate->addVotes($ballot->value);
-          $total += $ballot->value;
+      foreach ($election->getBallots() as $ballot) {
+        $first_preference = $ballot->getRanking(1);
+        // Deal with equal rankings (probably not permitted in ERS97 but this can be dealt with as an edge case).
+        $num = count($first_preference);
+        foreach ($first_preference as $cid) {
+          $candidate = $election->getCandidate($cid);
+          $candidate->addVotes((1 / $num) * $ballot->getValue());
+          $total += (1 / $num) * $ballot->getValue();
         }
       }
       // Check that the total is the same as the total valid vote. // ERS97 5.1.5 // @todo this is unnecessary
