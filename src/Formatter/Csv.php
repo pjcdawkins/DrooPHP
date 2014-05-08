@@ -7,7 +7,7 @@
 namespace DrooPHP\Formatter;
 
 use DrooPHP\CandidateInterface;
-use DrooPHP\Method\MethodInterface;
+use DrooPHP\ResultInterface;
 
 class Csv extends FormatterBase {
 
@@ -21,17 +21,17 @@ class Csv extends FormatterBase {
   /**
    * @{inheritdoc}
    */
-  public function getOutput(MethodInterface $method) {
-    $election = $method->getElection();
+  public function getOutput(ResultInterface $result) {
+    $election = $result->getElection();
     $candidates = $election->getCandidates();
-    $stages = $method->getStages();
+    $stages = $result->getStages();
 
     $delimiter = $this->getConfig()->getOption('delimiter');
     $enclosure = $this->getConfig()->getOption('enclosure');
 
     $csv = fopen('php://temp', 'w');
 
-    fputcsv($csv, ['Results: ' . trim($election->title)], $delimiter, $enclosure);
+    fputcsv($csv, ['Results: ' . trim($election->getTitle())], $delimiter, $enclosure);
 
     fputcsv($csv, []);
 
@@ -44,13 +44,13 @@ class Csv extends FormatterBase {
 
     $info = [];
     $info[] = ['Elected:', implode(', ', $elected_names)];
-    $info[] = ['Number of candidates:', number_format($election->num_candidates)];
-    $info[] = ['Vacancies:', number_format($election->num_seats)];
-    $info[] = ['Valid ballots:', number_format($election->num_valid_ballots)];
-    $info[] = ['Invalid ballots:', number_format($election->num_invalid_ballots)];
-    $info[] = ['Quota:', number_format($method->getQuota())];
+    $info[] = ['Number of candidates:', number_format(count($candidates))];
+    $info[] = ['Vacancies:', number_format($election->getNumSeats())];
+    $info[] = ['Valid ballots:', number_format($election->getNumValidBallots())];
+    $info[] = ['Invalid ballots:', number_format($election->getNumInvalidBallots())];
+    $info[] = ['Quota:', number_format($result->getQuota())];
     $info[] = ['Stages:', number_format(count($stages))];
-    $info[] = ['Count method:', $method->getName()];
+    $info[] = ['Count method:', $result->getMethodName()];
 
     foreach ($info as $info_row) {
       fputcsv($csv, $info_row, $delimiter, $enclosure);

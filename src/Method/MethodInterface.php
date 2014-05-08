@@ -7,6 +7,7 @@
 namespace DrooPHP\Method;
 
 use DrooPHP\ElectionInterface;
+use DrooPHP\ResultInterface;
 
 interface MethodInterface {
 
@@ -37,6 +38,8 @@ interface MethodInterface {
    * Run the count.
    *
    * @param int $stage
+   *
+   * @return ResultInterface
    */
   public function run($stage = 1);
 

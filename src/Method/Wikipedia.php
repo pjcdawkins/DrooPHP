@@ -84,7 +84,6 @@ class Wikipedia extends MethodBase {
       // A candidate is elected if their votes equal or exceed the quota.
       if ($candidate->getVotes() >= $quota) {
         $candidate->setState(CandidateInterface::STATE_ELECTED);
-        $election->num_filled_seats++;
         $anyone_elected = TRUE;
         $surplus = $candidate->getVotes() - $quota;
         $this->logChange($candidate, sprintf('Elected at stage %d, with a surplus of %s votes.', $stage, $surplus), $stage);
@@ -117,7 +116,6 @@ class Wikipedia extends MethodBase {
       foreach ($hopefuls as $candidate) {
         $candidate->setState(CandidateInterface::STATE_ELECTED);
         $this->logChange($candidate, sprintf('Elected at stage %d, by default.', $stage), $stage);
-        $election->num_filled_seats++;
       }
     }
     // If there are no remaining vacancies, all the remaining candidates are defeated.
@@ -134,9 +132,9 @@ class Wikipedia extends MethodBase {
 
     // Proceed to the next stage or stop if the election is complete.
     if ($this->isComplete()) {
-      return TRUE;
+      return $this->result;
     }
-    else if ($stage >= $this->getConfig()->getOption('max_stages')) {
+    elseif ($stage >= $this->getConfig()->getOption('max_stages')) {
       throw new \Exception(sprintf(
         'Maximum number of stages reached (%d) before completing the count.',
         $this->getConfig()->getOption('max_stages')
@@ -214,7 +212,7 @@ class Wikipedia extends MethodBase {
     foreach ($votes as $to_cid => $num_votes) {
       $amount = ($num_to_transfer / $total_votes) * $num_votes;
       $to_candidate = $hopefuls[$to_cid];
-      $from_candidate->addVotes(- $amount);
+      $from_candidate->addVotes(-$amount);
       $to_candidate->addVotes($amount);
       $this->logChange($from_candidate, sprintf('Transferred %s votes to %s.', $amount, $to_candidate->getName(), $stage), $stage);
       $this->logChange($to_candidate, sprintf('Received %s votes from %s.', $amount, $from_candidate->getName(), $stage), $stage);

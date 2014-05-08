@@ -174,8 +174,7 @@ class File extends SourceBase {
       $this->parseHead($election);
       $this->parseTail($election);
       $this->parseBallots($election);
-    }
-    catch (\Exception $e) {
+    } catch (\Exception $e) {
       $n = 10; // Number of characters to display for debugging.
       $position = ftell($this->file);
       fseek($this->file, -$n, SEEK_CUR);
@@ -213,10 +212,10 @@ class File extends SourceBase {
         if (count($parts) != 2) {
           throw new \Exception('The first line must contain exactly two parts.');
         }
-        $election->num_candidates = (int) $parts[0];
-        $election->num_seats = (int) $parts[1];
+        $election->setNumCandidates((int) $parts[0]);
+        $election->setNumSeats((int) $parts[1]);
       }
-      else if ($line_number === 2) {
+      elseif ($line_number === 2) {
         if (strpos($line, '-') === 0) {
           // If line 2 starts with a minus sign, it specifies the
           // withdrawn candidate IDs.
@@ -237,7 +236,7 @@ class File extends SourceBase {
    * Read information from the end (tail) of the BLT file.
    */
   protected function parseTail(ElectionInterface $election) {
-    $num_candidates = $election->num_candidates;
+    $num_candidates = $election->getNumCandidates();
     // There can be a maximum of $num_candidates + 3 tail lines: each
     // candidate's name is given, and then there are optionally election,
     // title, and source.
@@ -286,13 +285,13 @@ class File extends SourceBase {
         // This line is a candidate.
         $election->addCandidate($info);
       }
-      else if ($election->title === NULL) {
-        $election->title = $info;
+      elseif ($election->getTitle() === NULL) {
+        $election->setTitle($info);
       }
-      else if ($election->source === NULL) {
+      elseif ($election->source === NULL) {
         $election->source = $info;
       }
-      else if ($election->comment === NULL) {
+      elseif ($election->comment === NULL) {
         $election->comment = $info;
       }
     }
@@ -344,7 +343,7 @@ class File extends SourceBase {
       // Save a $key for later use in sorting and identifying the ballot.
       $key = implode(' ', $parts);
       // Make sure that there aren't more rankings than the total number of candidates.
-      if (count($parts) > $election->num_candidates) {
+      if (count($parts) > $election->getNumCandidates()) {
         throw new InvalidBallotException('The number of rankings exceeds the number of candidates.');
       }
       $no_equals = (strpos($line, '=') === FALSE);
@@ -377,7 +376,7 @@ class File extends SourceBase {
             }
           }
           // Deal with normal rankings.
-          else if ($part && !$election->getCandidate($part)) {
+          elseif ($part && !$election->getCandidate($part)) {
             throw new InvalidBallotException("The candidate '$part' does not exist.");
           }
           // Check for repeat rankings.
@@ -397,14 +396,13 @@ class File extends SourceBase {
           throw new \Exception($e->getMessage(), $e->getCode(), $e);
         }
       }
-      $election->num_ballots += $multiplier; // ERS97 5.1.1
       if (!$valid) {
         // The ballot is invalid: increment the total number of invalid ballots. // ERS97 5.1.2
-        $election->num_invalid_ballots += $multiplier;
+        $election->addNumInvalidBallots($multiplier);
         continue;
       }
       // The ballot is valid: increment the total number of valid ballots. // ERS97 5.1.2
-      $election->num_valid_ballots += $multiplier;
+      $election->addNumValidBallots($multiplier);
       if ($election->getBallot($key)) {
         // If an identical ballot already exists in the election, increase its value by $multiplier.
         $election->getBallot($key)->addValue($multiplier);

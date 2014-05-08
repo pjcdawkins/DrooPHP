@@ -9,48 +9,10 @@ namespace DrooPHP;
 class Election implements ElectionInterface {
 
   /** @var string */
-  public $title;
-
-  /** @var string */
   public $source;
 
   /** @var string */
   public $comment;
-
-  /**
-   * The number of seats to be filled.
-   *
-   * @var int
-   */
-  public $num_seats = 0;
-
-  /**
-   * The number of seats filled.
-   *
-   * @var int
-   */
-  public $num_filled_seats = 0;
-
-  /**
-   * The total number of (invalid and valid) ballots.
-   *
-   * @var int
-   */
-  public $num_ballots = 0;
-
-  /**
-   * The total number of valid ballots.
-   *
-   * @var int
-   */
-  public $num_valid_ballots = 0;
-
-  /**
-   * The total number of invalid ballots.
-   *
-   * @var int
-   */
-  public $num_invalid_ballots = 0;
 
   /**
    * The total number of exhausted ballots. These are ballots from which votes
@@ -68,13 +30,6 @@ class Election implements ElectionInterface {
   public $ballots = [];
 
   /**
-   * The total number of candidates standing.
-   *
-   * @var int
-   */
-  public $num_candidates = 0;
-
-  /**
    * The set of withdrawn candidate IDs.
    * @var array
    */
@@ -89,6 +44,31 @@ class Election implements ElectionInterface {
    * @var int
    */
   protected $cid_increment = 1;
+
+  /**
+   * @var int
+   */
+  protected $num_candidates = 0;
+
+  /**
+   * @var int
+   */
+  protected $num_seats = 0;
+
+  /**
+   * @var int
+   */
+  protected $num_valid_ballots = 0;
+
+  /**
+   * @var int
+   */
+  protected $num_invalid_ballots = 0;
+
+  /**
+   * @var string
+   */
+  protected $title;
 
   /**
    * @{inheritdoc}
@@ -154,6 +134,87 @@ class Election implements ElectionInterface {
    */
   public function addBallot(BallotInterface $ballot, $key) {
     $this->ballots[$key] = $ballot;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function getTitle() {
+    return $this->title;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function setTitle($title) {
+    $this->title = $title;
+    return $this;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function getNumSeats() {
+    return $this->num_seats;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function setNumSeats($num) {
+    $this->num_seats = $num;
+    return $this;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function getNumBallots() {
+    return $this->num_valid_ballots + $this->num_invalid_ballots;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function addNumValidBallots($amount) {
+    $this->num_valid_ballots += $amount;
+    return $this;
+  }
+  /**
+   * @{inheritdoc}
+   */
+  public function getNumValidBallots() {
+    return $this->num_valid_ballots;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function addNumInvalidBallots($amount) {
+    $this->num_invalid_ballots += $amount;
+    return $this;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function getNumInvalidBallots() {
+    return $this->num_invalid_ballots;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function getNumCandidates() {
+    return $this->num_candidates;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function setNumCandidates($num) {
+    $this->num_candidates = $num;
+    return $this;
   }
 
 }

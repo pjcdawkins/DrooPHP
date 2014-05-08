@@ -93,7 +93,7 @@ class Ers97 extends MethodBase {
         }
       }
       // Check that the total is the same as the total valid vote. // ERS97 5.1.5 // @todo this is unnecessary
-      if ($total != $election->num_valid_ballots) {
+      if ($total != $election->getNumValidBallots()) {
         throw new \Exception('Total votes in stage 1 not equal to the total valid vote.');
       }
     }
@@ -121,7 +121,6 @@ class Ers97 extends MethodBase {
         if ($candidate->getVotes() >= $quota || $candidate->getVotes() >= ($active_vote / ($num_vacancies + 1))) {
           // The candidate is now elected.
           $candidate->setState(CandidateInterface::STATE_ELECTED);
-          $election->num_filled_seats++;
           $anyone_elected = TRUE;
           if ($candidate->getVotes() > $quota) {
             $candidate->surplus = $candidate->getVotes() - $quota;
@@ -171,7 +170,7 @@ class Ers97 extends MethodBase {
 
     // Proceed to the next stage or stop if the election is complete.
     if ($this->isComplete()) {
-      return TRUE;
+      return $this->result;
     }
     elseif ($stage >= $this->getConfig()->getOption('max_stages')) {
       throw new \Exception('Maximum number of stages reached before completing the count.');
@@ -238,7 +237,7 @@ class Ers97 extends MethodBase {
    * @return float
    */
   protected function calculateQuota() {
-    $num = $this->getElection()->num_valid_ballots / ($this->getElection()->num_seats + 1);
+    $num = $this->getElection()->getNumValidBallots() / ($this->getElection()->getNumSeats() + 1);
     $quota = ceil($num * 100) / 100;
     $this->quota = $quota;
     return $quota;
