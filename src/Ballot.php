@@ -31,7 +31,7 @@ class Ballot implements BallotInterface {
    */
   public function getPreference($level) {
     if (!isset($this->ranking[$level])) {
-      return FALSE;
+      return array();
     }
     return (array) $this->ranking[$level];
   }
