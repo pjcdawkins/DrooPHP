@@ -131,8 +131,8 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
    */
   public function isComplete() {
     $election = $this->getElection();
-    $num_seats = $election->num_seats;
-    $num_candidates = $election->num_candidates;
+    $num_seats = $election->getNumSeats();
+    $num_candidates = count($election->getCandidates());
     $must_be_elected = $num_seats;
     if ($num_seats > $num_candidates) {
       $must_be_elected = $num_candidates;
@@ -146,7 +146,7 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
    * @return int
    */
   public function getNumVacancies() {
-    return $this->getElection()->num_seats - $this->getElection()->num_filled_seats;
+    return $this->getElection()->getNumSeats() - $this->getElection()->num_filled_seats;
   }
 
   /**
@@ -159,7 +159,7 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
    * @return int
    */
   protected function calculateQuota() {
-    $num = ($this->getElection()->num_valid_ballots / ($this->getElection()->num_seats + 1)) + 1;
+    $num = ($this->getElection()->num_valid_ballots / ($this->getElection()->getNumSeats() + 1)) + 1;
     $quota = floor($num);
     $this->quota = $quota;
     return $quota;

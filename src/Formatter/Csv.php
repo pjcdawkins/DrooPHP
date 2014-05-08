@@ -31,7 +31,7 @@ class Csv extends FormatterBase {
 
     $csv = fopen('php://temp', 'w');
 
-    fputcsv($csv, ['Results: ' . trim($election->title)], $delimiter, $enclosure);
+    fputcsv($csv, ['Results: ' . trim($election->getTitle())], $delimiter, $enclosure);
 
     fputcsv($csv, []);
 
@@ -45,7 +45,7 @@ class Csv extends FormatterBase {
     $info = [];
     $info[] = ['Elected:', implode(', ', $elected_names)];
     $info[] = ['Number of candidates:', number_format($election->num_candidates)];
-    $info[] = ['Vacancies:', number_format($election->num_seats)];
+    $info[] = ['Vacancies:', number_format($election->getNumSeats())];
     $info[] = ['Valid ballots:', number_format($election->num_valid_ballots)];
     $info[] = ['Invalid ballots:', number_format($election->num_invalid_ballots)];
     $info[] = ['Quota:', number_format($method->getQuota())];

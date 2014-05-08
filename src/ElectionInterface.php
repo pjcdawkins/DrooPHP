@@ -59,4 +59,36 @@ interface ElectionInterface {
    */
   public function addBallot(BallotInterface $ballot, $key);
 
+  /**
+   * Get the election title.
+   *
+   * @return string
+   */
+  public function getTitle();
+
+  /**
+   * Set the election title.
+   *
+   * @param string $title
+   *
+   * @return self
+   */
+  public function setTitle($title);
+
+  /**
+   * Get the number of seats.
+   *
+   * @return int
+   */
+  public function getNumSeats();
+
+  /**
+   * Set the number of seats (vacancies).
+   *
+   * @param int $num
+   *
+   * @return self
+   */
+  public function setNumSeats($num);
+
 }

@@ -9,20 +9,10 @@ namespace DrooPHP;
 class Election implements ElectionInterface {
 
   /** @var string */
-  public $title;
-
-  /** @var string */
   public $source;
 
   /** @var string */
   public $comment;
-
-  /**
-   * The number of seats to be filled.
-   *
-   * @var int
-   */
-  public $num_seats = 0;
 
   /**
    * The number of seats filled.
@@ -91,6 +81,16 @@ class Election implements ElectionInterface {
   protected $cid_increment = 1;
 
   /**
+   * @var int
+   */
+  protected $num_seats = 0;
+
+  /**
+   * @var string
+   */
+  protected $title;
+
+  /**
    * @{inheritdoc}
    */
   public function getCandidate($cid) {
@@ -154,6 +154,36 @@ class Election implements ElectionInterface {
    */
   public function addBallot(BallotInterface $ballot, $key) {
     $this->ballots[$key] = $ballot;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function getTitle() {
+    return $this->title;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function setTitle($title) {
+    $this->title = $title;
+    return $this;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function getNumSeats() {
+    return $this->num_seats;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function setNumSeats($num) {
+    $this->num_seats = $num;
+    return $this;
   }
 
 }

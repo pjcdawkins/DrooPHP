@@ -57,7 +57,7 @@ class Html extends FormatterBase {
 
     $table = '<table class="droophp-output">' . $table_header . $table_body . '</table>';
 
-    $title = sprintf('Results: %s', htmlspecialchars($election->title));
+    $title = sprintf('Results: %s', htmlspecialchars($election->getTitle()));
 
     $elected_names = [];
     foreach ($candidates as $candidate) {
@@ -70,7 +70,7 @@ class Html extends FormatterBase {
     $output .= '<dl>';
     $output .= sprintf('<dt>Elected:</dt><dd>%s</dd>', htmlspecialchars(implode(', ', $elected_names)));
     $output .= sprintf('<dt>Number of candidates:</dt><dd>%s</dd>', number_format($election->num_candidates));
-    $output .= sprintf('<dt>Vacancies:</dt><dd>%s</dd>', number_format($election->num_seats));
+    $output .= sprintf('<dt>Vacancies:</dt><dd>%s</dd>', number_format($election->getNumSeats()));
     $output .= sprintf('<dt>Valid ballots:</dt><dd>%s</dd>', number_format($election->num_valid_ballots));
     $output .= sprintf('<dt>Invalid ballots:</dt><dd>%s</dd>', number_format($election->num_invalid_ballots));
     $output .= sprintf('<dt>Quota:</dt><dd>%s</dd>', number_format($method->getQuota()));

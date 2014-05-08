@@ -214,7 +214,7 @@ class File extends SourceBase {
           throw new \Exception('The first line must contain exactly two parts.');
         }
         $election->num_candidates = (int) $parts[0];
-        $election->num_seats = (int) $parts[1];
+        $election->setNumSeats((int) $parts[1]);
       }
       else if ($line_number === 2) {
         if (strpos($line, '-') === 0) {
@@ -286,8 +286,8 @@ class File extends SourceBase {
         // This line is a candidate.
         $election->addCandidate($info);
       }
-      else if ($election->title === NULL) {
-        $election->title = $info;
+      else if ($election->getTitle() === NULL) {
+        $election->setTitle($info);
       }
       else if ($election->source === NULL) {
         $election->source = $info;

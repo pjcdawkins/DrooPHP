@@ -21,11 +21,11 @@ class MethodTest extends \PHPUnit_Framework_TestCase {
   public function getTestElection() {
     $election = new Election();
     $election->num_candidates = 2;
-    $election->num_seats = 1;
+    $election->setNumSeats(1);
     $election->addCandidate('Test candidate 1');
     $election->addCandidate('Test candidate 2');
-    $election->ballots['1'] = new Ballot([1 => 1], rand(1, 5));
-    $election->ballots['2 1'] = new Ballot([1 => 2, 2 => 1], rand(1, 5));
+    $election->addBallot(new Ballot([1 => 1], rand(1, 5)), '1');
+    $election->addBallot(new Ballot([1 => 2, 2 => 1], rand(1, 5)), '2 1');
     return $election;
   }
 

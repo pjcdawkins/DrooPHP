@@ -238,7 +238,7 @@ class Ers97 extends MethodBase {
    * @return float
    */
   protected function calculateQuota() {
-    $num = $this->getElection()->num_valid_ballots / ($this->getElection()->num_seats + 1);
+    $num = $this->getElection()->num_valid_ballots / ($this->getElection()->getNumSeats() + 1);
     $quota = ceil($num * 100) / 100;
     $this->quota = $quota;
     return $quota;

@@ -42,7 +42,7 @@ class Text extends FormatterBase {
 
     $table = $table_header . $table_body;
 
-    $title = sprintf('Results: %s', trim($election->title));
+    $title = sprintf('Results: %s', trim($election->getTitle()));
 
     $elected_names = [];
     foreach ($candidates as $candidate) {
@@ -55,7 +55,7 @@ class Text extends FormatterBase {
 
     $output .= sprintf("Elected: %s\n", implode(', ', $elected_names));
     $output .= sprintf("Number of candidates: %s\n", number_format($election->num_candidates));
-    $output .= sprintf("Vacancies: %s\n", number_format($election->num_seats));
+    $output .= sprintf("Vacancies: %s\n", number_format($election->getNumSeats()));
     $output .= sprintf("Valid ballots: %s\n", number_format($election->num_valid_ballots));
     $output .= sprintf("Invalid ballots: %s\n", number_format($election->num_invalid_ballots));
     $output .= sprintf("Quota: %s\n", number_format($method->getQuota()));
