@@ -53,14 +53,15 @@ class Wikipedia extends MethodBase {
     if ($stage == 1) {
       $this->calculateQuota();
       // Count the first preference votes and add them to each candidate.
-      foreach ($election->ballots as $ballot) {
-        // The vote is an array of one or more candidate IDs (usually just one, unless equal rankings are allowed).
-        $first_preference = (array) $ballot->ranking[1];
+      foreach ($election->getBallots() as $ballot) {
+        // The vote is an array of one or more candidate IDs (usually just one,
+        // unless equal rankings are allowed).
+        $first_preference = $ballot->getPreference(1);
         $num_equal = count($first_preference);
         foreach ($first_preference as $cid) {
           $candidate = $election->getCandidate($cid);
           // The worth of a vote is inversely proportional to the number of equal rankings in the vote, e.g. for B=C both B and C receive half a vote.
-          $candidate->addVotes((1 / $num_equal) * $ballot->value);
+          $candidate->addVotes((1 / $num_equal) * $ballot->getValue());
         }
         $ballot->last_used_level = 1;
       }
@@ -175,20 +176,19 @@ class Wikipedia extends MethodBase {
     $election = $this->getElection();
     $hopefuls = $election->getCandidates(CandidateInterface::STATE_HOPEFUL);
     $votes = [];
-    foreach ($election->ballots as $ballot) {
-      $ranking = $ballot->ranking;
+    foreach ($election->getBallots() as $ballot) {
+      $ranking = $ballot->getRanking();
       $last_used_level = $ballot->last_used_level;
       if (!isset($ranking[$last_used_level]) || $ranking[$last_used_level] != $from_candidate->getId()) {
         // Not a relevant ballot.
         continue;
       }
-      if (!isset($ballot->ranking[$last_used_level + 1])) {
+      $to_cids = $ballot->getPreference($last_used_level + 1);
+      if (!$to_cids) {
         // No preference given. This is an exhausted ballot.
         $election->num_exhausted_ballots++;
         continue;
       }
-      $to_cids = $ballot->ranking[$last_used_level + 1];
-      $to_cids = (array) $to_cids; // this is to deal with equal rankings
       $count_to_cids = count($to_cids);
       foreach ($to_cids as $to_cid) {
         if (!isset($hopefuls[$to_cid])) {
@@ -199,7 +199,7 @@ class Wikipedia extends MethodBase {
         if (!isset($votes[$to_cid])) {
           $votes[$to_cid] = 0;
         }
-        $value = (1 / $count_to_cids) * $ballot->value;
+        $value = (1 / $count_to_cids) * $ballot->getValue();
         $votes[$to_cid] += $value;
         $ballot->last_used_level = $last_used_level + 1;
       }

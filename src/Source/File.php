@@ -405,13 +405,13 @@ class File extends SourceBase {
       }
       // The ballot is valid: increment the total number of valid ballots. // ERS97 5.1.2
       $election->num_valid_ballots += $multiplier;
-      if (isset($election->ballots[$key])) {
+      if ($election->getBallot($key)) {
         // If an identical ballot already exists in the election, increase its value by $multiplier.
-        $election->ballots[$key]->value += $multiplier;
+        $election->getBallot($key)->addValue($multiplier);
       }
       else {
         // Otherwise, register this ballot with the initial value $multiplier.
-        $election->ballots[$key] = new Ballot($ranking, $multiplier);
+        $election->addBallot(new Ballot($ranking, $multiplier), $key);
       }
     }
     // Sort the voting papers into first preferences // ERS97 5.1.2

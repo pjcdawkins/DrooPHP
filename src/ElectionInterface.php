@@ -35,4 +35,28 @@ interface ElectionInterface {
    */
   public function addCandidate($name);
 
+  /**
+   * Get the ballots.
+   *
+   * @return BallotInterface[]
+   */
+  public function getBallots();
+
+  /**
+   * Get a ballot by its key.
+   *
+   * @param string $key
+   *
+   * @return BallotInterface|FALSE
+   */
+  public function getBallot($key);
+
+  /**
+   * Add a ballot.
+   *
+   * @param BallotInterface $ballot
+   * @param string $key
+   */
+  public function addBallot(BallotInterface $ballot, $key);
+
 }
