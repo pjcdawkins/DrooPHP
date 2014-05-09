@@ -7,44 +7,17 @@
 namespace DrooPHP;
 
 use DrooPHP\Config\ConfigurableInterface;
+use DrooPHP\Config\ConfigurableTrait;
 use DrooPHP\Exception\ConfigException;
 
 class Count implements CountInterface, ConfigurableInterface {
 
-  protected $config;
   protected $election;
   protected $formatter;
   protected $method;
   protected $source;
 
-  /**
-   * Constructor.
-   *
-   * @param array $options
-   */
-  public function __construct(array $options = []) {
-    $this->getConfig()
-      ->addDefaults($this->getDefaults())
-      ->setOptions($options);
-  }
-
-  /**
-   * @{inheritdoc}
-   */
-  public function getConfig() {
-    if (!$this->config) {
-      $this->config = new Config();
-    }
-    return $this->config;
-  }
-
-  /**
-   * @{inheritdoc}
-   */
-  public function setOptions(array $options) {
-    $this->getConfig()->setOptions($options);
-    return $this;
-  }
+  use ConfigurableTrait;
 
   /**
    * @return array

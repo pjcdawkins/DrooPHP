@@ -7,8 +7,8 @@
 namespace DrooPHP\Method;
 
 use DrooPHP\CandidateInterface;
-use DrooPHP\Config;
 use DrooPHP\Config\ConfigurableInterface;
+use DrooPHP\Config\ConfigurableTrait;
 use DrooPHP\ElectionInterface;
 use DrooPHP\Exception\UsageException;
 use DrooPHP\Result;
@@ -17,16 +17,22 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
 
   protected $quota;
   protected $stages = [];
-  protected $config;
   protected $election;
   protected $result;
 
+  use ConfigurableTrait;
+
   /**
-   * Constructor.
+   * @{inheritdoc}
    */
-  public function __construct() {
-    $this->getConfig()->addDefaults($this->getDefaults());
-    $this->result = new Result($this);
+  public function getDefaults() {
+    return [
+      'allow_equal' => FALSE,
+      'allow_skipped' => FALSE,
+      'allow_repeat' => FALSE,
+      'allow_invalid' => TRUE,
+      'max_stages' => 100,
+    ];
   }
 
   /**
@@ -45,39 +51,6 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
       throw new UsageException('Election not defined');
     }
     return $this->election;
-  }
-
-  /**
-   * @{inheritdoc}
-   */
-  public function setOptions(array $options) {
-    $this->getConfig()->setOptions($options);
-    return $this;
-  }
-
-  /**
-   * @{inheritdoc}
-   */
-  public function getConfig() {
-    if (!$this->config) {
-      $this->config = new Config();
-    }
-    return $this->config;
-  }
-
-  /**
-   * Get an array of default config option values.
-   *
-   * @see self::__construct()
-   */
-  public function getDefaults() {
-    return [
-      'allow_equal' => FALSE,
-      'allow_skipped' => FALSE,
-      'allow_repeat' => FALSE,
-      'allow_invalid' => TRUE,
-      'max_stages' => 100,
-    ];
   }
 
   /**
@@ -154,6 +127,13 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
     $election = $this->getElection();
     $filled_seats = count($election->getCandidates(CandidateInterface::STATE_ELECTED));
     return $election->getNumSeats() - $filled_seats;
+  }
+
+  /**
+   * @return Result
+   */
+  protected function getResult() {
+    return new Result($this);
   }
 
   /**

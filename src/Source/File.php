@@ -319,10 +319,11 @@ class File extends SourceBase {
     $line_number = 0; // actually, this is the line number ignoring comments
     rewind($this->file);
     // Get config variables before looping (performance).
-    $allow_equal = $this->getConfig()->getOption('allow_equal');
-    $allow_invalid = $this->getConfig()->getOption('allow_invalid');
-    $allow_repeat = $this->getConfig()->getOption('allow_repeat');
-    $allow_skipped = $this->getConfig()->getOption('allow_skipped');
+    $config = $this->getConfig();
+    $allow_equal = $config->getOption('allow_equal');
+    $allow_invalid = $config->getOption('allow_invalid');
+    $allow_repeat = $config->getOption('allow_repeat');
+    $allow_skipped = $config->getOption('allow_skipped');
     while (($line = fgets($this->file)) !== FALSE) {
       // Remove comments (starting with # or // until the end of the line).
       if (strpos($line, '#') !== FALSE || strpos($line, '//') !== FALSE) {

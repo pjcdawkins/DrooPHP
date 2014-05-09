@@ -9,11 +9,11 @@ namespace DrooPHP\Config;
 interface ConfigurableInterface {
 
   /**
-   * Get the configuration for this object.
+   * Constructor.
    *
-   * @return ConfigInterface
+   * @param ConfigInterface|array $options
    */
-  public function getConfig();
+  public function __construct($options = []);
 
   /**
    * Set options.
@@ -23,5 +23,12 @@ interface ConfigurableInterface {
    * @return self
    */
   public function setOptions(array $options);
+
+  /**
+   * Get the default configuration options.
+   *
+   * @return array
+   */
+  public function getDefaults();
 
 }

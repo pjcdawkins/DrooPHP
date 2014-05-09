@@ -136,7 +136,7 @@ class Wikipedia extends MethodBase {
 
     // Proceed to the next stage or stop if the election is complete.
     if ($this->isComplete()) {
-      return $this->result;
+      return $this->getResult();
     }
     elseif ($stage >= $this->getConfig()->getOption('max_stages')) {
       throw new CountException(sprintf(
