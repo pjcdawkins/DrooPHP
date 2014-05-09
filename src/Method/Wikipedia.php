@@ -55,16 +55,9 @@ class Wikipedia extends MethodBase {
       $this->calculateQuota();
       // Count the first preference votes and add them to each candidate.
       foreach ($election->getBallots() as $ballot) {
-        // The vote is an array of one or more candidate IDs (usually just one,
-        // unless equal rankings are allowed).
-        $first_preference = $ballot->getPreference(1);
-        $num_equal = count($first_preference);
-        foreach ($first_preference as $cid) {
-          $candidate = $election->getCandidate($cid);
-          // The worth of a vote is inversely proportional to the number of
-          // equal rankings in the vote, e.g. for B=C both B and C receive half
-          // a vote.
-          $candidate->setVotes((1 / $num_equal) * $ballot->getValue(), TRUE);
+        $worth = $ballot->getNextPreferenceWorth();
+        foreach ($ballot->getPreference(1) as $candidate_id) {
+          $election->getCandidate($candidate_id)->addVotes($worth);
         }
         $ballot->setLastUsedLevel(1);
       }
@@ -179,32 +172,25 @@ class Wikipedia extends MethodBase {
     $hopefuls = $election->getCandidates(CandidateInterface::STATE_HOPEFUL);
     $votes = [];
     foreach ($election->getBallots() as $ballot) {
-      $next_preference = $ballot->getNextPreference();
-      if (!$next_preference) {
-        // No preference given. This is an exhausted ballot.
-        continue;
-      }
       if (!in_array($from_candidate->getId(), $ballot->getLastPreference())) {
         // Not a relevant ballot.
         continue;
       }
-      $to_cids = $next_preference;
-      $count_to_cids = count($to_cids);
-      foreach ($to_cids as $to_cid) {
-        if (!isset($hopefuls[$to_cid])) {
+      $worth = $ballot->getNextPreferenceWorth();
+      foreach ($ballot->getNextPreference() as $candidate_id) {
+        if (!isset($hopefuls[$candidate_id])) {
           // The next preference candidate is not in the running.
           // @todo check if this is valid
           continue;
         }
-        if (!isset($votes[$to_cid])) {
-          $votes[$to_cid] = 0;
+        if (!isset($votes[$candidate_id])) {
+          $votes[$candidate_id] = 0;
         }
-        $value = (1 / $count_to_cids) * $ballot->getValue();
-        $votes[$to_cid] += $value;
-        $ballot->setLastUsedLevel(1, TRUE);
+        $votes[$candidate_id] += $worth;
       }
+      $ballot->setLastUsedLevel(1, TRUE);
     }
-    // To convert this into a ratio, find the total number of votes found at $to_preference_level.
+    // To convert this into a ratio, find the total number of votes.
     $total_votes = array_sum($votes);
     if ($total_votes == 0) {
       // No transfers to be made.

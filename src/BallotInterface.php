@@ -23,13 +23,6 @@ interface BallotInterface {
   public function __construct(array $ranking, $value = 1);
 
   /**
-   * Get the ranking.
-   *
-   * @return array
-   */
-  public function getRanking();
-
-  /**
    * Get the candidate(s) ranked at the given preference level.
    *
    * @param int $level
@@ -57,11 +50,15 @@ interface BallotInterface {
   public function getNextPreference();
 
   /**
-   * Get the ballot value.
+   * Get the worth of each vote at the next preference level.
    *
-   * @return int|float
+   * The worth of the vote is 1 divided by the number of candidates who are
+   * ranked equally at this level (usually 1), multiplied by the ballot's value
+   * (also usually 1).
+   *
+   * @return float|int
    */
-  public function getValue();
+  public function getNextPreferenceWorth();
 
   /**
    * Add to the ballot's value.

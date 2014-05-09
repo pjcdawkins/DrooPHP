@@ -26,12 +26,16 @@ class BallotTest extends \PHPUnit_Framework_TestCase {
     }
     $ballot->setLastUsedLevel(1);
     $this->assertEquals($ranking[2], $ballot->getNextPreference());
+    $this->assertEquals($value, $ballot->getNextPreferenceWorth());
     $ballot->setLastUsedLevel(2);
     $this->assertEquals($ranking[3], $ballot->getNextPreference());
+    $this->assertEquals(0.5 * $value, $ballot->getNextPreferenceWorth());
     $ballot->setLastUsedLevel(2, TRUE);
     $this->assertEquals($ranking[5], $ballot->getNextPreference());
+    $this->assertEquals($value, $ballot->getNextPreferenceWorth());
     $ballot->setLastUsedLevel(1, TRUE);
     $this->assertEquals([], $ballot->getNextPreference());
+    $this->assertEquals(0, $ballot->getNextPreferenceWorth());
   }
 
 }

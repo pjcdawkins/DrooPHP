@@ -56,6 +56,18 @@ class Ballot implements BallotInterface {
   /**
    * @{inheritdoc}
    */
+  public function getNextPreferenceWorth() {
+    $level = $this->last_used_level ?: 0;
+    if (!isset($this->ranking[$level + 1])) {
+      return 0;
+    }
+    $vote = $this->ranking[$level + 1];
+    return (1 / count($vote)) * $this->value;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
   public function getValue() {
     return $this->value;
   }
