@@ -81,24 +81,8 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
     foreach ($this->getElection()->getCandidates() as $cid => $candidate) {
       $log['votes'][$cid] = round($candidate->getVotes(), 2);
       $log['state'][$cid] = $candidate->getState(TRUE);
+      $log['changes'][$cid] = $candidate->getLog(TRUE);
     }
-  }
-
-  /**
-   * Log a change about a candidate.
-   *
-   * @param CandidateInterface $candidate
-   * @param string $message
-   * @param int $stage
-   */
-  public function logChange(CandidateInterface $candidate, $message, $stage) {
-    if (!isset($this->stages[$stage])) {
-      $this->stages[$stage] = ['votes' => [], 'state' => [], 'changes' => []];
-    }
-    if (!isset($this->stages[$stage]['changes'][$candidate->getId()])) {
-      $this->stages[$stage]['changes'][$candidate->getId()] = [];
-    }
-    $this->stages[$stage]['changes'][$candidate->getId()][] = $message;
   }
 
   /**

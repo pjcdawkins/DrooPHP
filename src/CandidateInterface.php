@@ -26,6 +26,22 @@ interface CandidateInterface {
   public function __construct($name, $id);
 
   /**
+   * Log a message.
+   *
+   * @param string $message
+   */
+  public function log($message);
+
+  /**
+   * Get the log of messages.
+   *
+   * @param bool $reset
+   *
+   * @return array
+   */
+  public function getLog($reset = FALSE);
+
+  /**
    * Get the number of votes for the candidate.
    *
    * @return int|float

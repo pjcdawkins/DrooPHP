@@ -13,6 +13,7 @@ class Candidate implements CandidateInterface {
   public $name;
 
   protected $id;
+  protected $log = [];
   protected $state;
   protected $surplus = 0;
   protected $votes = 0;
@@ -49,6 +50,26 @@ class Candidate implements CandidateInterface {
     }
     $this->votes -= $amount;
     $to->addVotes($amount);
+    $this->log(sprintf('Transferred %s votes to %s', number_format($amount), $to->getName()));
+    $to->log(sprintf('Received %s votes from %s', number_format($amount), $this->name));
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function log($message) {
+    $this->log[] = $message;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function getLog($reset = FALSE) {
+    $log = $this->log;
+    if ($reset) {
+      $this->log = [];
+    }
+    return $log;
   }
 
   /**

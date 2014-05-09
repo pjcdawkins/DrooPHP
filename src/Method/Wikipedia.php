@@ -66,7 +66,7 @@ class Wikipedia extends MethodBase {
       $withdrawn = $election->getCandidates(CandidateInterface::STATE_WITHDRAWN);
       foreach ($withdrawn as $candidate) {
         if ($candidate->getVotes()) {
-          $this->logChange($candidate, sprintf('Withdrawn: all %d votes will be transferred.', $candidate->getVotes()), 0);
+          $candidate->log(sprintf('Withdrawn: all %d votes will be transferred.', $candidate->getVotes()));
           $this->transferVotes($candidate->getVotes(), $candidate, $stage);
         }
       }
@@ -82,10 +82,13 @@ class Wikipedia extends MethodBase {
         $candidate->setState(CandidateInterface::STATE_ELECTED);
         $anyone_elected = TRUE;
         $surplus = $candidate->getVotes() - $quota;
-        $candidate->setSurplus($surplus);
-        $this->logChange($candidate, sprintf('Elected at stage %d, with a surplus of %f votes.', $stage, $surplus), $stage);
-        if ($surplus > 0 && !$this->isComplete()) {
+        if ($surplus) {
+          $candidate->setSurplus($surplus);
+          $candidate->log(sprintf('Elected at stage %d, with a surplus of %s votes.', $stage, number_format($surplus)));
           $this->transferVotes($surplus, $candidate, $stage);
+        }
+        else {
+          $candidate->log(sprintf('Elected at stage %d.', $stage));
         }
       }
     }
@@ -96,9 +99,10 @@ class Wikipedia extends MethodBase {
       $candidate = $this->findDefeatableCandidate();
       if ($candidate) {
         $candidate->setState(CandidateInterface::STATE_DEFEATED);
-        $this->logChange($candidate, sprintf('Defeated at stage %d, with %f votes.', $stage, $candidate->getVotes()), $stage);
-        if ($candidate->getVotes() && !$this->isComplete()) {
-          $this->transferVotes($candidate->getVotes(), $candidate, $stage);
+        $votes = $candidate->getVotes();
+        $candidate->log(sprintf('Defeated at stage %d, with %s votes.', $stage, $votes ? number_format($votes) : 'no'));
+        if ($votes) {
+          $this->transferVotes($votes, $candidate);
         }
       }
     }
@@ -109,7 +113,7 @@ class Wikipedia extends MethodBase {
     if (count($hopefuls) == $num_vacancies) {
       foreach ($hopefuls as $candidate) {
         $candidate->setState(CandidateInterface::STATE_ELECTED);
-        $this->logChange($candidate, sprintf('Elected at stage %d, by default.', $stage), $stage);
+        $candidate->log(sprintf('Elected at stage %d, by default.', $stage));
       }
     }
     // If there are no remaining vacancies, all the remaining candidates are defeated.
@@ -117,7 +121,7 @@ class Wikipedia extends MethodBase {
       if ($num_vacancies == 0) {
         foreach ($hopefuls as $candidate) {
           $candidate->setState(CandidateInterface::STATE_DEFEATED);
-          $this->logChange($candidate, sprintf('Defeated at stage %d, by default.', $stage), $stage);
+          $candidate->log(sprintf('Defeated at stage %d, by default.', $stage));
         }
       }
     }
@@ -162,9 +166,8 @@ class Wikipedia extends MethodBase {
    *
    * @param float $num_to_transfer
    * @param CandidateInterface $from_candidate
-   * @param int $stage
    */
-  public function transferVotes($num_to_transfer, CandidateInterface $from_candidate, $stage) {
+  public function transferVotes($num_to_transfer, CandidateInterface $from_candidate) {
     $election = $this->getElection();
     $hopefuls = $election->getCandidates(CandidateInterface::STATE_HOPEFUL);
     $votes = [];
@@ -198,8 +201,6 @@ class Wikipedia extends MethodBase {
       $amount = ($num_to_transfer / $total_votes) * $num_votes;
       $to_candidate = $hopefuls[$to_cid];
       $from_candidate->transferVotes($amount, $to_candidate);
-      $this->logChange($from_candidate, sprintf('Transferred %f votes to %s.', $amount, $to_candidate->getName(), $stage), $stage);
-      $this->logChange($to_candidate, sprintf('Received %f votes from %s.', $amount, $from_candidate->getName(), $stage), $stage);
     }
   }
 
