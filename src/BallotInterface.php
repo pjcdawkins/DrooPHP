@@ -77,7 +77,6 @@ interface BallotInterface {
    * @param bool $increment
    *
    * @return self
-   * @throws \Exception
    */
   public function setLastUsedLevel($level, $increment = FALSE);
 

@@ -7,6 +7,7 @@
 namespace DrooPHP;
 
 use DrooPHP\Config\ConfigurableInterface;
+use DrooPHP\Exception\ConfigException;
 
 class Count implements CountInterface, ConfigurableInterface {
 
@@ -20,8 +21,6 @@ class Count implements CountInterface, ConfigurableInterface {
    * Constructor.
    *
    * @param array $options
-   *
-   * @throws \Exception
    */
   public function __construct(array $options = []) {
     $this->getConfig()
@@ -72,7 +71,7 @@ class Count implements CountInterface, ConfigurableInterface {
   /**
    * @{inheritdoc}
    *
-   * @throws \Exception
+   * @throws ConfigException
    */
   public function getSource() {
     if (!$this->source) {
@@ -82,6 +81,9 @@ class Count implements CountInterface, ConfigurableInterface {
       }
       else {
         $class_name = 'DrooPHP\\Source\\' . $option;
+        if (!class_exists($class_name)) {
+          throw new ConfigException('Invalid source name');
+        }
         $this->source = new $class_name();
       }
     }
@@ -90,6 +92,8 @@ class Count implements CountInterface, ConfigurableInterface {
 
   /**
    * @{inheritdoc}
+   *
+   * @throws ConfigException
    */
   public function getMethod() {
     if (!$this->method) {
@@ -99,6 +103,9 @@ class Count implements CountInterface, ConfigurableInterface {
       }
       else {
         $class_name = 'DrooPHP\\Method\\' . $option;
+        if (!class_exists($class_name)) {
+          throw new ConfigException('Invalid method name');
+        }
         $this->method = new $class_name();
       }
     }
@@ -107,6 +114,8 @@ class Count implements CountInterface, ConfigurableInterface {
 
   /**
    * @{inheritdoc}
+   *
+   * @throws ConfigException
    */
   public function getFormatter() {
     if (!$this->formatter) {
@@ -116,6 +125,9 @@ class Count implements CountInterface, ConfigurableInterface {
       }
       else {
         $class_name = 'DrooPHP\\Formatter\\' . $option;
+        if (!class_exists($class_name)) {
+          throw new ConfigException('Invalid formatter name');
+        }
         $this->formatter = new $class_name();
       }
     }

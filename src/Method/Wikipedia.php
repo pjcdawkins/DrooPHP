@@ -8,6 +8,7 @@
 namespace DrooPHP\Method;
 
 use DrooPHP\CandidateInterface;
+use DrooPHP\Exception\CountException;
 
 class Wikipedia extends MethodBase {
 
@@ -42,7 +43,7 @@ class Wikipedia extends MethodBase {
    *
    * @param int $stage The stage number.
    *
-   * @throws \Exception
+   * @throws CountException
    * @return bool
    */
   public function run($stage = 1) {
@@ -138,7 +139,7 @@ class Wikipedia extends MethodBase {
       return $this->result;
     }
     elseif ($stage >= $this->getConfig()->getOption('max_stages')) {
-      throw new \Exception(sprintf(
+      throw new CountException(sprintf(
         'Maximum number of stages reached (%d) before completing the count.',
         $this->getConfig()->getOption('max_stages')
       ));

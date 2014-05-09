@@ -10,6 +10,7 @@
 namespace DrooPHP\Method;
 
 use DrooPHP\CandidateInterface;
+use DrooPHP\Exception\CountException;
 
 class Ers97 extends MethodBase {
 
@@ -94,7 +95,7 @@ class Ers97 extends MethodBase {
       }
       // Check that the total is the same as the total valid vote. // ERS97 5.1.5 // @todo this is unnecessary
       if ($total != $election->getNumValidBallots()) {
-        throw new \Exception('Total votes in stage 1 not equal to the total valid vote.');
+        throw new CountException('Total votes in stage 1 not equal to the total valid vote.');
       }
     }
 
@@ -173,7 +174,7 @@ class Ers97 extends MethodBase {
       return $this->result;
     }
     elseif ($stage >= $this->getConfig()->getOption('max_stages')) {
-      throw new \Exception('Maximum number of stages reached before completing the count.');
+      throw new CountException('Maximum number of stages reached before completing the count.');
     }
     return $this->run($stage + 1);
   }

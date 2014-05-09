@@ -10,6 +10,7 @@ use DrooPHP\CandidateInterface;
 use DrooPHP\Config;
 use DrooPHP\Config\ConfigurableInterface;
 use DrooPHP\ElectionInterface;
+use DrooPHP\Exception\UsageException;
 use DrooPHP\Result;
 
 abstract class MethodBase implements MethodInterface, ConfigurableInterface {
@@ -41,7 +42,7 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
    */
   public function getElection() {
     if (!isset($this->election)) {
-      throw new \Exception('Election not defined');
+      throw new UsageException('Election not defined');
     }
     return $this->election;
   }

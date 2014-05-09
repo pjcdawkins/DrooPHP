@@ -71,7 +71,10 @@ class Ballot implements BallotInterface {
    * @{inheritdoc}
    */
   public function setLastUsedLevel($level, $increment = FALSE) {
-    $this->last_used_level = $increment ? $level + $this->last_used_level : $level;
+    if ($increment) {
+      $level += $this->last_used_level;
+    }
+    $this->last_used_level = $level;
     return $this;
   }
 

@@ -6,6 +6,8 @@
 
 namespace DrooPHP;
 
+use DrooPHP\Exception\UsageException;
+
 class Election implements ElectionInterface {
 
   /** @var string */
@@ -99,12 +101,12 @@ class Election implements ElectionInterface {
   /**
    * @{inheritdoc}
    *
-   * @throws \Exception
+   * @throws UsageException
    */
   public function addCandidate($name) {
     $cid = $this->cid_increment;
     if ($cid > $this->num_candidates) {
-      throw new \Exception('Attempted to add too many candidate names.');
+      throw new UsageException('Attempted to add too many candidate names.');
     }
     $candidate = new Candidate($name, $cid);
     if (in_array($cid, $this->withdrawn)) {

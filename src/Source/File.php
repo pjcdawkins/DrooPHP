@@ -9,7 +9,9 @@ namespace DrooPHP\Source;
 use DrooPHP\Ballot;
 use DrooPHP\Election;
 use DrooPHP\ElectionInterface;
+use DrooPHP\Exception\BallotFileException;
 use DrooPHP\Exception\InvalidBallotException;
+use DrooPHP\Exception\ConfigException;
 use Stash;
 
 class File extends SourceBase {
@@ -58,7 +60,7 @@ class File extends SourceBase {
   /**
    * Get a Stash pool (caching).
    *
-   * @throws \Exception
+   * @throws ConfigException
    * @return Stash\Pool
    */
   public function getStashPool() {
@@ -73,7 +75,7 @@ class File extends SourceBase {
         $cache_dir = $this->getConfig()->getOption('cache_dir');
         if ($cache_dir) {
           if (!is_writable($cache_dir)) {
-            throw new \Exception('The specified cache directory is not writable: ' . $cache_dir);
+            throw new ConfigException('The specified cache directory is not writable: ' . $cache_dir);
           }
           $options['path'] = $cache_dir;
         }
@@ -85,7 +87,7 @@ class File extends SourceBase {
         ]);
       }
       else {
-        throw new \Exception('Invalid value provided for option cache_driver.');
+        throw new ConfigException('Invalid value provided for option cache_driver.');
       }
       $this->pool = new Stash\Pool($driver);
     }
@@ -110,17 +112,17 @@ class File extends SourceBase {
   /**
    * @{inheritdoc}
    *
-   * @throws \Exception
+   * @throws ConfigException
    */
   public function loadElection() {
     $filename = $this->getConfig()->getOption('filename');
     // The filename is mandatory.
     if (!$filename) {
-      throw new \Exception('Filename not specified.');
+      throw new ConfigException('Filename not specified.');
     }
     // If the file is readable, convert the filename to an absolute path.
     if (!is_readable($filename) || !($realpath = realpath($filename))) {
-      throw new \Exception('File does not exist or cannot be read: ' . $filename);
+      throw new ConfigException('File does not exist or cannot be read: ' . $filename);
     }
     $filename = $realpath;
     // If caching is disabled, just load and return the Election.
@@ -177,18 +179,18 @@ class File extends SourceBase {
    * @see self::parseBallots()
    */
   protected function parse(ElectionInterface $election) {
+    $this->parseHead($election);
+    $this->parseTail($election);
     try {
-      $this->parseHead($election);
-      $this->parseTail($election);
       $this->parseBallots($election);
-    } catch (\Exception $e) {
+    } catch (InvalidBallotException $e) {
       $n = 10; // Number of characters to display for debugging.
       $position = ftell($this->file);
       fseek($this->file, -$n, SEEK_CUR);
       $snippet = fread($this->file, $n);
-      throw new \Exception(
+      throw new InvalidBallotException(
         sprintf(
-          "Error in BLT data, position %d: %s. Previous %d characters: %s.",
+          "Invalid ballot, position %d: %s. Previous %d characters: %s.",
           $position,
           rtrim($e->getMessage(), '.'),
           $n,
@@ -217,7 +219,7 @@ class File extends SourceBase {
         // First line should always be "num_candidates num_seats".
         $parts = explode(' ', $line);
         if (count($parts) != 2) {
-          throw new \Exception('The first line must contain exactly two parts.');
+          throw new BallotFileException('The first line must contain exactly two parts.');
         }
         $election->setNumCandidates((int) $parts[0]);
         $election->setNumSeats((int) $parts[1]);
@@ -284,7 +286,7 @@ class File extends SourceBase {
     $tail = array_reverse($tail);
     // The minimum number of lines is the number of candidates.
     if (count($tail) < $num_candidates) {
-      throw new \Exception('Candidate names not found');
+      throw new BallotFileException('Candidate names not found');
     }
     foreach ($tail as $key => $line) {
       $info = trim($line, '"');
@@ -336,7 +338,7 @@ class File extends SourceBase {
         break;
       }
       if (substr($line, -1) !== '0') {
-        throw new \Exception("Ballot lines must end with 0.");
+        throw new BallotFileException("Ballot lines must end with 0.");
       }
       // Skip any ballot IDs at the beginning of the line.
       $line = preg_replace('/^\([^\)]*\)\s?/', '', $line);
@@ -400,7 +402,7 @@ class File extends SourceBase {
       } catch (InvalidBallotException $e) {
         $valid = FALSE;
         if (!$allow_invalid) {
-          throw new \Exception($e->getMessage(), $e->getCode(), $e);
+          throw $e;
         }
       }
       if (!$valid) {
