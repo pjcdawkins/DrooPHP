@@ -20,10 +20,8 @@ interface CandidateInterface {
    *   The name of the candidate.
    * @param int $id
    *   The ID of the candidate.
-   * @param bool $withdrawn
-   *   Whether the candidate has been withdrawn.
    */
-  public function __construct($name, $id, $withdrawn = FALSE);
+  public function __construct($name, $id);
 
   /**
    * Get the number of votes for the candidate.
@@ -36,19 +34,11 @@ interface CandidateInterface {
    * Set the number of votes for the candidate.
    *
    * @param int|float $votes
+   * @param bool $increment
    *
    * @return self
    */
-  public function setVotes($votes);
-
-  /**
-   * Add to the number of votes for the candidate.
-   *
-   * @param int|float $amount
-   *
-   * @return self
-   */
-  public function addVotes($amount);
+  public function setVotes($votes, $increment = FALSE);
 
   /**
    * Get the candidate's name.
@@ -84,5 +74,22 @@ interface CandidateInterface {
    * @return int|string
    */
   public function getState($formatted = FALSE);
+
+  /**
+   * Get the candidates' surplus votes.
+   *
+   * @return int|float
+   */
+  public function getSurplus();
+
+  /**
+   * Set the candidates' surplus votes.
+   *
+   * @param int|float $amount
+   * @param bool $increment
+   *
+   * @return self
+   */
+  public function setSurplus($amount, $increment = FALSE);
 
 }

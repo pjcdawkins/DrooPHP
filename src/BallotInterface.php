@@ -39,6 +39,24 @@ interface BallotInterface {
   public function getPreference($level);
 
   /**
+   * Get the candidate(s) ranked at the last used preference level.
+   *
+   * @see self::setLastUsedLevel()
+   *
+   * @return array
+   */
+  public function getLastPreference();
+
+  /**
+   * Get the candidate(s) ranked at the next preference level.
+   *
+   * @see self::setLastUsedLevel()
+   *
+   * @return array
+   */
+  public function getNextPreference();
+
+  /**
    * Get the ballot value.
    *
    * @return int|float
@@ -51,5 +69,16 @@ interface BallotInterface {
    * @param int $amount
    */
   public function addValue($amount);
+
+  /**
+   * Set the preference level last used during a count.
+   *
+   * @param int $level
+   * @param bool $increment
+   *
+   * @return self
+   * @throws \Exception
+   */
+  public function setLastUsedLevel($level, $increment = FALSE);
 
 }

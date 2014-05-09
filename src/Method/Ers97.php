@@ -43,7 +43,7 @@ class Ers97 extends MethodBase {
     foreach ($this->getElection()->getCandidates() as $candidate) {
       switch ($candidate->getState()) {
         case CandidateInterface::STATE_ELECTED:
-          $active_vote += $candidate->surplus;
+          $active_vote += $candidate->getSurplus();
           break;
         case CandidateInterface::STATE_HOPEFUL:
         case CandidateInterface::STATE_DEFEATED:
@@ -88,7 +88,7 @@ class Ers97 extends MethodBase {
         $num = count($first_preference);
         foreach ($first_preference as $cid) {
           $candidate = $election->getCandidate($cid);
-          $candidate->addVotes((1 / $num) * $ballot->getValue());
+          $candidate->setVotes((1 / $num) * $ballot->getValue(), TRUE);
           $total += (1 / $num) * $ballot->getValue();
         }
       }
@@ -123,8 +123,8 @@ class Ers97 extends MethodBase {
           $candidate->setState(CandidateInterface::STATE_ELECTED);
           $anyone_elected = TRUE;
           if ($candidate->getVotes() > $quota) {
-            $candidate->surplus = $candidate->getVotes() - $quota;
-            $this->logChange($candidate, sprintf('Elected at stage %d with a surplus of %d votes.', $stage, $candidate->surplus), $stage);
+            $candidate->setSurplus($candidate->getVotes() - $quota);
+            $this->logChange($candidate, sprintf('Elected at stage %d with a surplus of %d votes.', $stage, $candidate->getSurplus()), $stage);
           }
           else {
             $this->logChange($candidate, sprintf('Elected at stage %d.', $stage), $stage);
@@ -215,8 +215,8 @@ class Ers97 extends MethodBase {
   public function getSurpluses() {
     $surpluses = [];
     foreach ($this->getElection()->getCandidates() as $cid => $candidate) {
-      if ($candidate->surplus > 0) {
-        $surpluses[$cid] = $candidate->surplus;
+      if ($candidate->getSurplus() > 0) {
+        $surpluses[$cid] = $candidate->getSurplus();
       }
     }
     arsort($surpluses, SORT_NUMERIC);

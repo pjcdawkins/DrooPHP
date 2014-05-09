@@ -12,16 +12,16 @@ class Candidate implements CandidateInterface {
 
   protected $id;
   protected $state;
+  protected $surplus;
   protected $votes;
 
   /**
    * @{inheritdoc}
    */
-  public function __construct($name, $id, $withdrawn = FALSE) {
+  public function __construct($name, $id) {
     $this->name = $name;
     $this->id = $id;
-    // Every candidate begins in either the 'hopeful' or 'withdrawn' state.
-    $this->state = $withdrawn ? self::STATE_WITHDRAWN : self::STATE_HOPEFUL;
+    $this->state = self::STATE_HOPEFUL;
   }
 
   /**
@@ -34,16 +34,23 @@ class Candidate implements CandidateInterface {
   /**
    * @{inheritdoc}
    */
-  public function setVotes($votes) {
-    $this->votes = $votes;
+  public function setVotes($votes, $increment = FALSE) {
+    $this->votes = $increment ? $this->votes + $votes : $votes;
     return $this;
   }
 
   /**
    * @{inheritdoc}
    */
-  public function addVotes($amount) {
-    $this->votes += $amount;
+  public function getSurplus() {
+    return $this->surplus;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function setSurplus($amount, $increment = FALSE) {
+    $this->surplus = $increment ? $this->surplus + $amount : $amount;
     return $this;
   }
 

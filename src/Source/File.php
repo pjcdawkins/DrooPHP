@@ -64,7 +64,7 @@ class File extends SourceBase {
   public function getStashPool() {
     if ($this->pool === NULL) {
       $driver_option = $this->getConfig()->getOption('cache_driver');
-      if ($driver_option instanceof Stash\Driver\DriverInterface) {
+      if ($driver_option instanceof Stash\Interfaces\DriverInterface) {
         $driver = $driver_option;
       }
       elseif ($driver_option == 'FileSystem') {
@@ -130,15 +130,23 @@ class File extends SourceBase {
     // Load the cache pool.
     $stash_pool = $this->getStashPool();
     $stash_item = $stash_pool->getItem($this->getCacheKey($filename));
-    $election = $stash_item->get(Stash\Item::SP_OLD);
-    // Invalidate the cache if the file changed since it was last loaded.
-    $file_updated = (isset($election->file_last_loaded) && filemtime($filename) > $election->file_last_loaded);
+    $data = $stash_item->get(Stash\Item::SP_OLD);
+    $file_updated = FALSE;
+    if ($data) {
+      $election = $data['election'];
+      // Invalidate the cache if the file changed since it was last loaded.
+      $file_updated = filemtime($filename) > $data['file_last_loaded'];
+    }
     // Do the work again if the cache missed or should be refreshed.
     if ($stash_item->isMiss() || $file_updated) {
       $stash_item->lock();
       $election = $this->loadElectionWork($filename);
+      $data = [
+        'election' => $election,
+        'file_last_loaded' => time(),
+      ];
       // Save to cache.
-      $stash_item->set($election, $this->getConfig()->getOption('cache_expire'));
+      $stash_item->set($data, $this->getConfig()->getOption('cache_expire'));
     }
     return $election;
   }
@@ -153,7 +161,6 @@ class File extends SourceBase {
   public function loadElectionWork($filename) {
     // Parse the file, creating a new Election object.
     $election = new Election();
-    $election->file_last_loaded = time();
     // Open the file.
     $this->file = fopen($filename, 'r');
     $this->parse($election);

@@ -60,17 +60,19 @@ class Wikipedia extends MethodBase {
         $num_equal = count($first_preference);
         foreach ($first_preference as $cid) {
           $candidate = $election->getCandidate($cid);
-          // The worth of a vote is inversely proportional to the number of equal rankings in the vote, e.g. for B=C both B and C receive half a vote.
-          $candidate->addVotes((1 / $num_equal) * $ballot->getValue());
+          // The worth of a vote is inversely proportional to the number of
+          // equal rankings in the vote, e.g. for B=C both B and C receive half
+          // a vote.
+          $candidate->setVotes((1 / $num_equal) * $ballot->getValue(), TRUE);
         }
-        $ballot->last_used_level = 1;
+        $ballot->setLastUsedLevel(1);
       }
       $this->logStage(0);
       // If there are any withdrawn candidates, transfer their votes.
       $withdrawn = $election->getCandidates(CandidateInterface::STATE_WITHDRAWN);
       foreach ($withdrawn as $candidate) {
         if ($candidate->getVotes()) {
-          $this->logChange($candidate, sprintf('Withdrawn: all %d votes will be transferred.', $candidate->getVotes()), $stage);
+          $this->logChange($candidate, sprintf('Withdrawn: all %d votes will be transferred.', $candidate->getVotes()), 0);
           $this->transferVotes($candidate->getVotes(), $candidate, $stage);
         }
       }
@@ -86,6 +88,7 @@ class Wikipedia extends MethodBase {
         $candidate->setState(CandidateInterface::STATE_ELECTED);
         $anyone_elected = TRUE;
         $surplus = $candidate->getVotes() - $quota;
+        $candidate->setSurplus($surplus);
         $this->logChange($candidate, sprintf('Elected at stage %d, with a surplus of %s votes.', $stage, $surplus), $stage);
         if ($surplus > 0 && !$this->isComplete()) {
           $this->transferVotes($surplus, $candidate, $stage);
@@ -156,7 +159,7 @@ class Wikipedia extends MethodBase {
     }
     $defeatable = FALSE;
     foreach ($hopefuls as $candidate) {
-      if (!($defeatable instanceof CandidateInterface && $candidate->getVotes() < $defeatable->getVotes())) {
+      if (!($defeatable instanceof CandidateInterface) || $candidate->getVotes() < $defeatable->getVotes()) {
         $defeatable = $candidate;
       }
     }
@@ -175,18 +178,16 @@ class Wikipedia extends MethodBase {
     $hopefuls = $election->getCandidates(CandidateInterface::STATE_HOPEFUL);
     $votes = [];
     foreach ($election->getBallots() as $ballot) {
-      $ranking = $ballot->getRanking();
-      $last_used_level = $ballot->last_used_level;
-      if (!isset($ranking[$last_used_level]) || $ranking[$last_used_level] != $from_candidate->getId()) {
+      $next_preference = $ballot->getNextPreference();
+      if (!$next_preference) {
+        // No preference given. This is an exhausted ballot.
+        continue;
+      }
+      if (!in_array($from_candidate->getId(), $ballot->getLastPreference())) {
         // Not a relevant ballot.
         continue;
       }
-      $to_cids = $ballot->getPreference($last_used_level + 1);
-      if (!$to_cids) {
-        // No preference given. This is an exhausted ballot.
-        $election->num_exhausted_ballots++;
-        continue;
-      }
+      $to_cids = $next_preference;
       $count_to_cids = count($to_cids);
       foreach ($to_cids as $to_cid) {
         if (!isset($hopefuls[$to_cid])) {
@@ -199,7 +200,7 @@ class Wikipedia extends MethodBase {
         }
         $value = (1 / $count_to_cids) * $ballot->getValue();
         $votes[$to_cid] += $value;
-        $ballot->last_used_level = $last_used_level + 1;
+        $ballot->setLastUsedLevel(1, TRUE);
       }
     }
     // To convert this into a ratio, find the total number of votes found at $to_preference_level.
@@ -212,8 +213,8 @@ class Wikipedia extends MethodBase {
     foreach ($votes as $to_cid => $num_votes) {
       $amount = ($num_to_transfer / $total_votes) * $num_votes;
       $to_candidate = $hopefuls[$to_cid];
-      $from_candidate->addVotes(-$amount);
-      $to_candidate->addVotes($amount);
+      $from_candidate->setVotes(-$amount, TRUE);
+      $to_candidate->setVotes($amount, TRUE);
       $this->logChange($from_candidate, sprintf('Transferred %s votes to %s.', $amount, $to_candidate->getName(), $stage), $stage);
       $this->logChange($to_candidate, sprintf('Received %s votes from %s.', $amount, $from_candidate->getName(), $stage), $stage);
     }

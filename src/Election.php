@@ -106,8 +106,10 @@ class Election implements ElectionInterface {
     if ($cid > $this->num_candidates) {
       throw new \Exception('Attempted to add too many candidate names.');
     }
-    $withdrawn = in_array($cid, $this->withdrawn);
-    $candidate = new Candidate($name, $cid, $withdrawn);
+    $candidate = new Candidate($name, $cid);
+    if (in_array($cid, $this->withdrawn)) {
+      $candidate->setState(CandidateInterface::STATE_WITHDRAWN);
+    }
     $this->candidates[$cid] = $candidate;
     $this->cid_increment++;
   }
