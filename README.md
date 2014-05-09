@@ -1,7 +1,7 @@
 DrooPHP
 =======
 
-[![Build Status](https://travis-ci.org/pjcdawkins/DrooPHP.svg?branch=cleanup)](https://travis-ci.org/pjcdawkins/DrooPHP)
+[![Build Status](https://travis-ci.org/pjcdawkins/DrooPHP.svg?branch=master)](https://travis-ci.org/pjcdawkins/DrooPHP)
 
 Summary
 -------
