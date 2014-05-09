@@ -74,14 +74,9 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
    * @param int $stage
    */
   public function logStage($stage) {
-    if (!isset($this->stages[$stage])) {
-      $this->stages[$stage] = ['votes' => [], 'state' => [], 'changes' => []];
-    }
-    $log = & $this->stages[$stage];
     foreach ($this->getElection()->getCandidates() as $cid => $candidate) {
-      $log['votes'][$cid] = round($candidate->getVotes(), 2);
-      $log['state'][$cid] = $candidate->getState(TRUE);
-      $log['changes'][$cid] = $candidate->getLog(TRUE);
+      $this->stages[$stage]['votes'][$cid] = round($candidate->getVotes(), 2);
+      $this->stages[$stage]['changes'][$cid] = $candidate->getLog(TRUE);
     }
   }
 
@@ -91,15 +86,7 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
    * @return bool
    */
   public function isComplete() {
-    $election = $this->getElection();
-    $num_seats = $election->getNumSeats();
-    $num_candidates = $election->getNumCandidates();
-    $must_be_elected = $num_seats;
-    if ($num_seats > $num_candidates) {
-      $must_be_elected = $num_candidates;
-    }
-    $filled_seats = count($election->getCandidates(CandidateInterface::STATE_ELECTED));
-    return $filled_seats >= $must_be_elected;
+    return $this->getNumVacancies() <= 0;
   }
 
   /**

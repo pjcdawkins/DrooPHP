@@ -84,18 +84,12 @@ class Ers97 extends MethodBase {
       // Count the first preference votes and add them to each candidate // ERS97 5.1.4
       $total = 0;
       foreach ($election->getBallots() as $ballot) {
-        $first_preference = $ballot->getRanking(1);
-        // Deal with equal rankings (probably not permitted in ERS97 but this can be dealt with as an edge case).
-        $num = count($first_preference);
-        foreach ($first_preference as $cid) {
-          $candidate = $election->getCandidate($cid);
-          $candidate->addVotes((1 / $num) * $ballot->getValue());
-          $total += (1 / $num) * $ballot->getValue();
+        $worth = $ballot->getNextPreferenceWorth();
+        foreach ($ballot->getPreference(1) as $candidate_id) {
+          $election->getCandidate($candidate_id)
+            ->addVotes($worth);
+          $total += $worth;
         }
-      }
-      // Check that the total is the same as the total valid vote. // ERS97 5.1.5 // @todo this is unnecessary
-      if ($total != $election->getNumValidBallots()) {
-        throw new CountException('Total votes in stage 1 not equal to the total valid vote.');
       }
     }
 
@@ -118,18 +112,20 @@ class Ers97 extends MethodBase {
         // If all seats are filled, the election has finished.
         return TRUE;
       }
-      if ($candidate->getState() === CandidateInterface::STATE_HOPEFUL) {
-        if ($candidate->getVotes() >= $quota || $candidate->getVotes() >= ($active_vote / ($num_vacancies + 1))) {
-          // The candidate is now elected.
-          $candidate->setState(CandidateInterface::STATE_ELECTED);
-          $anyone_elected = TRUE;
-          if ($candidate->getVotes() > $quota) {
-            $candidate->setSurplus($candidate->getVotes() - $quota);
-            $this->logChange($candidate, sprintf('Elected at stage %d with a surplus of %d votes.', $stage, $candidate->getSurplus()), $stage);
-          }
-          else {
-            $this->logChange($candidate, sprintf('Elected at stage %d.', $stage), $stage);
-          }
+      if ($candidate->getState() !== CandidateInterface::STATE_HOPEFUL) {
+        continue;
+      }
+      if ($candidate->getVotes() >= $quota || $candidate->getVotes() >= ($active_vote / ($num_vacancies + 1))) {
+        // The candidate is now elected.
+        $candidate->setState(CandidateInterface::STATE_ELECTED);
+        $anyone_elected = TRUE;
+        $surplus = $candidate->getVotes() - $quota;
+        if ($surplus) {
+          $candidate->setSurplus($surplus);
+          $candidate->log(sprintf('Elected at stage %d with a surplus of %s votes', $stage, number_format($surplus)));
+        }
+        else {
+          $candidate->log(sprintf('Elected at stage %d', $stage));
         }
       }
     }

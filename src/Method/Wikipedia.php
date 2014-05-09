@@ -154,7 +154,7 @@ class Wikipedia extends MethodBase {
     }
     $defeatable = FALSE;
     foreach ($hopefuls as $candidate) {
-      if (!($defeatable instanceof CandidateInterface) || $candidate->getVotes() < $defeatable->getVotes()) {
+      if (!$defeatable || $candidate->getVotes() < $defeatable->getVotes()) {
         $defeatable = $candidate;
       }
     }
