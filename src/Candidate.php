@@ -63,7 +63,6 @@ class Candidate implements CandidateInterface {
    */
   public function setSurplus($amount, $increment = FALSE) {
     $this->surplus = $increment ? $this->surplus + $amount : $amount;
-    return $this;
   }
 
   /**
@@ -92,7 +91,6 @@ class Candidate implements CandidateInterface {
    */
   public function setState($state) {
     $this->state = $state;
-    return $this;
   }
 
   /**

@@ -120,7 +120,6 @@ class Election implements ElectionInterface {
     else {
       $this->ballots[] = $ballot;
     }
-    return $this;
   }
 
   /**
@@ -142,7 +141,6 @@ class Election implements ElectionInterface {
    */
   public function setTitle($title) {
     $this->title = $title;
-    return $this;
   }
 
   /**
@@ -157,7 +155,6 @@ class Election implements ElectionInterface {
    */
   public function setNumSeats($num) {
     $this->num_seats = $num;
-    return $this;
   }
 
   /**
@@ -172,7 +169,6 @@ class Election implements ElectionInterface {
    */
   public function addNumValidBallots($amount) {
     $this->num_valid_ballots += $amount;
-    return $this;
   }
   /**
    * @{inheritdoc}
@@ -186,7 +182,6 @@ class Election implements ElectionInterface {
    */
   public function addNumInvalidBallots($amount) {
     $this->num_invalid_ballots += $amount;
-    return $this;
   }
 
   /**
@@ -208,7 +203,6 @@ class Election implements ElectionInterface {
    */
   public function setNumCandidates($num) {
     $this->num_candidates = $num;
-    return $this;
   }
 
 }

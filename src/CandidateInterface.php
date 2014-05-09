@@ -36,8 +36,6 @@ interface CandidateInterface {
    * Add votes to the candidate.
    *
    * @param int|float $votes
-   *
-   * @return self
    */
   public function addVotes($votes);
 
@@ -72,8 +70,6 @@ interface CandidateInterface {
    * @param int $state
    *   One of the CandidateInterface constants: STATE_ELECTED, STATE_HOPEFUL,
    *   STATE_WITHDRAWN, or STATE_DEFEATED.
-   *
-   * @return self
    */
   public function setState($state);
 
@@ -99,8 +95,6 @@ interface CandidateInterface {
    *
    * @param int|float $amount
    * @param bool $increment
-   *
-   * @return self
    */
   public function setSurplus($amount, $increment = FALSE);
 

@@ -87,7 +87,6 @@ class Ballot implements BallotInterface {
       $level += $this->last_used_level;
     }
     $this->last_used_level = $level;
-    return $this;
   }
 
 }

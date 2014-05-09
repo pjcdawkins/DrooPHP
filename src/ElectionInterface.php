@@ -60,15 +60,11 @@ interface ElectionInterface {
    *
    * @param BallotInterface $ballot
    * @param string $key
-   *
-   * @return self
    */
   public function addBallot(BallotInterface $ballot, $key = NULL);
 
   /**
    * Sort ballots by key.
-   *
-   * @return self
    */
   public function sortBallots();
 
@@ -83,8 +79,6 @@ interface ElectionInterface {
    * Set the election title.
    *
    * @param string $title
-   *
-   * @return self
    */
   public function setTitle($title);
 
@@ -99,8 +93,6 @@ interface ElectionInterface {
    * Set the number of seats (vacancies).
    *
    * @param int $num
-   *
-   * @return self
    */
   public function setNumSeats($num);
 
@@ -108,8 +100,6 @@ interface ElectionInterface {
    * Set the total number of candidates.
    *
    * @param int $num
-   *
-   * @return self
    */
   public function setNumCandidates($num);
 
@@ -135,8 +125,6 @@ interface ElectionInterface {
    * Add to the number of valid ballots.
    *
    * @param int $amount
-   *
-   * @return self
    */
   public function addNumValidBallots($amount);
 
@@ -151,8 +139,6 @@ interface ElectionInterface {
    * Add to the number of invalid ballots.
    *
    * @param int $amount
-   *
-   * @return self
    */
   public function addNumInvalidBallots($amount);
 

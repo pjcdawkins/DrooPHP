@@ -51,6 +51,8 @@ interface ConfigInterface {
    *
    * @param string $key The option key.
    * @param string $value The option value.
+   *
+   * @return self
    */
   public function setOption($key, $value);
 
