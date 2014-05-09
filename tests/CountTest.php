@@ -8,8 +8,6 @@ namespace DrooPHP\Test;
 
 use DrooPHP\CandidateInterface;
 use DrooPHP\Count;
-use DrooPHP\Formatter\Csv;
-use DrooPHP\Method\Wikipedia;
 use DrooPHP\Source\File;
 
 class CountTest extends \PHPUnit_Framework_TestCase {
