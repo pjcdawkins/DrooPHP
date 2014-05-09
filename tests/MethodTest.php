@@ -7,6 +7,7 @@
 namespace DrooPHP\Test;
 
 use DrooPHP\Ballot;
+use DrooPHP\Candidate;
 use DrooPHP\Election;
 use DrooPHP\ElectionInterface;
 use DrooPHP\Method;
@@ -23,10 +24,10 @@ class MethodTest extends \PHPUnit_Framework_TestCase {
     $election = new Election();
     $election->setNumCandidates(2);
     $election->setNumSeats(1);
-    $election->addCandidate('Test candidate 1');
-    $election->addCandidate('Test candidate 2');
-    $election->addBallot(new Ballot([1 => 1], rand(1, 5)), '1');
-    $election->addBallot(new Ballot([1 => 2, 2 => 1], rand(1, 5)), '2 1');
+    $election->addCandidate(new Candidate('Test candidate 1', 1));
+    $election->addCandidate(new Candidate('Test candidate 2', 2));
+    $election->addBallot(new Ballot([1 => 1], rand(1, 5)));
+    $election->addBallot(new Ballot([1 => 2, 2 => 1], rand(1, 5)));
     return $election;
   }
 

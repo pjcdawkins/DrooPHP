@@ -17,35 +17,14 @@ class Election implements ElectionInterface {
   public $comment;
 
   /**
-   * The total number of exhausted ballots. These are ballots from which votes
-   * could not be transferred because no further preferences were stated.
-   *
-   * @var int
-   */
-  public $num_exhausted_ballots = 0;
-
-  /**
-   * The ballots: array of BallotInterface objects.
-   *
    * @var BallotInterface[]
    */
-  public $ballots = [];
-
-  /**
-   * The set of withdrawn candidate IDs.
-   * @var array
-   */
-  public $withdrawn = [];
+  protected $ballots = [];
 
   /**
    * @var CandidateInterface[]
    */
   protected $candidates = [];
-
-  /**
-   * @var int
-   */
-  protected $cid_increment = 1;
 
   /**
    * @var int
@@ -75,11 +54,11 @@ class Election implements ElectionInterface {
   /**
    * @{inheritdoc}
    */
-  public function getCandidate($cid) {
-    if (!isset($this->candidates[$cid])) {
+  public function getCandidate($id) {
+    if (!isset($this->candidates[$id])) {
       return FALSE;
     }
-    return $this->candidates[$cid];
+    return $this->candidates[$id];
   }
 
   /**
@@ -103,17 +82,15 @@ class Election implements ElectionInterface {
    *
    * @throws UsageException
    */
-  public function addCandidate($name) {
-    $cid = $this->cid_increment;
-    if ($cid > $this->num_candidates) {
-      throw new UsageException('Attempted to add too many candidate names.');
+  public function addCandidate(CandidateInterface $candidate) {
+    if (count($this->candidates) >= $this->num_candidates) {
+      throw new UsageException('Attempted to add too many candidates.');
     }
-    $candidate = new Candidate($name, $cid);
-    if (in_array($cid, $this->withdrawn)) {
-      $candidate->setState(CandidateInterface::STATE_WITHDRAWN);
+    $id = $candidate->getId();
+    if (isset($this->candidates[$id])) {
+      throw new UsageException('A candidate already exists with the same ID.');
     }
-    $this->candidates[$cid] = $candidate;
-    $this->cid_increment++;
+    $this->candidates[$id] = $candidate;
   }
 
   /**
@@ -136,8 +113,21 @@ class Election implements ElectionInterface {
   /**
    * @{inheritdoc}
    */
-  public function addBallot(BallotInterface $ballot, $key) {
-    $this->ballots[$key] = $ballot;
+  public function addBallot(BallotInterface $ballot, $key = NULL) {
+    if ($key !== NULL) {
+      $this->ballots[$key] = $ballot;
+    }
+    else {
+      $this->ballots[] = $ballot;
+    }
+    return $this;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function sortBallots() {
+    ksort($this->ballots);
   }
 
   /**

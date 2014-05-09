@@ -7,6 +7,7 @@
 namespace DrooPHP\Source;
 
 use DrooPHP\Ballot;
+use DrooPHP\Candidate;
 use DrooPHP\Election;
 use DrooPHP\ElectionInterface;
 use DrooPHP\Exception\BallotFileException;
@@ -28,6 +29,9 @@ class File extends SourceBase {
 
   /** @var Stash\Pool */
   protected $pool;
+
+  /** @var array */
+  protected $withdrawn_cids = [];
 
   /**
    * Overrides parent::getDefaults().
@@ -228,10 +232,7 @@ class File extends SourceBase {
         if (strpos($line, '-') === 0) {
           // If line 2 starts with a minus sign, it specifies the
           // withdrawn candidate IDs.
-          $withdrawn = explode(' -', substr($line, 1));
-          // Candidate IDs are always integers.
-          $withdrawn = array_map('intval', $withdrawn);
-          $election->withdrawn = $withdrawn;
+          $this->withdrawn_cids = explode(' -', substr($line, 1));
           $this->ballot_first_line = 3;
         }
         else {
@@ -292,7 +293,12 @@ class File extends SourceBase {
       $info = trim($line, '"');
       if ($key < $num_candidates) {
         // This line is a candidate.
-        $election->addCandidate($info);
+        $id = $key + 1;
+        $candidate = new Candidate($info, $id);
+        if (in_array($id, $this->withdrawn_cids)) {
+          $candidate->setState(Candidate::STATE_WITHDRAWN);
+        }
+        $election->addCandidate($candidate);
       }
       elseif ($election->getTitle() === NULL) {
         $election->setTitle($info);
@@ -422,7 +428,7 @@ class File extends SourceBase {
       }
     }
     // Sort the voting papers into first preferences // ERS97 5.1.2
-    ksort($election->ballots);
+    $election->sortBallots();
   }
 
 }

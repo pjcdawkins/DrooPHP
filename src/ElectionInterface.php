@@ -6,16 +6,18 @@
 
 namespace DrooPHP;
 
+use DrooPHP\Exception\UsageException;
+
 interface ElectionInterface {
 
   /**
    * Get a single candidate by ID.
    *
-   * @param mixed $cid
+   * @param mixed $id
    *
    * @return CandidateInterface
    */
-  public function getCandidate($cid);
+  public function getCandidate($id);
 
   /**
    * Get an array of candidates, optionally filtered by state
@@ -31,9 +33,11 @@ interface ElectionInterface {
   /**
    * Add a candidate.
    *
-   * @param string $name The name of the candidate.
+   * @param CandidateInterface $candidate
+   *
+   * @throws UsageException
    */
-  public function addCandidate($name);
+  public function addCandidate(CandidateInterface $candidate);
 
   /**
    * Get the ballots.
@@ -56,8 +60,17 @@ interface ElectionInterface {
    *
    * @param BallotInterface $ballot
    * @param string $key
+   *
+   * @return self
    */
-  public function addBallot(BallotInterface $ballot, $key);
+  public function addBallot(BallotInterface $ballot, $key = NULL);
+
+  /**
+   * Sort ballots by key.
+   *
+   * @return self
+   */
+  public function sortBallots();
 
   /**
    * Get the election title.
