@@ -6,14 +6,16 @@
 
 namespace DrooPHP;
 
+use DrooPHP\Exception\CandidateException;
+
 class Candidate implements CandidateInterface {
 
   public $name;
 
   protected $id;
   protected $state;
-  protected $surplus;
-  protected $votes;
+  protected $surplus = 0;
+  protected $votes = 0;
 
   /**
    * @{inheritdoc}
@@ -34,9 +36,19 @@ class Candidate implements CandidateInterface {
   /**
    * @{inheritdoc}
    */
-  public function setVotes($votes, $increment = FALSE) {
-    $this->votes = $increment ? $this->votes + $votes : $votes;
-    return $this;
+  public function addVotes($votes) {
+    $this->votes += $votes;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function transferVotes($amount, CandidateInterface $to, $precision = 5) {
+    if (round($this->votes, $precision) < round($amount, $precision)) {
+      throw new CandidateException('Not enough votes to transfer');
+    }
+    $this->votes -= $amount;
+    $to->addVotes($amount);
   }
 
   /**

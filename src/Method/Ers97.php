@@ -89,7 +89,7 @@ class Ers97 extends MethodBase {
         $num = count($first_preference);
         foreach ($first_preference as $cid) {
           $candidate = $election->getCandidate($cid);
-          $candidate->setVotes((1 / $num) * $ballot->getValue(), TRUE);
+          $candidate->addVotes((1 / $num) * $ballot->getValue());
           $total += (1 / $num) * $ballot->getValue();
         }
       }

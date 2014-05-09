@@ -83,7 +83,7 @@ class Wikipedia extends MethodBase {
         $anyone_elected = TRUE;
         $surplus = $candidate->getVotes() - $quota;
         $candidate->setSurplus($surplus);
-        $this->logChange($candidate, sprintf('Elected at stage %d, with a surplus of %s votes.', $stage, $surplus), $stage);
+        $this->logChange($candidate, sprintf('Elected at stage %d, with a surplus of %f votes.', $stage, $surplus), $stage);
         if ($surplus > 0 && !$this->isComplete()) {
           $this->transferVotes($surplus, $candidate, $stage);
         }
@@ -96,12 +96,9 @@ class Wikipedia extends MethodBase {
       $candidate = $this->findDefeatableCandidate();
       if ($candidate) {
         $candidate->setState(CandidateInterface::STATE_DEFEATED);
-        $this->logChange($candidate, sprintf('Defeated at stage %d, with %s votes.', $stage, $candidate->getVotes()), $stage);
+        $this->logChange($candidate, sprintf('Defeated at stage %d, with %f votes.', $stage, $candidate->getVotes()), $stage);
         if ($candidate->getVotes() && !$this->isComplete()) {
           $this->transferVotes($candidate->getVotes(), $candidate, $stage);
-          if ($this->getConfig()->getOption('allow_equal')) {
-            $candidate->setVotes(round($candidate->getVotes(), 0)); // compensate for rounding errors in transfer with equal rankings
-          }
         }
       }
     }
@@ -200,10 +197,9 @@ class Wikipedia extends MethodBase {
     foreach ($votes as $to_cid => $num_votes) {
       $amount = ($num_to_transfer / $total_votes) * $num_votes;
       $to_candidate = $hopefuls[$to_cid];
-      $from_candidate->setVotes(-$amount, TRUE);
-      $to_candidate->setVotes($amount, TRUE);
-      $this->logChange($from_candidate, sprintf('Transferred %s votes to %s.', $amount, $to_candidate->getName(), $stage), $stage);
-      $this->logChange($to_candidate, sprintf('Received %s votes from %s.', $amount, $from_candidate->getName(), $stage), $stage);
+      $from_candidate->transferVotes($amount, $to_candidate);
+      $this->logChange($from_candidate, sprintf('Transferred %f votes to %s.', $amount, $to_candidate->getName(), $stage), $stage);
+      $this->logChange($to_candidate, sprintf('Received %f votes from %s.', $amount, $from_candidate->getName(), $stage), $stage);
     }
   }
 

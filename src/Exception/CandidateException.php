@@ -1,10 +1,10 @@
 <?php
 /**
  * @file
- * The exception thrown when an error is encountered during a count.
+ * The exception thrown for candidate-related errors.
  */
 
 namespace DrooPHP\Exception;
 
-class CountException extends \Exception {
+class CandidateException extends \Exception {
 }

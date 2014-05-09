@@ -6,6 +6,8 @@
 
 namespace DrooPHP;
 
+use DrooPHP\Exception\CandidateException;
+
 interface CandidateInterface {
 
   const STATE_ELECTED = 2;
@@ -31,14 +33,24 @@ interface CandidateInterface {
   public function getVotes();
 
   /**
-   * Set the number of votes for the candidate.
+   * Add votes to the candidate.
    *
    * @param int|float $votes
-   * @param bool $increment
    *
    * @return self
    */
-  public function setVotes($votes, $increment = FALSE);
+  public function addVotes($votes);
+
+  /**
+   * Transfer votes to another candidate.
+   *
+   * @param float|int $amount
+   * @param CandidateInterface $to
+   * @param int $precision
+   *
+   * @throws CandidateException
+   */
+  public function transferVotes($amount, CandidateInterface $to, $precision = 5);
 
   /**
    * Get the candidate's name.
