@@ -1,9 +1,9 @@
 {
-  "name": "DrooPHP/DrooPHP",
+  "name": "droophp/droophp",
   "type": "library",
   "description": "STV vote counting",
   "keywords": ["count","election","stv","vote"],
-  "homepage": "http://github.com/pjcdawkins/DrooPHP",
+  "homepage": "https://github.com/pjcdawkins/DrooPHP",
   "license": "GPL",
   "authors": [
     {
