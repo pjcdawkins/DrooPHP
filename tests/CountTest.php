@@ -16,7 +16,10 @@ class CountTest extends \PHPUnit_Framework_TestCase {
    * Test that a count can be run.
    */
   public function testRun() {
-    $source = new File(['filename' => __DIR__ . '/data/wikipedia-counting_stv.blt']);
+    $source = new File([
+      'filename' => __DIR__ . '/data/wikipedia-counting_stv.blt',
+      'cache_enable' => FALSE,
+    ]);
     $count = new Count(['source' => $source]);
     $result = $count->run();
     $this->assertTrue(strlen($result) > 0, 'Count returns data');

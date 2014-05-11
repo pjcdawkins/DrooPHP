@@ -57,7 +57,7 @@ class File extends SourceBase {
       'cache_enable' => TRUE,
       'cache_expire' => 3600,
       'cache_driver' => extension_loaded('apc') ? 'Apc' : 'FileSystem',
-      'cache_dir' => NULL,
+      'cache_dir' => sys_get_temp_dir(),
     ];
   }
 

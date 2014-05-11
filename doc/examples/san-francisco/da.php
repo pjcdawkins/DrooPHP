@@ -15,7 +15,6 @@ $options = [
   'allow_skipped' => TRUE,
   'allow_repeat' => TRUE,
   'allow_equal' => TRUE,
-  'cache_dir' => __DIR__ . '/../cache',
 ];
 
 $count = new DrooPHP\Count();

@@ -8,6 +8,6 @@ require __DIR__ . '/../../../library.php';
 
 $file = __DIR__ . '/data/simple.blt';
 
-$source = new DrooPHP\Source\File(['filename' => $file, 'cache_enable' => FALSE]);
+$source = new DrooPHP\Source\File(['filename' => $file]);
 $count = new DrooPHP\Count(['source' => $source]);
 print $count->run();
