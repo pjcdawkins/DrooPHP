@@ -63,7 +63,10 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
   /**
    * @{inheritdoc}
    */
-  public function getQuota() {
+  public function getQuota($recalculate = FALSE) {
+    if (!isset($this->quota) || $recalculate) {
+      $this->quota = $this->calculateQuota();
+    }
     return $this->quota;
   }
 
@@ -117,10 +120,8 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
    * @return int
    */
   protected function calculateQuota() {
-    $num = ($this->getElection()->getNumValidBallots() / ($this->getElection()->getNumSeats() + 1)) + 1;
-    $quota = floor($num);
-    $this->quota = $quota;
-    return $quota;
+    $election = $this->getElection();
+    return floor(($election->getNumValidBallots() / ($election->getNumSeats() + 1)) + 1);
   }
 
 }

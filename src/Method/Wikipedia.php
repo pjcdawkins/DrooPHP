@@ -52,7 +52,6 @@ class Wikipedia extends MethodBase {
 
     // First stage.
     if ($stage == 1) {
-      $this->calculateQuota();
       // Count the first preference votes and add them to each candidate.
       foreach ($election->getBallots() as $ballot) {
         $worth = $ballot->getNextPreferenceWorth();

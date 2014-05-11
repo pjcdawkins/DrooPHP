@@ -53,8 +53,10 @@ interface MethodInterface {
   /**
    * Get the count quota.
    *
+   * @param bool $recalculate
+   *
    * @return int|float
    */
-  public function getQuota();
+  public function getQuota($recalculate = FALSE);
 
 }
