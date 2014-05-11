@@ -20,9 +20,7 @@ class Stv extends MethodBase {
   }
 
   /**
-   * Overrides parent::run().
-   *
-   * Run a count.
+   * @{inheritdoc}
    *
    * From Wikipedia:
    *     An STV election proceeds according to the following steps:
@@ -40,11 +38,6 @@ class Stv extends MethodBase {
    *
    * See:
    * http://en.wikipedia.org/wiki/Single_transferable_vote#Finding_the_winners
-   *
-   * @param int $stage The stage number.
-   *
-   * @throws CountException
-   * @return bool
    */
   public function run($stage = 1) {
 
@@ -128,7 +121,7 @@ class Stv extends MethodBase {
 
     // Proceed to the next stage or stop if the election is complete.
     if ($this->isComplete()) {
-      return $this->getResult();
+      return TRUE;
     }
     elseif ($stage >= $this->getConfig()->getOption('max_stages')) {
       throw new CountException(sprintf(

@@ -7,7 +7,7 @@
 namespace DrooPHP\Method;
 
 use DrooPHP\ElectionInterface;
-use DrooPHP\ResultInterface;
+use DrooPHP\Exception\CountException;
 
 interface MethodInterface {
 
@@ -39,7 +39,10 @@ interface MethodInterface {
    *
    * @param int $stage
    *
-   * @return ResultInterface
+   * @throws CountException
+   *
+   * @return bool
+   *   TRUE if the count runs successfully, FALSE otherwise.
    */
   public function run($stage = 1);
 

@@ -67,7 +67,9 @@ class Ers97 extends Stv {
   }
 
   /**
-   * Overrides parent::run().
+   * @{inheritdoc}
+   *
+   * Overrides \DrooPHP\Method\Stv::run().
    */
   public function run($stage = 1) {
 
@@ -103,7 +105,7 @@ class Ers97 extends Stv {
       if ($num_vacancies == 0) {
         // If all seats are filled, the election has finished.
         $this->logStage($stage);
-        return $this->getResult();
+        return TRUE;
       }
       if ($candidate->getState() !== CandidateInterface::STATE_HOPEFUL) {
         continue;
@@ -178,7 +180,7 @@ class Ers97 extends Stv {
 
     // Proceed to the next stage or stop if the election is complete.
     if ($this->isComplete()) {
-      return $this->getResult();
+      return TRUE;
     }
     elseif ($stage >= $this->getConfig()->getOption('max_stages')) {
       throw new CountException('Maximum number of stages reached before completing the count.');

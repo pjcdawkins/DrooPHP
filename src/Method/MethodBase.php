@@ -11,14 +11,12 @@ use DrooPHP\Config\ConfigurableInterface;
 use DrooPHP\Config\ConfigurableTrait;
 use DrooPHP\ElectionInterface;
 use DrooPHP\Exception\UsageException;
-use DrooPHP\Result;
 
 abstract class MethodBase implements MethodInterface, ConfigurableInterface {
 
   protected $quota;
   protected $stages = [];
   protected $election;
-  protected $result;
 
   use ConfigurableTrait;
 
@@ -101,13 +99,6 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
     $election = $this->getElection();
     $filled_seats = count($election->getCandidates(CandidateInterface::STATE_ELECTED));
     return $election->getNumSeats() - $filled_seats;
-  }
-
-  /**
-   * @return Result
-   */
-  protected function getResult() {
-    return new Result($this);
   }
 
   /**

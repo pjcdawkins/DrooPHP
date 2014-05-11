@@ -38,7 +38,7 @@ class MethodTest extends \PHPUnit_Framework_TestCase {
     $method = new Method\Stv();
     $method->setElection($this->getTestElection());
     $result = $method->run();
-    $this->assertTrue($result instanceof ResultInterface, 'Count runs');
+    $this->assertTrue($result, 'Count runs successfully');
   }
 
 }
