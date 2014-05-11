@@ -61,6 +61,13 @@ interface BallotInterface {
   public function getNextPreferenceWorth();
 
   /**
+   * Get the ballot's value.
+   *
+   * @return int
+   */
+  public function getValue();
+
+  /**
    * Add to the ballot's value.
    *
    * @param int $amount

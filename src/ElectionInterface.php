@@ -122,13 +122,6 @@ interface ElectionInterface {
   public function getNumBallots();
 
   /**
-   * Add to the number of valid ballots.
-   *
-   * @param int $amount
-   */
-  public function addNumValidBallots($amount);
-
-  /**
    * Get the number of valid ballots.
    *
    * @return int

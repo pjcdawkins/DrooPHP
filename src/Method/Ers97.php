@@ -80,23 +80,20 @@ class Ers97 extends Stv {
 
     // First stage. // ERS97 5.1
     if ($stage == 1) {
-      $this->calculateQuota();
       // Count the first preference votes and add them to each candidate // ERS97 5.1.4
-      $total = 0;
       foreach ($election->getBallots() as $ballot) {
         $worth = $ballot->getNextPreferenceWorth();
         foreach ($ballot->getPreference(1) as $candidate_id) {
-          $election->getCandidate($candidate_id)
-            ->addVotes($worth);
-          $total += $worth;
+          $election->getCandidate($candidate_id)->addVotes($worth);
         }
+        $ballot->setLastUsedLevel(1);
       }
     }
 
     // Elect candidates // ERS97 5.1.7 // ERS97 5.3.13 // ERS97 5.4.9
     /*
         Considering each candidate in turn in descending order of their votes, deem
-        elected and candidate whose vote equals or exceeds:
+        elected any candidate whose vote equals or exceeds:
             (a) the quota, or
             (b) (on very rare occasions, where this is less than the quota), the total
                     active vote, divided by one more than the number of places not yet filled.
@@ -104,18 +101,20 @@ class Ers97 extends Stv {
      */
     $candidates = $this->getCandidatesOrder(); // sort into descending order of votes
     $active_vote = $this->getActiveVote();
-    $quota = $this->getQuota();
+    $quota = $this->getQuota(TRUE);
     $anyone_elected = FALSE;
     foreach ($candidates as $candidate) {
       $num_vacancies = $this->getNumVacancies();
       if ($num_vacancies == 0) {
         // If all seats are filled, the election has finished.
-        return TRUE;
+        return $this->getResult();
       }
       if ($candidate->getState() !== CandidateInterface::STATE_HOPEFUL) {
         continue;
       }
-      if ($candidate->getVotes() >= $quota || $candidate->getVotes() >= ($active_vote / ($num_vacancies + 1))) {
+      $votes = $candidate->getVotes();
+      $threshold = $active_vote / ($num_vacancies + 1);
+      if ($votes >= $quota || $votes >= $threshold) {
         // The candidate is now elected.
         $candidate->setState(CandidateInterface::STATE_ELECTED);
         $anyone_elected = TRUE;
@@ -142,28 +141,41 @@ class Ers97 extends Stv {
 
     // If one or more candidates have surpluses, the largest of these should now be transferred. // ERS97 5.2.2
     $surpluses = $this->getSurpluses();
-    if (!empty($surpluses)) {
-      // @todo work out what to do with the deferment rules in ERS97 5.2.2
-      /*
-                  $candidate_fewest_votes_diff = 0;
-                  foreach (array_slice($candidates, -2) as $cid => $candidate) {
-                      if (isset($candidate_second_fewest_votes)) {
-                          $candidate_fewest_votes_diff = $candidate_second_fewest_votes - $candidate->getVotes();
-                          break;
-                      }
-                      $candidates_second_fewest_votes = $candidate->getVotes();
-                  }
-                  $total_surplus = array_sum($surpluses);
-      */
-      // @todo transfer
+    foreach ($surpluses as $cid => $surplus) {
+      $candidate = $election->getCandidate($cid);
+      $this->transferVotes($surplus, $candidate);
+      $candidate->setSurplus(-$surplus, TRUE);
       // The transfer of a surplus constitutes a stage in the count. // ERS97 5.2.4
-      //return $this->run($stage + 1); // not ready to loop yet
+      return $this->run($stage + 1);
+      break;
     }
 
-    // @todo eliminate candidates
-    // @todo transfer after elimination
-    // @todo transfer from withdrawn candidates
-    //$this->defeatCandidates();
+    // @todo work out what to do with the deferment rules in ERS97 5.2.2
+    /*
+                $candidate_fewest_votes_diff = 0;
+                foreach (array_slice($candidates, -2) as $cid => $candidate) {
+                    if (isset($candidate_second_fewest_votes)) {
+                        $candidate_fewest_votes_diff = $candidate_second_fewest_votes - $candidate->getVotes();
+                        break;
+                    }
+                    $candidates_second_fewest_votes = $candidate->getVotes();
+                }
+                $total_surplus = array_sum($surpluses);
+    */
+
+    // Eliminate candidates.
+    // @todo make this ERS97 compliant
+    if (!$anyone_elected) {
+      $candidate = $this->findDefeatableCandidate();
+      if ($candidate) {
+        $candidate->setState(CandidateInterface::STATE_DEFEATED);
+        $votes = $candidate->getVotes();
+        $candidate->log(sprintf('Defeated at stage %d, with %s votes.', $stage, $votes ? number_format($votes) : 'no'));
+        if ($votes) {
+          $this->transferVotes($votes, $candidate);
+        }
+      }
+    }
 
     // Proceed to the next stage or stop if the election is complete.
     if ($this->isComplete()) {
@@ -221,6 +233,15 @@ class Ers97 extends Stv {
   }
 
   /**
+   * @{inheritdoc}
+   *
+   * @todo make this ERS97 compliant
+   */
+  public function transferVotes($amount, CandidateInterface $from_candidate) {
+    return parent::transferVotes($amount, $from_candidate);
+  }
+
+  /**
    * Overrides parent::calculateQuota().
    *
    * Calculate the minimum number of votes a candidate needs in order to be
@@ -234,10 +255,9 @@ class Ers97 extends Stv {
    * @return float
    */
   protected function calculateQuota() {
-    $num = $this->getElection()->getNumValidBallots() / ($this->getElection()->getNumSeats() + 1);
-    $quota = ceil($num * 100) / 100;
-    $this->quota = $quota;
-    return $quota;
+    $election = $this->getElection();
+    $num = $election->getNumValidBallots() / ($election->getNumSeats() + 1);
+    return ceil($num * 100) / 100;
   }
 
 }

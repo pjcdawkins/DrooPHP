@@ -417,8 +417,6 @@ class File extends SourceBase {
         $election->addNumInvalidBallots($multiplier);
         continue;
       }
-      // The ballot is valid: increment the total number of valid ballots. // ERS97 5.1.2
-      $election->addNumValidBallots($multiplier);
       if ($election->getBallot($key)) {
         // If an identical ballot already exists in the election, increase its value by $multiplier.
         $election->getBallot($key)->addValue($multiplier);

@@ -120,6 +120,7 @@ class Election implements ElectionInterface {
     else {
       $this->ballots[] = $ballot;
     }
+    $this->num_valid_ballots += $ballot->getValue();
   }
 
   /**
@@ -161,15 +162,9 @@ class Election implements ElectionInterface {
    * @{inheritdoc}
    */
   public function getNumBallots() {
-    return $this->num_valid_ballots + $this->num_invalid_ballots;
+    return $this->getNumValidBallots() + $this->num_invalid_ballots;
   }
 
-  /**
-   * @{inheritdoc}
-   */
-  public function addNumValidBallots($amount) {
-    $this->num_valid_ballots += $amount;
-  }
   /**
    * @{inheritdoc}
    */

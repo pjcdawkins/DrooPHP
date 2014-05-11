@@ -64,9 +64,10 @@ class Stv extends MethodBase {
       // If there are any withdrawn candidates, transfer their votes.
       $withdrawn = $election->getCandidates(CandidateInterface::STATE_WITHDRAWN);
       foreach ($withdrawn as $candidate) {
-        if ($candidate->getVotes()) {
-          $candidate->log(sprintf('Withdrawn: all %d votes will be transferred.', $candidate->getVotes()));
-          $this->transferVotes($candidate->getVotes(), $candidate, $stage);
+        $votes = $candidate->getVotes();
+        if ($votes) {
+          $candidate->log(sprintf('Withdrawn: all %d votes will be transferred.', $votes));
+          $this->transferVotes($votes, $candidate);
         }
       }
     }
@@ -84,7 +85,7 @@ class Stv extends MethodBase {
         if ($surplus) {
           $candidate->setSurplus($surplus);
           $candidate->log(sprintf('Elected at stage %d, with a surplus of %s votes.', $stage, number_format($surplus)));
-          $this->transferVotes($surplus, $candidate, $stage);
+          $this->transferVotes($surplus, $candidate);
         }
         else {
           $candidate->log(sprintf('Elected at stage %d.', $stage));
