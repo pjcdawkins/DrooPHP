@@ -250,7 +250,7 @@ class Ers97 extends Stv {
    * @todo make this ERS97 compliant
    */
   public function transferVotes($amount, CandidateInterface $from_candidate) {
-    return parent::transferVotes($amount, $from_candidate);
+    parent::transferVotes($amount, $from_candidate);
   }
 
   /**

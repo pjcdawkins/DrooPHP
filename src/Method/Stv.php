@@ -68,12 +68,10 @@ class Stv extends MethodBase {
     // Elect candidates
     $hopefuls = $election->getCandidates(CandidateInterface::STATE_HOPEFUL);
     $quota = $this->getQuota();
-    $anyone_elected = FALSE;
     foreach ($hopefuls as $candidate) {
       // A candidate is elected if their votes equal or exceed the quota.
       if ($candidate->getVotes() >= $quota) {
         $candidate->setState(CandidateInterface::STATE_ELECTED);
-        $anyone_elected = TRUE;
         $surplus = $candidate->getVotes() - $quota;
         if ($surplus) {
           $candidate->setSurplus($surplus);
@@ -145,7 +143,7 @@ class Stv extends MethodBase {
     }
     $defeatable = FALSE;
     foreach ($hopefuls as $candidate) {
-      if (!$defeatable || $candidate->getVotes() < $defeatable->getVotes()) {
+      if (!$defeatable instanceof CandidateInterface || $candidate->getVotes() < $defeatable->getVotes()) {
         $defeatable = $candidate;
       }
     }

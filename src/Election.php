@@ -116,7 +116,6 @@ class Election implements ElectionInterface {
   public function addBallot(BallotInterface $ballot, $key = NULL) {
     if ($key === NULL) {
       $key = '';
-      $i = 1;
       for ($i = 1; $preference = $ballot->getPreference($i); $i++) {
         $key .= ' ' . implode('=', $preference);
       }
