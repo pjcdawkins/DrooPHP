@@ -23,13 +23,6 @@ class Ballot implements BallotInterface {
   /**
    * @{inheritdoc}
    */
-  public function getRanking() {
-    return $this->ranking;
-  }
-
-  /**
-   * @{inheritdoc}
-   */
   public function getPreference($level) {
     if (empty($this->ranking[$level])) {
       return array();
