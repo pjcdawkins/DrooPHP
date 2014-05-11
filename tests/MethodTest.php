@@ -35,7 +35,7 @@ class MethodTest extends \PHPUnit_Framework_TestCase {
    * Test that a method count can be run.
    */
   public function testRun() {
-    $method = new Method\Wikipedia();
+    $method = new Method\Stv();
     $method->setElection($this->getTestElection());
     $result = $method->run();
     $this->assertTrue($result instanceof ResultInterface, 'Count runs');

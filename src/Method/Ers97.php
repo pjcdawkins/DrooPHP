@@ -12,7 +12,7 @@ namespace DrooPHP\Method;
 use DrooPHP\CandidateInterface;
 use DrooPHP\Exception\CountException;
 
-class Ers97 extends MethodBase {
+class Ers97 extends Stv {
 
   /**
    * Each candidate that exists in this array has been determined to have more

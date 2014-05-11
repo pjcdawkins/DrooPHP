@@ -25,7 +25,7 @@ class Count implements CountInterface, ConfigurableInterface {
   public function getDefaults() {
     return [
       'formatter' => 'Html',
-      'method' => 'Wikipedia',
+      'method' => 'Stv',
       'source' => 'File',
     ];
   }

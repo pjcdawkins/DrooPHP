@@ -10,13 +10,13 @@ namespace DrooPHP\Method;
 use DrooPHP\CandidateInterface;
 use DrooPHP\Exception\CountException;
 
-class Wikipedia extends MethodBase {
+class Stv extends MethodBase {
 
   /**
    * @{inheritdoc}
    */
   public function getName() {
-    return 'Wikipedia example';
+    return 'STV';
   }
 
   /**
