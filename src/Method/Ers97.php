@@ -73,11 +73,6 @@ class Ers97 extends Stv {
 
     $election = $this->getElection();
 
-    // Log the current status of the count (i.e. the status reached at the end of the previous stage).
-    if ($stage > 1) {
-      $this->logStage($stage - 1);
-    }
-
     // First stage. // ERS97 5.1
     if ($stage == 1) {
       // Count the first preference votes and add them to each candidate // ERS97 5.1.4
@@ -107,6 +102,7 @@ class Ers97 extends Stv {
       $num_vacancies = $this->getNumVacancies();
       if ($num_vacancies == 0) {
         // If all seats are filled, the election has finished.
+        $this->logStage($stage);
         return $this->getResult();
       }
       if ($candidate->getState() !== CandidateInterface::STATE_HOPEFUL) {
@@ -131,11 +127,13 @@ class Ers97 extends Stv {
 
     if ($stage == 1) {
       // If we're on the first stage, it's now complete, the next actions are part of stage 2. // ERS97 5.1.8
+      $this->logStage($stage);
       return $this->run($stage + 1);
     }
 
     if ($anyone_elected) {
       // If anyone has been elected in this stage, then it's now complete.
+      $this->logStage($stage);
       return $this->run($stage + 1);
     }
 
@@ -146,6 +144,7 @@ class Ers97 extends Stv {
       $this->transferVotes($surplus, $candidate);
       $candidate->setSurplus(-$surplus, TRUE);
       // The transfer of a surplus constitutes a stage in the count. // ERS97 5.2.4
+      $this->logStage($stage);
       return $this->run($stage + 1);
       break;
     }
@@ -165,17 +164,17 @@ class Ers97 extends Stv {
 
     // Eliminate candidates.
     // @todo make this ERS97 compliant
-    if (!$anyone_elected) {
-      $candidate = $this->findDefeatableCandidate();
-      if ($candidate) {
-        $candidate->setState(CandidateInterface::STATE_DEFEATED);
-        $votes = $candidate->getVotes();
-        $candidate->log(sprintf('Defeated at stage %d, with %s votes.', $stage, $votes ? number_format($votes) : 'no'));
-        if ($votes) {
-          $this->transferVotes($votes, $candidate);
-        }
+    $candidate = $this->findDefeatableCandidate();
+    if ($candidate) {
+      $candidate->setState(CandidateInterface::STATE_DEFEATED);
+      $votes = $candidate->getVotes();
+      $candidate->log(sprintf('Defeated at stage %d, with %s votes.', $stage, $votes ? number_format($votes) : 'no'));
+      if ($votes) {
+        $this->transferVotes($votes, $candidate);
       }
     }
+
+    $this->logStage($stage);
 
     // Proceed to the next stage or stop if the election is complete.
     if ($this->isComplete()) {

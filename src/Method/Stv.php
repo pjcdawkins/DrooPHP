@@ -95,15 +95,13 @@ class Stv extends MethodBase {
 
     // Eliminate candidates.
     // "If no one new meets the quota, the candidate with the fewest votes is eliminated and that candidate's votes are transferred."
-    if (!$anyone_elected) {
-      $candidate = $this->findDefeatableCandidate();
-      if ($candidate) {
-        $candidate->setState(CandidateInterface::STATE_DEFEATED);
-        $votes = $candidate->getVotes();
-        $candidate->log(sprintf('Defeated at stage %d, with %s votes.', $stage, $votes ? number_format($votes) : 'no'));
-        if ($votes) {
-          $this->transferVotes($votes, $candidate);
-        }
+    $candidate = $this->findDefeatableCandidate();
+    if ($candidate) {
+      $candidate->setState(CandidateInterface::STATE_DEFEATED);
+      $votes = $candidate->getVotes();
+      $candidate->log(sprintf('Defeated at stage %d, with %s votes.', $stage, $votes ? number_format($votes) : 'no'));
+      if ($votes) {
+        $this->transferVotes($votes, $candidate);
       }
     }
 
