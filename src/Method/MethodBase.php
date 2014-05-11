@@ -10,12 +10,15 @@ use DrooPHP\CandidateInterface;
 use DrooPHP\Config\ConfigurableInterface;
 use DrooPHP\Config\ConfigurableTrait;
 use DrooPHP\ElectionInterface;
+use DrooPHP\Exception\CountException;
 use DrooPHP\Exception\UsageException;
 
 abstract class MethodBase implements MethodInterface, ConfigurableInterface {
 
   protected $quota;
   protected $stages = [];
+
+  /** @var ElectionInterface */
   protected $election;
 
   use ConfigurableTrait;
@@ -47,6 +50,12 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
   public function getElection() {
     if (!isset($this->election)) {
       throw new UsageException('Election not defined');
+    }
+    if (!$this->election->getNumCandidates()) {
+      throw new CountException('No candidates found');
+    }
+    if (!$this->election->getNumValidBallots()) {
+      throw new CountException('No ballot found');
     }
     return $this->election;
   }
