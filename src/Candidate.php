@@ -50,8 +50,9 @@ class Candidate implements CandidateInterface {
     }
     $this->votes -= $amount;
     $to->addVotes($amount);
-    $this->log(sprintf('Transferred %s votes to %s', number_format($amount), $to->getName()));
-    $to->log(sprintf('Received %s votes from %s', number_format($amount), $this->name));
+    $display_precision = $precision >= 2 ? 2 : $precision;
+    $this->log(sprintf('Transferred %s votes to %s', number_format($amount, $display_precision), $to->getName()));
+    $to->log(sprintf('Received %s votes from %s', number_format($amount, $display_precision), $this->name));
   }
 
   /**
