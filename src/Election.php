@@ -113,13 +113,18 @@ class Election implements ElectionInterface {
   /**
    * @{inheritdoc}
    */
-  public function addBallot(BallotInterface $ballot) {
-    // Store ballots keyed by their rankings.
-    $key = implode(' ', $ballot->getRanking());
+  public function addBallot(BallotInterface $ballot, $key = NULL) {
+    if ($key === NULL) {
+      $key = '';
+      $i = 1;
+      for ($i = 1; $preference = $ballot->getPreference($i); $i++) {
+        $key .= ' ' . implode('=', $preference);
+      }
+      if (!strlen($key)) {
+        $key = 0;
+      }
+    }
     if (isset($this->ballots[$key])) {
-      // If a ballot with the same ranking already exists in the election, just
-      // increase its value rather than adding a new ballot. This ensures that
-      // the ballots array remains as compressed as possible.
       $this->ballots[$key]->addValue($ballot->getValue());
     }
     else {

@@ -418,7 +418,7 @@ class File extends SourceBase {
         continue;
       }
       // Register this ballot with its value.
-      $election->addBallot(new Ballot($ranking, $multiplier));
+      $election->addBallot(new Ballot($ranking, $multiplier), $key);
     }
   }
 

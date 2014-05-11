@@ -59,8 +59,13 @@ interface ElectionInterface {
    * Add a ballot.
    *
    * @param BallotInterface $ballot
+   *   The ballot object.
+   * @param string $key
+   *   A unique key identifying the ballot's rankings. This is so that duplicate
+   *   ballots can simply be given a higher value (which takes up less memory),
+   *   and so that ballots can be kept in an order (sorted by the key).
    */
-  public function addBallot(BallotInterface $ballot);
+  public function addBallot(BallotInterface $ballot, $key = NULL);
 
   /**
    * Get the election title.
