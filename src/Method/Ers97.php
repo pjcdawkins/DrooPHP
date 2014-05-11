@@ -143,28 +143,37 @@ class Ers97 extends Stv {
 
     // If one or more candidates have surpluses, the largest of these should now be transferred. // ERS97 5.2.2
     $surpluses = $this->getSurpluses();
-    foreach ($surpluses as $cid => $surplus) {
-      $candidate = $election->getCandidate($cid);
-      $this->transferVotes($surplus, $candidate);
-      $candidate->setSurplus(-$surplus, TRUE);
-      // The transfer of a surplus constitutes a stage in the count. // ERS97 5.2.4
-      $this->logStage($stage);
-      return $this->run($stage + 1);
-      break;
+    $surpluses_total = array_sum($surpluses);
+
+    // Find "The difference between the votes of the two candidates who have the
+    // fewest votes".
+    $votes = array();
+    $candidate_fewest_votes_diff = 0;
+    foreach (array_slice($this->getCandidatesOrder(), -2) as $candidate) {
+      $votes[] = $candidate->getVotes();
+    }
+    if (count($votes) == 2) {
+      $candidate_fewest_votes_diff = $votes[0] - $votes[1];
     }
 
-    // @todo work out what to do with the deferment rules in ERS97 5.2.2
-    /*
-                $candidate_fewest_votes_diff = 0;
-                foreach (array_slice($candidates, -2) as $cid => $candidate) {
-                    if (isset($candidate_second_fewest_votes)) {
-                        $candidate_fewest_votes_diff = $candidate_second_fewest_votes - $candidate->getVotes();
-                        break;
-                    }
-                    $candidates_second_fewest_votes = $candidate->getVotes();
-                }
-                $total_surplus = array_sum($surpluses);
-    */
+    // ERS 5.2.2 (a)
+    if ($surpluses_total && $surpluses_total <= $candidate_fewest_votes_diff) {
+      $this->logStage($stage);
+      return $this->run($stage + 1);
+    }
+    // @todo ERS 5.2.2 (b)
+    elseif ($surpluses_total) {
+      // Transfer the largest surplus.
+      foreach ($surpluses as $cid => $surplus) {
+        $candidate = $election->getCandidate($cid);
+        $this->transferVotes($surplus, $candidate);
+        $candidate->setSurplus(-$surplus, TRUE);
+        // The transfer of a surplus constitutes a stage in the count. // ERS97 5.2.4
+        $this->logStage($stage);
+        return $this->run($stage + 1);
+        break;
+      }
+    }
 
     // Eliminate candidates.
     // @todo make this ERS97 compliant
