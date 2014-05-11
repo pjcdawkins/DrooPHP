@@ -45,4 +45,11 @@ interface ResultInterface {
    */
   public function getQuota();
 
+  /**
+   * Get the precision (number of decimal places) of numbers for display.
+   *
+   * @return int
+   */
+  public function getPrecision();
+
 }

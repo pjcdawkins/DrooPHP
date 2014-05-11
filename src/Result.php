@@ -65,4 +65,14 @@ class Result implements ResultInterface {
     return $this->method->getQuota();
   }
 
+  /**
+   * @{inheritdoc}
+   */
+  public function getPrecision() {
+    if (isset($this->method->precision)) {
+      return $this->method->precision;
+    }
+    return 0;
+  }
+
 }

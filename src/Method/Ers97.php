@@ -14,6 +14,8 @@ use DrooPHP\Exception\CountException;
 
 class Ers97 extends Stv {
 
+  public $precision = 2;
+
   /**
    * Each candidate that exists in this array has been determined to have more
    * votes than the next candidate, at the earliest stage in the count at which
@@ -119,7 +121,7 @@ class Ers97 extends Stv {
         $surplus = $candidate->getVotes() - $quota;
         if ($surplus) {
           $candidate->setSurplus($surplus);
-          $candidate->log(sprintf('Elected at stage %d with a surplus of %s votes', $stage, number_format($surplus)));
+          $candidate->log(sprintf('Elected at stage %d with a surplus of %s votes', $stage, number_format($surplus, $this->precision)));
         }
         else {
           $candidate->log(sprintf('Elected at stage %d', $stage));
@@ -170,7 +172,7 @@ class Ers97 extends Stv {
     if ($candidate) {
       $candidate->setState(CandidateInterface::STATE_DEFEATED);
       $votes = $candidate->getVotes();
-      $candidate->log(sprintf('Defeated at stage %d, with %s votes.', $stage, $votes ? number_format($votes) : 'no'));
+      $candidate->log(sprintf('Defeated at stage %d, with %s votes.', $stage, $votes ? number_format($votes, $this->precision) : 'no'));
       if ($votes) {
         $this->transferVotes($votes, $candidate);
       }

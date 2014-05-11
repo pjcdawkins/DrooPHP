@@ -37,7 +37,7 @@ class Html extends FormatterBase {
       $row = [];
       $row[] = htmlspecialchars($candidate->getName());
       foreach ($stages as $stage) {
-        $cell = '<div class="droophp-votes">' . number_format($stage['votes'][$candidate->getId()]) . '</div>';
+        $cell = '<div class="droophp-votes">' . number_format($stage['votes'][$candidate->getId()], $result->getPrecision()) . '</div>';
         if (!empty($stage['changes'][$candidate->getId()])) {
           $cell .= '<ul class="droophp-changes"><li>' . implode(
               '</li><li>',
@@ -73,7 +73,7 @@ class Html extends FormatterBase {
     $output .= sprintf('<dt>Vacancies:</dt><dd>%s</dd>', number_format($election->getNumSeats()));
     $output .= sprintf('<dt>Valid ballots:</dt><dd>%s</dd>', number_format($election->getNumValidBallots()));
     $output .= sprintf('<dt>Invalid ballots:</dt><dd>%s</dd>', number_format($election->getNumInvalidBallots()));
-    $output .= sprintf('<dt>Quota:</dt><dd>%s</dd>', number_format($result->getQuota()));
+    $output .= sprintf('<dt>Quota:</dt><dd>%s</dd>', number_format($result->getQuota(), $result->getPrecision()));
     $output .= sprintf('<dt>Stages:</dt><dd>%d</dd>', count($stages));
     $output .= sprintf('<dt>Count method:</dt><dd>%s</dd>', htmlspecialchars($result->getMethodName()));
     $output .= '</dl>';
