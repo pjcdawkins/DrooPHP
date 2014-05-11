@@ -23,6 +23,13 @@ interface BallotInterface {
   public function __construct(array $ranking, $value = 1);
 
   /**
+   * Get the ballot's ranking.
+   *
+   * @return array
+   */
+  public function getRanking();
+
+  /**
    * Get the candidate(s) ranked at the given preference level.
    *
    * @param int $level

@@ -417,17 +417,9 @@ class File extends SourceBase {
         $election->addNumInvalidBallots($multiplier);
         continue;
       }
-      if ($election->getBallot($key)) {
-        // If an identical ballot already exists in the election, increase its value by $multiplier.
-        $election->getBallot($key)->addValue($multiplier);
-      }
-      else {
-        // Otherwise, register this ballot with the initial value $multiplier.
-        $election->addBallot(new Ballot($ranking, $multiplier), $key);
-      }
+      // Register this ballot with its value.
+      $election->addBallot(new Ballot($ranking, $multiplier));
     }
-    // Sort the voting papers into first preferences // ERS97 5.1.2
-    $election->sortBallots();
   }
 
 }

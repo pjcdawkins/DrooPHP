@@ -59,14 +59,8 @@ interface ElectionInterface {
    * Add a ballot.
    *
    * @param BallotInterface $ballot
-   * @param string $key
    */
-  public function addBallot(BallotInterface $ballot, $key = NULL);
-
-  /**
-   * Sort ballots by key.
-   */
-  public function sortBallots();
+  public function addBallot(BallotInterface $ballot);
 
   /**
    * Get the election title.
