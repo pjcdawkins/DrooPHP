@@ -10,6 +10,7 @@
 namespace DrooPHP\Method;
 
 use DrooPHP\CandidateInterface;
+use DrooPHP\ElectionInterface;
 use DrooPHP\Exception\CountException;
 
 class Ers97 extends Stv {
@@ -158,6 +159,7 @@ class Ers97 extends Stv {
 
     // ERS 5.2.2 (a)
     if ($surpluses_total && $surpluses_total <= $candidate_fewest_votes_diff) {
+      // Defer surpluses to the next stage.
       $this->logStage($stage);
       return $this->run($stage + 1);
     }
@@ -176,9 +178,40 @@ class Ers97 extends Stv {
     }
 
     // Eliminate candidates.
-    // @todo make this ERS97 compliant
-    $candidate = $this->findDefeatableCandidate();
-    if ($candidate) {
+    // ERS97 5.2.5: If, after all surpluses have been transferred or deferred,
+    // one or more places remain to be filled, the candidate or candidates with the
+    // fewest votes must be excluded. Exclude as many candidates together as
+    // possible, provided that:
+    //   (a) Sufficient candidates remain to fill all the remaining places
+    //   (b) The total votes of these candidates, together with the total of any
+    //       deferred surpluses, does not exceed the vote of the candidate next
+    //       above.
+    // If the votes of two or more candidates are equal, and those candidates
+    // have the fewest votes, exclude the candidate who had the fewest votes at
+    // the first stage or at the earliest point in the count, after the transfer
+    // of a batch of papers, where they had unequal votes. If the votes of such
+    // candidates have been equal at all such points the Returning Officer shall
+    // decide which candidate to exclude by lot.
+    $number_possible_to_exclude = count($election->getCandidates(CandidateInterface::STATE_HOPEFUL)) - $this->getNumVacancies();
+    $excludable = [];
+    $excludable_vote = 0;
+    // Go through candidates in ascending order of votes.
+    $candidates = $this->getCandidatesOrder();
+    foreach (array_reverse($candidates) as $candidate) {
+      if ($candidate->getState() !== $candidate::STATE_HOPEFUL) {
+        continue;
+      }
+      $votes = $candidate->getVotes();
+      $excludable_count = count($excludable);
+      if (($number_possible_to_exclude <= $excludable_count)
+         || ($excludable_count && $votes >= $excludable_vote)) {
+        break;
+      }
+      $excludable_vote += $votes;
+      $excludable[] = $candidate;
+    }
+    // Exclude the excludable candidates.
+    foreach ($excludable as $candidate) {
       $candidate->setState(CandidateInterface::STATE_DEFEATED);
       $votes = $candidate->getVotes();
       $candidate->log(sprintf('Defeated at stage %d, with %s votes.', $stage, $votes ? number_format($votes, $this->precision) : 'no'));

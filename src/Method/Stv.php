@@ -159,6 +159,10 @@ class Stv extends MethodBase {
   public function transferVotes($num_to_transfer, CandidateInterface $from_candidate) {
     $election = $this->getElection();
     $hopefuls = $election->getCandidates(CandidateInterface::STATE_HOPEFUL);
+    // Go through the election's ballots. For each one, find the next preference
+    // candidate(s), if $from_candidate was the last preference candidate. Add
+    // together the value (worth) of all of these ballots, and find what this is
+    // as a proportion of $num_to_transfer.
     $votes = [];
     foreach ($election->getBallots() as $ballot) {
       if (!in_array($from_candidate->getId(), $ballot->getLastPreference())) {
@@ -169,7 +173,6 @@ class Stv extends MethodBase {
       foreach ($ballot->getNextPreference() as $candidate_id) {
         if (!isset($hopefuls[$candidate_id])) {
           // The next preference candidate is not in the running.
-          // @todo check if this is valid
           continue;
         }
         if (!isset($votes[$candidate_id])) {
@@ -177,6 +180,7 @@ class Stv extends MethodBase {
         }
         $votes[$candidate_id] += $worth;
       }
+      // Increment the last used preference level of the ballot.
       $ballot->setLastUsedLevel(1, TRUE);
     }
     // To convert this into a ratio, find the total number of votes.
