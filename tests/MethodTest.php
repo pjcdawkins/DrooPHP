@@ -22,7 +22,6 @@ class MethodTest extends \PHPUnit_Framework_TestCase {
    */
   public function getTestElection() {
     $election = new Election();
-    $election->setNumCandidates(2);
     $election->setNumSeats(1);
     $election->addCandidate(new Candidate('Test candidate 1', 1));
     $election->addCandidate(new Candidate('Test candidate 2', 2));

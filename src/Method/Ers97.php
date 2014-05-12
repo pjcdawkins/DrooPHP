@@ -10,12 +10,11 @@
 namespace DrooPHP\Method;
 
 use DrooPHP\CandidateInterface;
-use DrooPHP\ElectionInterface;
 use DrooPHP\Exception\CountException;
 
 class Ers97 extends Stv {
 
-  public $precision = 2;
+  protected $precision = 2;
 
   /**
    * Each candidate that exists in this array has been determined to have more
@@ -99,7 +98,7 @@ class Ers97 extends Stv {
                     active vote, divided by one more than the number of places not yet filled.
         up to the number of places to be filled, subject to paragraph 5.6.2. // ERS97 5.6.2 refers to ties
      */
-    $candidates = $this->getCandidatesOrder(); // sort into descending order of votes
+    $candidates = $this->getCandidatesInOrder(); // sort into descending order of votes
     $active_vote = $this->getActiveVote();
     $quota = $this->getQuota(TRUE);
     $anyone_elected = FALSE;
@@ -150,7 +149,7 @@ class Ers97 extends Stv {
     // fewest votes".
     $votes = array();
     $candidate_fewest_votes_diff = 0;
-    foreach (array_slice($this->getCandidatesOrder(), -2) as $candidate) {
+    foreach (array_slice($this->getCandidatesInOrder(), -2) as $candidate) {
       $votes[] = $candidate->getVotes();
     }
     if (count($votes) == 2) {
@@ -192,26 +191,7 @@ class Ers97 extends Stv {
     // of a batch of papers, where they had unequal votes. If the votes of such
     // candidates have been equal at all such points the Returning Officer shall
     // decide which candidate to exclude by lot.
-    $number_possible_to_exclude = count($election->getCandidates(CandidateInterface::STATE_HOPEFUL)) - $this->getNumVacancies();
-    $excludable = [];
-    $excludable_vote = 0;
-    // Go through candidates in ascending order of votes.
-    $candidates = $this->getCandidatesOrder();
-    foreach (array_reverse($candidates) as $candidate) {
-      if ($candidate->getState() !== $candidate::STATE_HOPEFUL) {
-        continue;
-      }
-      $votes = $candidate->getVotes();
-      $excludable_count = count($excludable);
-      if (($number_possible_to_exclude <= $excludable_count)
-         || ($excludable_count && $votes >= $excludable_vote)) {
-        break;
-      }
-      $excludable_vote += $votes;
-      $excludable[] = $candidate;
-    }
-    // Exclude the excludable candidates.
-    foreach ($excludable as $candidate) {
+    foreach ($this->findExcludableCandidates() as $candidate) {
       $candidate->setState(CandidateInterface::STATE_DEFEATED);
       $votes = $candidate->getVotes();
       $candidate->log(sprintf('Defeated at stage %d, with %s votes.', $stage, $votes ? number_format($votes, $this->precision) : 'no'));
@@ -233,17 +213,56 @@ class Ers97 extends Stv {
   }
 
   /**
-   * Get candidates in descending order of their votes. // ERS97 5.1.7
+   * Find candidates who can be excluded under ERS97 5.2.5.
    *
    * @return CandidateInterface[]
    *   Array of Candidate objects, keyed by candidate ID.
    */
-  public function getCandidatesOrder() {
+  public function findExcludableCandidates() {
+    $max_to_exclude = count($this->election->getCandidates(CandidateInterface::STATE_HOPEFUL)) - $this->getNumVacancies();
+    $excludable = [];
+    $excludable_vote = 0;
+    // Go through candidates in ascending order of votes.
+    $candidates = $this->getCandidatesInOrder('ascending');
+    foreach ($candidates as $candidate) {
+      if ($candidate->getState() !== $candidate::STATE_HOPEFUL) {
+        continue;
+      }
+      $votes = $candidate->getVotes();
+      $excludable_count = count($excludable);
+      if (($max_to_exclude <= $excludable_count)
+        || ($excludable_count && $votes >= $excludable_vote)) {
+        break;
+      }
+      $excludable_vote += $votes;
+      $excludable[] = $candidate;
+    }
+    return $excludable;
+  }
+
+  /**
+   * Get candidates in order of their votes. // ERS97 5.1.7
+   *
+   * @param string $direction
+   *   One of 'descending' (default) or 'ascending'.
+   *
+   * @return CandidateInterface[]
+   *   Array of Candidate objects, keyed by candidate ID.
+   */
+  public function getCandidatesInOrder($direction = 'descending') {
     $candidates_votes = []; // array of vote amounts keyed by candidate ID
     foreach ($this->getElection()->getCandidates() as $cid => $candidate) {
       $candidates_votes[$cid] = $candidate->getVotes();
     }
-    arsort($candidates_votes, SORT_NUMERIC);
+    switch ($direction) {
+      case 'ascending':
+        asort($candidates_votes, SORT_NUMERIC);
+        break;
+
+      case 'descending':
+        arsort($candidates_votes, SORT_NUMERIC);
+        break;
+    }
     $candidates = [];
     foreach ($candidates_votes as $cid => $votes) {
       $candidates[$cid] = $this->getElection()->getCandidate($cid);

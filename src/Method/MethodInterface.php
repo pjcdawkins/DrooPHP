@@ -62,4 +62,12 @@ interface MethodInterface {
    */
   public function getQuota($recalculate = FALSE);
 
+  /**
+   * Get the precision of values (for display).
+   *
+   * @return int
+   *   The number of decimal places to display.
+   */
+  public function getPrecision();
+
 }

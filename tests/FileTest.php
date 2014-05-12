@@ -23,7 +23,6 @@ class FileTest extends \PHPUnit_Framework_TestCase {
     $this->assertTrue($election instanceof ElectionInterface);
     $this->assertSame($election->getTitle(), "Wikipedia example from article 'Counting Single Transferable Votes'", 'Election title');
     $this->assertSame($election->getNumSeats(), 2, 'Number of vacancies');
-    $this->assertSame(4, $election->getNumCandidates(), 'Number of candidates');
     $this->assertCount(4, $election->getCandidates(), 'Number of candidates (calculated)');
     $this->assertSame($election->getNumBallots(), 57, 'Number of ballots');
     $this->assertSame($election->getNumValidBallots(), 57, 'Number of valid ballots');

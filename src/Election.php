@@ -10,12 +10,6 @@ use DrooPHP\Exception\UsageException;
 
 class Election implements ElectionInterface {
 
-  /** @var string */
-  public $source;
-
-  /** @var string */
-  public $comment;
-
   /**
    * @var BallotInterface[]
    */
@@ -25,11 +19,6 @@ class Election implements ElectionInterface {
    * @var CandidateInterface[]
    */
   protected $candidates = [];
-
-  /**
-   * @var int
-   */
-  protected $num_candidates = 0;
 
   /**
    * @var int
@@ -83,9 +72,6 @@ class Election implements ElectionInterface {
    * @throws UsageException
    */
   public function addCandidate(CandidateInterface $candidate) {
-    if (count($this->candidates) >= $this->num_candidates) {
-      throw new UsageException('Attempted to add too many candidates.');
-    }
     $id = $candidate->getId();
     if (isset($this->candidates[$id])) {
       throw new UsageException('A candidate already exists with the same ID.');
@@ -189,20 +175,6 @@ class Election implements ElectionInterface {
    */
   public function getNumInvalidBallots() {
     return $this->num_invalid_ballots;
-  }
-
-  /**
-   * @{inheritdoc}
-   */
-  public function getNumCandidates() {
-    return $this->num_candidates;
-  }
-
-  /**
-   * @{inheritdoc}
-   */
-  public function setNumCandidates($num) {
-    $this->num_candidates = $num;
   }
 
 }

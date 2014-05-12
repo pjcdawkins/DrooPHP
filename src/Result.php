@@ -69,10 +69,7 @@ class Result implements ResultInterface {
    * @{inheritdoc}
    */
   public function getPrecision() {
-    if (isset($this->method->precision)) {
-      return $this->method->precision;
-    }
-    return 0;
+    return $this->method->getPrecision();
   }
 
 }

@@ -16,7 +16,6 @@ class Ers97Test extends \PHPUnit_Framework_TestCase {
   public function testQuota() {
     $election = new Election();
     $election->setNumSeats(1);
-    $election->setNumCandidates(2);
     $election->addCandidate(new Candidate('Test candidate 1', 1));
     $election->addCandidate(new Candidate('Test candidate 2', 2));
     $election->addBallot(new Ballot([1], 40));

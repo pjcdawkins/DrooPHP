@@ -17,6 +17,7 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
 
   protected $quota;
   protected $stages = [];
+  protected $precision = 0;
 
   /** @var ElectionInterface */
   protected $election;
@@ -51,7 +52,7 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
     if (!isset($this->election)) {
       throw new UsageException('Election not defined');
     }
-    if (!$this->election->getNumCandidates()) {
+    if (!count($this->election->getCandidates())) {
       throw new CountException('No candidates found');
     }
     if (!$this->election->getNumValidBallots()) {
@@ -108,6 +109,13 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
     $election = $this->getElection();
     $filled_seats = count($election->getCandidates(CandidateInterface::STATE_ELECTED));
     return $election->getNumSeats() - $filled_seats;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function getPrecision() {
+    return $this->precision;
   }
 
   /**

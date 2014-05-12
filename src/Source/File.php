@@ -30,6 +30,9 @@ class File extends SourceBase {
   /** @var Stash\Pool */
   protected $pool;
 
+  /** @var int */
+  protected $num_candidates = 0;
+
   /** @var array */
   protected $withdrawn_cids = [];
 
@@ -144,7 +147,7 @@ class File extends SourceBase {
       $file_updated = filemtime($filename) > $data['file_last_loaded'];
     }
     // Do the work again if the cache missed or should be refreshed.
-    if ($stash_item->isMiss() || $file_updated) {
+    if (empty($election) || ($stash_item->isMiss() || $file_updated)) {
       $stash_item->lock();
       $election = $this->loadElectionWork($filename);
       $data = [
@@ -225,7 +228,7 @@ class File extends SourceBase {
         if (count($parts) != 2) {
           throw new BallotFileException('The first line must contain exactly two parts.');
         }
-        $election->setNumCandidates((int) $parts[0]);
+        $this->num_candidates = (int) $parts[0];
         $election->setNumSeats((int) $parts[1]);
       }
       elseif ($line_number === 2) {
@@ -246,11 +249,10 @@ class File extends SourceBase {
    * Read information from the end (tail) of the BLT file.
    */
   protected function parseTail(ElectionInterface $election) {
-    $num_candidates = $election->getNumCandidates();
-    // There can be a maximum of $num_candidates + 3 tail lines: each
+    // There can be a maximum of $this->num_candidates + 3 tail lines: each
     // candidate's name is given, and then there are optionally election,
     // title, and source.
-    $lines_to_read = $num_candidates + 3;
+    $lines_to_read = $this->num_candidates + 3;
     // Read the tail of the file.
     $pos = -1;
     $tail = [];
@@ -286,12 +288,12 @@ class File extends SourceBase {
     // Reverse so we can read forwards (optional lines are at the end).
     $tail = array_reverse($tail);
     // The minimum number of lines is the number of candidates.
-    if (count($tail) < $num_candidates) {
+    if (count($tail) < $this->num_candidates) {
       throw new BallotFileException('Candidate names not found');
     }
     foreach ($tail as $key => $line) {
       $info = trim($line, '"');
-      if ($key < $num_candidates) {
+      if ($key < $this->num_candidates) {
         // This line is a candidate.
         $id = $key + 1;
         $candidate = new Candidate($info, $id);
@@ -302,12 +304,7 @@ class File extends SourceBase {
       }
       elseif ($election->getTitle() === NULL) {
         $election->setTitle($info);
-      }
-      elseif ($election->source === NULL) {
-        $election->source = $info;
-      }
-      elseif ($election->comment === NULL) {
-        $election->comment = $info;
+        break;
       }
     }
   }
@@ -359,7 +356,7 @@ class File extends SourceBase {
       // Save a $key for later use in sorting and identifying the ballot.
       $key = implode(' ', $parts);
       // Make sure that there aren't more rankings than the total number of candidates.
-      if (count($parts) > $election->getNumCandidates()) {
+      if (count($parts) > $this->num_candidates) {
         throw new InvalidBallotException('The number of rankings exceeds the number of candidates.');
       }
       $no_equals = (strpos($line, '=') === FALSE);

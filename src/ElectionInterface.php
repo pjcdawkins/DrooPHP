@@ -96,24 +96,6 @@ interface ElectionInterface {
   public function setNumSeats($num);
 
   /**
-   * Set the total number of candidates.
-   *
-   * @param int $num
-   */
-  public function setNumCandidates($num);
-
-  /**
-   * Get the total number of candidates.
-   *
-   * This might not be the same as count($this->getCandidates()) because the
-   * total count of candidates can be defined before all the candidates are
-   * added.
-   *
-   * @return int
-   */
-  public function getNumCandidates();
-
-  /**
    * Get the total number of ballots.
    *
    * @return int
