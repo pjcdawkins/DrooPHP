@@ -41,9 +41,18 @@ class CountTest extends \PHPUnit_Framework_TestCase {
       'filename' => __DIR__ . '/data/wikipedia-counting_stv.blt',
       'cache_enable' => FALSE,
     ]);
-    $count = new Count(['source' => $source]);
+    $count = new Count(['source' => $source, 'formatter' => 'Html']);
     $output = $count->getOutput();
-    $this->assertNotEmpty($output, 'Output obtained');
+    $this->assertNotEmpty($output, 'HTML output obtained');
+    $count->formatter = 'Text';
+    $output = $count->getOutput();
+    $this->assertNotEmpty($output, 'Text output obtained');
+    $count->formatter = 'Csv';
+    $output = $count->getOutput();
+    $this->assertNotEmpty($output, 'CSV output obtained');
+    $count->formatter = 'Tsv';
+    $output = $count->getOutput();
+    $this->assertNotEmpty($output, 'TSV output obtained');
   }
 
 }

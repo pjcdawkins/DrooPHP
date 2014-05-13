@@ -53,4 +53,11 @@ trait ConfigurableTrait {
     return [];
   }
 
+  /**
+   * @{inheritdoc}
+   */
+  public function __set($key, $value) {
+    $this->config->setOption($key, $value);
+  }
+
 }

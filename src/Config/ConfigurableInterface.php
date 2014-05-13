@@ -31,4 +31,12 @@ interface ConfigurableInterface {
    */
   public function getDefaults();
 
+  /**
+   * Magic setter function for easily setting an option.
+   *
+   * @param string $key
+   * @param mixed $value
+   */
+  public function __set($key, $value);
+
 }
