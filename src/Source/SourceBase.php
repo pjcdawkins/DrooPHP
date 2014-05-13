@@ -21,6 +21,7 @@ abstract class SourceBase implements SourceInterface, ConfigurableInterface {
    */
   public function getDefaults() {
     return [
+      'allow_empty' => TRUE,
       'allow_equal' => FALSE,
       'allow_skipped' => FALSE,
       'allow_repeat' => FALSE,

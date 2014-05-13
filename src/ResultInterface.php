@@ -6,6 +6,7 @@
 
 namespace DrooPHP;
 
+use DrooPHP\CandidateInterface;
 use DrooPHP\Method\MethodInterface;
 
 interface ResultInterface {
@@ -23,6 +24,13 @@ interface ResultInterface {
    * @return ElectionInterface
    */
   public function getElection();
+
+  /**
+   * Get a list of elected candidates.
+   *
+   * @return CandidateInterface[]
+   */
+  public function getElected();
 
   /**
    * Get the name of the counting method.

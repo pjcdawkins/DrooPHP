@@ -6,10 +6,14 @@
 
 namespace DrooPHP\Formatter;
 
+use DrooPHP\Config\ConfigurableInterface;
+use DrooPHP\Config\ConfigurableTrait;
 use DrooPHP\CandidateInterface;
 use DrooPHP\ResultInterface;
 
-class Csv extends FormatterBase {
+class Csv implements FormatterInterface, ConfigurableInterface {
+
+  use ConfigurableTrait;
 
   /**
    * @{inheritdoc}

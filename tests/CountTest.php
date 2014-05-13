@@ -8,6 +8,7 @@ namespace DrooPHP\Test;
 
 use DrooPHP\CandidateInterface;
 use DrooPHP\Count;
+use DrooPHP\ResultInterface;
 use DrooPHP\Source\File;
 
 class CountTest extends \PHPUnit_Framework_TestCase {
@@ -21,15 +22,28 @@ class CountTest extends \PHPUnit_Framework_TestCase {
       'cache_enable' => FALSE,
     ]);
     $count = new Count(['source' => $source]);
-    $result = $count->run();
-    $this->assertTrue(strlen($result) > 0, 'Count returns data');
-    $elected = $count->getMethod()->getElection()->getCandidates(CandidateInterface::STATE_ELECTED);
+    $result = $count->getResult();
+    $this->assertTrue($result instanceof ResultInterface, 'Count runs successfully');
+    $elected = $result->getElected();
     $names = array();
     foreach ($elected as $candidate) {
       $names[] = $candidate->getName();
     }
     $expected = array('Andrea', 'Carter');
     $this->assertEquals($expected, $names, 'Correct people elected');
+  }
+
+  /**
+   * Test that formatted output is produced.
+   */
+  public function testOutput() {
+    $source = new File([
+      'filename' => __DIR__ . '/data/wikipedia-counting_stv.blt',
+      'cache_enable' => FALSE,
+    ]);
+    $count = new Count(['source' => $source]);
+    $output = $count->getOutput();
+    $this->assertNotEmpty($output, 'Output obtained');
   }
 
 }

@@ -24,9 +24,9 @@ class FileTest extends \PHPUnit_Framework_TestCase {
     $this->assertSame($election->getTitle(), "Wikipedia example from article 'Counting Single Transferable Votes'", 'Election title');
     $this->assertSame($election->getNumSeats(), 2, 'Number of vacancies');
     $this->assertCount(4, $election->getCandidates(), 'Number of candidates (calculated)');
-    $this->assertSame($election->getNumBallots(), 57, 'Number of ballots');
+    $this->assertSame($election->getNumBallots(), 60, 'Number of ballots');
     $this->assertSame($election->getNumValidBallots(), 57, 'Number of valid ballots');
-    $this->assertSame($election->getNumInvalidBallots(), 0, 'Number of invalid ballots');
+    $this->assertSame($election->getNumInvalidBallots(), 3, 'Number of invalid ballots');
     $candidate_names = [];
     foreach ($election->getCandidates() as $candidate) {
       $candidate_names[] = $candidate->getName();

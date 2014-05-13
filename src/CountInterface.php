@@ -13,11 +13,18 @@ use DrooPHP\Formatter\FormatterInterface;
 interface CountInterface {
 
   /**
-   * Run the count, and generate output.
+   * Get formatted output. This runs the count (if it has not yet run).
    *
    * @return string
    */
-  public function run();
+  public function getOutput();
+
+  /**
+   * Get the result. This runs the count (if it has not yet run).
+   *
+   * @return ResultInterface
+   */
+  public function getResult();
 
   /**
    * Get the source object.

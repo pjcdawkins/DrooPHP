@@ -19,4 +19,4 @@ $options = [
 
 $count = new DrooPHP\Count();
 $count->getSource()->setOptions($options);
-print $count->run();
+print $count->getOutput();

@@ -45,6 +45,7 @@ class File extends SourceBase {
    *   filename       string  The path to a .blt file.
    *   allow_invalid  bool    Whether to continue loading despite encountering
    *                          invalid or spoiled ballots.
+   *   allow_empty    bool    Whether to allow empty ballots (default: TRUE).
    *   allow_equal    bool    Whether to allow equal rankings (e.g. 2=3).
    *   allow_repeat   bool    Whether to allow repeat rankings (e.g. 3 2 2).
    *   allow_skipped  bool    Whether to allow skipped rankings (e.g. -).
@@ -317,6 +318,7 @@ class File extends SourceBase {
     rewind($this->file);
     // Get config variables before looping (performance).
     $config = $this->getConfig();
+    $allow_empty = $config->getOption('allow_empty');
     $allow_equal = $config->getOption('allow_equal');
     $allow_invalid = $config->getOption('allow_invalid');
     $allow_repeat = $config->getOption('allow_repeat');
@@ -370,7 +372,7 @@ class File extends SourceBase {
           // Deal with skipped rankings: just move on.
           if ($part == '-') {
             if (!$allow_skipped) {
-              throw new InvalidBallotException('Skipped rankings are not permitted in this count.');
+              throw new InvalidBallotException('Skipped rankings are not allowed');
               continue;
             }
             $part = NULL;
@@ -379,7 +381,7 @@ class File extends SourceBase {
           // validate each side against known candidates.
           if (!$no_equals && strpos($part, '=') !== FALSE) {
             if (!$allow_equal) {
-              throw new InvalidBallotException('Equal rankings are not permitted in this count.');
+              throw new InvalidBallotException('Equal rankings are not allowed');
             }
             $part = explode('=', $part);
             foreach ($part as $cid) {
@@ -394,14 +396,17 @@ class File extends SourceBase {
           }
           // Check for repeat rankings.
           if ($part && !$allow_repeat && in_array($part, $ranking)) {
-            throw new InvalidBallotException('Repeat rankings are not allowed in this count.');
+            throw new InvalidBallotException('Repeat rankings are not allowed');
             continue;
           }
           $ranking[$preference] = $part;
           $preference++;
         }
         if (empty($ranking)) {
-          throw new InvalidBallotException('Empty ballot.');
+          $valid = FALSE;
+          if (!$allow_empty) {
+            throw new InvalidBallotException('Empty ballots are not allowed');
+          }
         }
       } catch (InvalidBallotException $e) {
         $valid = FALSE;

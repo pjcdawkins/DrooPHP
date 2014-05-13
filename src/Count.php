@@ -15,6 +15,7 @@ class Count implements CountInterface, ConfigurableInterface {
   protected $election;
   protected $formatter;
   protected $method;
+  protected $result;
   protected $source;
 
   use ConfigurableTrait;
@@ -33,12 +34,29 @@ class Count implements CountInterface, ConfigurableInterface {
   /**
    * @{inheritdoc}
    */
-  public function run() {
+  protected function runCount() {
     $method = $this->getMethod();
     $method->setElection($this->getSource()->loadElection());
     $method->run();
-    $output = $this->getFormatter()->getOutput(new Result($method));
-    return $output;
+    $this->result = new Result($method);
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function getResult() {
+    if (!isset($this->result)) {
+      $this->runCount();
+    }
+    return $this->result;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function getOutput() {
+    $formatter = $this->getFormatter();
+    return $formatter->getOutput($this->getResult());
   }
 
   /**

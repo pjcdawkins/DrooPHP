@@ -6,10 +6,14 @@
 
 namespace DrooPHP\Formatter;
 
+use DrooPHP\Config\ConfigurableInterface;
+use DrooPHP\Config\ConfigurableTrait;
 use DrooPHP\CandidateInterface;
 use DrooPHP\ResultInterface;
 
-class Text extends FormatterBase {
+class Text implements FormatterInterface, ConfigurableInterface {
+
+  use ConfigurableTrait;
 
   /**
    * @{inheritdoc}
