@@ -25,7 +25,7 @@ class Ballot implements BallotInterface {
    */
   public function getPreference($level) {
     if (empty($this->ranking[$level])) {
-      return array();
+      return [];
     }
     return (array) $this->ranking[$level];
   }

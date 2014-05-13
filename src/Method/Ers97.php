@@ -147,13 +147,12 @@ class Ers97 extends Stv {
 
     // Find "The difference between the votes of the two candidates who have the
     // fewest votes".
-    $votes = array();
+    $candidates = $this->getCandidatesInOrder('ascending');
+    $fewest = array_shift($candidates);
+    $second_fewest = array_shift($candidates);
     $candidate_fewest_votes_diff = 0;
-    foreach (array_slice($this->getCandidatesInOrder(), -2) as $candidate) {
-      $votes[] = $candidate->getVotes();
-    }
-    if (count($votes) == 2) {
-      $candidate_fewest_votes_diff = $votes[0] - $votes[1];
+    if ($fewest && $second_fewest) {
+      $candidate_fewest_votes_diff = $second_fewest->getVotes() - $fewest->getVotes();
     }
 
     // ERS 5.2.2 (a)
