@@ -50,9 +50,9 @@ class Ers97Test extends \PHPUnit_Framework_TestCase {
     foreach ($elected as $candidate) {
       $names[] = $candidate->getName();
     }
-    // This result would be given from pretty any counting method, so it is not
-    // ERS97 specific. However, at this stage it is helpful to ensure that the
-    // ERS97 method is giving vaguely accurate results.
+    // This result would be given from pretty much any counting method, so it is
+    // not ERS97 specific. However, at this stage it is helpful to ensure that
+    // the ERS97 method is giving vaguely accurate results.
     $expected = array('Andrea', 'Carter');
     $this->assertEquals($expected, $names, 'Correct people elected');
   }

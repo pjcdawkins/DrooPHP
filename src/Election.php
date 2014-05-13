@@ -167,7 +167,7 @@ class Election implements ElectionInterface {
    * @{inheritdoc}
    */
   public function addNumInvalidBallots($amount) {
-    $this->num_invalid_ballots += $amount;
+    $this->num_invalid_ballots += $amount ? : 1;
   }
 
   /**

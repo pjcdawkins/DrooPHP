@@ -156,6 +156,8 @@ class Stv extends MethodBase {
    *
    * @param float $num_to_transfer
    * @param CandidateInterface $from_candidate
+   *
+   * @todo allow transferring to [other] winning candidates, as in Meek/Warren
    */
   public function transferVotes($num_to_transfer, CandidateInterface $from_candidate) {
     $election = $this->getElection();

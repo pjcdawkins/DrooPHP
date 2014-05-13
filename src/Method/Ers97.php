@@ -3,8 +3,6 @@
  * @file
  * Method for counting votes according to the Electoral Reform Society 1997
  * standard (ERS97) for single transferable vote (STV) elections.
- *
- * @todo This is incomplete and broken.
  */
 
 namespace DrooPHP\Method;

@@ -402,7 +402,7 @@ class File extends SourceBase {
           $ranking[$preference] = $part;
           $preference++;
         }
-        if (empty($ranking)) {
+        if (empty($ranking) || $multiplier == 0) {
           $valid = FALSE;
           if (!$allow_empty) {
             throw new InvalidBallotException('Empty ballots are not allowed');
