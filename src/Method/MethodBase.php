@@ -15,12 +15,12 @@ use DrooPHP\Exception\UsageException;
 
 abstract class MethodBase implements MethodInterface, ConfigurableInterface {
 
+  /** @var ElectionInterface */
+  protected $election;
+
   protected $quota;
   protected $stages = [];
   protected $precision = 0;
-
-  /** @var ElectionInterface */
-  protected $election;
 
   use ConfigurableTrait;
 
@@ -42,7 +42,6 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
    */
   public function setElection(ElectionInterface $election) {
     $this->election = $election;
-    return $this;
   }
 
   /**

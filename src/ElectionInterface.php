@@ -89,7 +89,7 @@ interface ElectionInterface {
   public function getNumSeats();
 
   /**
-   * Set the number of seats (vacancies).
+   * Set the number of seats (vacancies). The default is 1.
    *
    * @param int $num
    */

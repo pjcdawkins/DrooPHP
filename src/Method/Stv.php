@@ -136,7 +136,8 @@ class Stv extends MethodBase {
    * @return CandidateInterface
    */
   public function findDefeatableCandidate() {
-    $hopefuls = $this->getElection()->getCandidates(CandidateInterface::STATE_HOPEFUL);
+    $hopefuls = $this->getElection()
+      ->getCandidates(CandidateInterface::STATE_HOPEFUL);
     // Candidates can only be defeated if sufficient candidates remain to fill all the vacancies.
     if (count($hopefuls) <= $this->getNumVacancies()) {
       return FALSE;

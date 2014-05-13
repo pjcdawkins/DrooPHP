@@ -46,8 +46,14 @@ class Csv extends FormatterBase {
     $info[] = ['Elected:', implode(', ', $elected_names)];
     $info[] = ['Number of candidates:', number_format(count($candidates))];
     $info[] = ['Vacancies:', number_format($election->getNumSeats())];
-    $info[] = ['Valid ballots:', number_format($election->getNumValidBallots())];
-    $info[] = ['Invalid ballots:', number_format($election->getNumInvalidBallots())];
+    $info[] = [
+      'Valid ballots:',
+      number_format($election->getNumValidBallots())
+    ];
+    $info[] = [
+      'Invalid ballots:',
+      number_format($election->getNumInvalidBallots())
+    ];
     $info[] = ['Quota:', number_format($result->getQuota())];
     $info[] = ['Stages:', number_format(count($stages))];
     $info[] = ['Count method:', $result->getMethodName()];

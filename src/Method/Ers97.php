@@ -231,7 +231,8 @@ class Ers97 extends Stv {
       $votes = $candidate->getVotes();
       $excludable_count = count($excludable);
       if (($max_to_exclude <= $excludable_count)
-        || ($excludable_count && $votes >= $excludable_vote)) {
+        || ($excludable_count && $votes >= $excludable_vote)
+      ) {
         break;
       }
       $excludable_vote += $votes;

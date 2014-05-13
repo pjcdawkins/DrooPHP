@@ -11,7 +11,6 @@ use DrooPHP\Candidate;
 use DrooPHP\Election;
 use DrooPHP\ElectionInterface;
 use DrooPHP\Method;
-use DrooPHP\ResultInterface;
 
 class MethodTest extends \PHPUnit_Framework_TestCase {
 
@@ -22,7 +21,6 @@ class MethodTest extends \PHPUnit_Framework_TestCase {
    */
   public function getTestElection() {
     $election = new Election();
-    $election->setNumSeats(1);
     $election->addCandidate(new Candidate('Test candidate 1', 1));
     $election->addCandidate(new Candidate('Test candidate 2', 2));
     $election->addBallot(new Ballot([1 => 1], rand(1, 5)));

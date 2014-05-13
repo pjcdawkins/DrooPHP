@@ -23,7 +23,7 @@ class Election implements ElectionInterface {
   /**
    * @var int
    */
-  protected $num_seats = 0;
+  protected $num_seats = 1;
 
   /**
    * @var int

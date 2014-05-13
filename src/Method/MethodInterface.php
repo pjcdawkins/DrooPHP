@@ -12,20 +12,18 @@ use DrooPHP\Exception\CountException;
 interface MethodInterface {
 
   /**
+   * Set the election to be processed.
+   *
+   * @param ElectionInterface $election
+   */
+  public function setElection(ElectionInterface $election);
+
+  /**
    * Get the method name.
    *
    * @return string
    */
   public function getName();
-
-  /**
-   * Set the election to be processed.
-   *
-   * @param ElectionInterface $election
-   *
-   * @return self
-   */
-  public function setElection(ElectionInterface $election);
 
   /**
    * Get the election.

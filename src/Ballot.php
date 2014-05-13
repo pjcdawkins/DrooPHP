@@ -34,7 +34,7 @@ class Ballot implements BallotInterface {
    * @{inheritdoc}
    */
   public function getLastPreference() {
-    $level = $this->last_used_level ?: 0;
+    $level = $this->last_used_level ? : 0;
     return $this->getPreference($level);
   }
 
@@ -42,7 +42,7 @@ class Ballot implements BallotInterface {
    * @{inheritdoc}
    */
   public function getNextPreference() {
-    $level = $this->last_used_level ?: 0;
+    $level = $this->last_used_level ? : 0;
     return $this->getPreference($level + 1);
   }
 
@@ -50,7 +50,7 @@ class Ballot implements BallotInterface {
    * @{inheritdoc}
    */
   public function getNextPreferenceWorth() {
-    $level = $this->last_used_level ?: 0;
+    $level = $this->last_used_level ? : 0;
     if (empty($this->ranking[$level + 1])) {
       return 0;
     }
