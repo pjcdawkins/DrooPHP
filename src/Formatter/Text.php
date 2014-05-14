@@ -77,29 +77,46 @@ class Text implements FormatterInterface, ConfigurableInterface {
    * Output a plain-text table.
    *
    * @param array $rows
-   * @param int $column_width
    * @param string $align
    * @param bool $utf8
    *
    * @return string
    */
-  public function formatTable(array $rows, $column_width = 15, $align = 'right', $utf8 = TRUE) {
+  public function formatTable(array $rows, $align = 'right', $utf8 = TRUE) {
     $table = '';
-    $format = '%' . $column_width . 's';
+    $format = '%';
     if ($align == 'left') {
-      $format = '%-' . $column_width . 's';
+      $format .= '-';
+    }
+    $max_width = 16;
+    $min_width = 8;
+    $widths = [];
+    foreach ($rows as $row) {
+      foreach ($row as $col => $cell) {
+        $length = strlen($cell);
+        if ($length <= $min_width) {
+          continue;
+        }
+        if ($length > $max_width) {
+          $length = $max_width;
+        }
+        if (!isset($widths[$col]) || $length > $widths[$col]) {
+          $widths[$col] = $length;
+        }
+      }
     }
     foreach ($rows as $row) {
       $cell_no = 1;
-      foreach ($row as $cell) {
+      foreach ($row as $col => $cell) {
         if ($cell_no++ > 1) {
           $table .= "\t";
         }
+        $length = isset($widths[$col]) ? $widths[$col] : $min_width;
         if ($utf8) {
-          $table .= utf8_encode(sprintf($format, utf8_decode($cell)));
+          $table .= utf8_encode(sprintf($format . $length . 's', utf8_decode($cell)));
         }
         else {
-          $table .= sprintf($format, $cell);
+          $table .= sprintf($format . $length . 's', $cell);
         }
       }
       $table .= "\n";
