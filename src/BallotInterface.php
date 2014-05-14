@@ -82,4 +82,15 @@ interface BallotInterface {
    */
   public function setLastUsedLevel($level, $increment = FALSE);
 
+  /**
+   * Determine whether the ballot is exhausted.
+   *
+   * A ballot is exhausted when no more preferences are available.
+   *
+   * @see self::setLastUsedLevel()
+   *
+   * @return bool
+   */
+  public function isExhausted();
+
 }

@@ -8,7 +8,7 @@ namespace DrooPHP;
 
 class Ballot implements BallotInterface {
 
-  protected $last_used_level;
+  protected $last_used_level = 0;
   protected $ranking;
   protected $value;
 
@@ -34,16 +34,14 @@ class Ballot implements BallotInterface {
    * @{inheritdoc}
    */
   public function getLastPreference() {
-    $level = $this->last_used_level ? : 0;
-    return $this->getPreference($level);
+    return $this->getPreference($this->last_used_level);
   }
 
   /**
    * @{inheritdoc}
    */
   public function getNextPreference() {
-    $level = $this->last_used_level ? : 0;
-    return $this->getPreference($level + 1);
+    return $this->getPreference($this->last_used_level + 1);
   }
 
   /**
@@ -80,6 +78,13 @@ class Ballot implements BallotInterface {
       $level += $this->last_used_level;
     }
     $this->last_used_level = $level;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function isExhausted() {
+    return $this->last_used_level >= count($this->ranking);
   }
 
 }
