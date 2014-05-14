@@ -29,11 +29,23 @@ class CountCommand extends Command {
         InputArgument::REQUIRED,
         'The name of the ballot file'
       )
-      ->addOption(
-         'method',
-         'm',
-         InputOption::VALUE_REQUIRED,
-         'The counting method (default: STV).'
+      ->addOption('method', 'm', InputOption::VALUE_REQUIRED,
+        'The counting method (default: STV).'
+      )
+      ->addOption('format', 'f', InputOption::VALUE_REQUIRED,
+        'The output format (default: text).'
+      )
+      ->addOption('allow-invalid', 'i', InputOption::VALUE_NONE,
+        'Enable to allow invalid ballots.'
+      )
+      ->addOption('allow-equal', NULL, InputOption::VALUE_NONE,
+        'Enable to allow equal rankings.'
+      )
+      ->addOption('allow-repeat', NULL, InputOption::VALUE_NONE,
+        'Enable to allow repeat rankings.'
+      )
+      ->addOption('allow-skipped', NULL, InputOption::VALUE_NONE,
+        'Enable to allow skipped rankings.'
       );
   }
 
@@ -78,11 +90,18 @@ class CountCommand extends Command {
       'filename' => $filename,
       'cache_enable' => $cache_enable,
       'cache_dir' => $cache_dir,
+      'allow_invalid' => $input->getOption('allow-invalid'),
     ]);
+
+    if (!$input->getOption('allow-invalid')) {
+      $source->allow_equal = $input->getOption('allow-equal');
+      $source->allow_repeat = $input->getOption('allow-repeat');
+      $source->allow_skipped = $input->getOption('allow-skipped');
+    }
 
     // Set up the count.
     $count = new Count([
-      'formatter' => new Text(),
+      'formatter' => $input->getOption('format') ? : new Text(),
       'source' => $source,
       'method' => $input->getOption('method') ? : new Stv(),
     ]);
