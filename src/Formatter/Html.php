@@ -29,6 +29,7 @@ class Html implements FormatterInterface, ConfigurableInterface {
     $election = $result->getElection();
     $candidates = $election->getCandidates();
     $stages = $result->getStages();
+    $precision = $result->getPrecision();
 
     $table_header = '<thead><tr><th rowspan="2">Candidates</th><th colspan="' . count($stages) . '">Number of votes</th></tr><tr>';
     foreach (array_keys($stages) as $stage_id) {
@@ -41,7 +42,7 @@ class Html implements FormatterInterface, ConfigurableInterface {
       $row = [];
       $row[] = htmlspecialchars($candidate->getName());
       foreach ($stages as $stage) {
-        $cell = '<div class="droophp-votes">' . number_format($stage['votes'][$candidate->getId()], $result->getPrecision()) . '</div>';
+        $cell = '<div class="droophp-votes">' . number_format($stage['votes'][$candidate->getId()], $precision) . '</div>';
         if (!empty($stage['changes'][$candidate->getId()])) {
           $cell .= '<ul class="droophp-changes"><li>' . implode(
               '</li><li>',
@@ -52,6 +53,12 @@ class Html implements FormatterInterface, ConfigurableInterface {
       }
       $table_rows[] = $row;
     }
+
+    $total = ['Total vote'];
+    foreach ($stages as $stage) {
+      $total[] = number_format($stage['total'], $precision);
+    }
+    $table_rows[] = $total;
 
     $table_body = '<tbody>';
     foreach ($table_rows as $row) {
@@ -77,7 +84,7 @@ class Html implements FormatterInterface, ConfigurableInterface {
     $output .= sprintf('<dt>Vacancies:</dt><dd>%s</dd>', number_format($election->getNumSeats()));
     $output .= sprintf('<dt>Valid ballots:</dt><dd>%s</dd>', number_format($election->getNumValidBallots()));
     $output .= sprintf('<dt>Invalid ballots:</dt><dd>%s</dd>', number_format($election->getNumInvalidBallots()));
-    $output .= sprintf('<dt>Quota:</dt><dd>%s</dd>', number_format($result->getQuota(), $result->getPrecision()));
+    $output .= sprintf('<dt>Quota:</dt><dd>%s</dd>', number_format($result->getQuota(), $precision));
     $output .= sprintf('<dt>Stages:</dt><dd>%d</dd>', count($stages));
     $output .= sprintf('<dt>Count method:</dt><dd>%s</dd>', htmlspecialchars($result->getMethodName()));
     $output .= '</dl>';

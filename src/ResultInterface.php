@@ -6,7 +6,6 @@
 
 namespace DrooPHP;
 
-use DrooPHP\CandidateInterface;
 use DrooPHP\Method\MethodInterface;
 
 interface ResultInterface {

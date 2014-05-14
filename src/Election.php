@@ -153,7 +153,7 @@ class Election implements ElectionInterface {
    * @{inheritdoc}
    */
   public function getNumBallots() {
-    return $this->getNumValidBallots() + $this->num_invalid_ballots;
+    return $this->num_valid_ballots + $this->num_invalid_ballots;
   }
 
   /**

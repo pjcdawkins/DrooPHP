@@ -80,10 +80,20 @@ class Ers97 extends Stv {
       // Count the first preference votes and add them to each candidate // ERS97 5.1.4
       foreach ($election->getBallots() as $ballot) {
         $worth = $ballot->getNextPreferenceWorth();
-        foreach ($ballot->getPreference(1) as $candidate_id) {
+        foreach ($ballot->getNextPreference() as $candidate_id) {
           $election->getCandidate($candidate_id)->addVotes($worth);
         }
         $ballot->setLastUsedLevel(1);
+      }
+      // If there are any withdrawn candidates, transfer their votes.
+      // @todo check whether this is ERS97 compliant
+      $withdrawn = $election->getCandidates(CandidateInterface::STATE_WITHDRAWN);
+      foreach ($withdrawn as $candidate) {
+        $votes = $candidate->getVotes();
+        if ($votes) {
+          $candidate->log(sprintf('Withdrawn: all %d votes will be transferred.', $votes));
+          $this->transferVotes($votes, $candidate);
+        }
       }
     }
 

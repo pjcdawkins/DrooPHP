@@ -50,7 +50,7 @@ class Stv extends MethodBase {
       // Count the first preference votes and add them to each candidate.
       foreach ($election->getBallots() as $ballot) {
         $worth = $ballot->getNextPreferenceWorth();
-        foreach ($ballot->getPreference(1) as $candidate_id) {
+        foreach ($ballot->getNextPreference() as $candidate_id) {
           $election->getCandidate($candidate_id)->addVotes($worth);
         }
         $ballot->setLastUsedLevel(1);

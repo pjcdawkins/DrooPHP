@@ -71,9 +71,9 @@ class Count implements CountInterface, ConfigurableInterface {
         $this->source = $option;
       }
       else {
-        $class_name = 'DrooPHP\\Source\\' . $option;
+        $class_name = 'DrooPHP\\Source\\' . ucfirst(strtolower($option));
         if (!class_exists($class_name)) {
-          throw new ConfigException('Invalid source name');
+          throw new ConfigException('Invalid source name: ' . $option);
         }
         $this->source = new $class_name();
       }
@@ -93,9 +93,9 @@ class Count implements CountInterface, ConfigurableInterface {
         $this->method = $option;
       }
       else {
-        $class_name = 'DrooPHP\\Method\\' . $option;
+        $class_name = 'DrooPHP\\Method\\' . ucfirst(strtolower($option));
         if (!class_exists($class_name)) {
-          throw new ConfigException('Invalid method name');
+          throw new ConfigException('Invalid method name: ' . $option);
         }
         $this->method = new $class_name();
       }
@@ -115,9 +115,9 @@ class Count implements CountInterface, ConfigurableInterface {
         $this->formatter = $option;
       }
       else {
-        $class_name = 'DrooPHP\\Formatter\\' . $option;
+        $class_name = 'DrooPHP\\Formatter\\' . ucfirst(strtolower($option));
         if (!class_exists($class_name)) {
-          throw new ConfigException('Invalid formatter name');
+          throw new ConfigException('Invalid formatter name: ' . $option);
         }
         $this->formatter = new $class_name();
       }
