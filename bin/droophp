@@ -4,7 +4,7 @@ if (PHP_SAPI != 'cli') {
   exit('CLI only');
 }
 
-require_once __DIR__ . '/library.php';
+require_once __DIR__ . '/../library.php';
 
 $application = new DrooPHP\Cli\CountApplication();
 $application->run();
