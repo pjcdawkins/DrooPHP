@@ -94,9 +94,9 @@ class CountCommand extends Command {
     ]);
 
     if (!$input->getOption('allow-invalid')) {
-      $source->allow_equal = $input->getOption('allow-equal');
-      $source->allow_repeat = $input->getOption('allow-repeat');
-      $source->allow_skipped = $input->getOption('allow-skipped');
+      $source->setOption('allow_equal', $input->getOption('allow-equal'));
+      $source->setOption('allow_repeat', $input->getOption('allow-repeat'));
+      $source->setOption('allow_skipped', $input->getOption('allow-skipped'));
     }
 
     // Set up the count.

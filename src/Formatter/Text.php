@@ -77,23 +77,22 @@ class Text implements FormatterInterface, ConfigurableInterface {
    * Output a plain-text table.
    *
    * @param array $rows
-   * @param string $align
-   * @param bool $utf8
    *
    * @return string
    */
-  public function formatTable(array $rows, $align = 'right', $utf8 = TRUE) {
+  public function formatTable(array $rows) {
     $table = '';
-    $format = '%';
-    if ($align == 'left') {
-      $format .= '-';
+    $columns = 100;
+    // If this is for command-line output, attempt to find the terminal width.
+    if (php_sapi_name() == 'cli') {
+      $columns = exec('tput cols') ? : 80;
     }
-    $max_width = 16;
-    $min_width = 8;
+    $max_width = floor($columns / count($rows[0]));
+    $min_width = 6;
     $widths = [];
     foreach ($rows as $row) {
       foreach ($row as $col => $cell) {
-        $length = strlen($cell);
+        $length = strlen($cell) + 1;
         if ($length <= $min_width) {
           continue;
         }
@@ -112,12 +111,7 @@ class Text implements FormatterInterface, ConfigurableInterface {
           $table .= "\t";
         }
         $length = isset($widths[$col]) ? $widths[$col] : $min_width;
-        if ($utf8) {
-          $table .= utf8_encode(sprintf($format . $length . 's', utf8_decode($cell)));
-        }
-        else {
-          $table .= sprintf($format . $length . 's', $cell);
-        }
+        $table .= utf8_encode(sprintf('%' . $length . 's', utf8_decode($cell)));
       }
       $table .= "\n";
     }

@@ -56,8 +56,9 @@ trait ConfigurableTrait {
   /**
    * @{inheritdoc}
    */
-  public function __set($key, $value) {
+  public function setOption($key, $value) {
     $this->config->setOption($key, $value);
+    return $this;
   }
 
 }

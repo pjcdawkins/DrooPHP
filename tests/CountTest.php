@@ -6,7 +6,6 @@
 
 namespace DrooPHP\Test;
 
-use DrooPHP\CandidateInterface;
 use DrooPHP\Count;
 use DrooPHP\ResultInterface;
 use DrooPHP\Source\File;
@@ -44,13 +43,13 @@ class CountTest extends \PHPUnit_Framework_TestCase {
     $count = new Count(['source' => $source, 'formatter' => 'Html']);
     $output = $count->getOutput();
     $this->assertNotEmpty($output, 'HTML output obtained');
-    $count->formatter = 'Text';
+    $count->setOption('formatter', 'text');
     $output = $count->getOutput();
     $this->assertNotEmpty($output, 'Text output obtained');
-    $count->formatter = 'Csv';
+    $count->setOption('formatter', 'CSV');
     $output = $count->getOutput();
     $this->assertNotEmpty($output, 'CSV output obtained');
-    $count->formatter = 'Tsv';
+    $count->setOption('formatter', 'TSV');
     $output = $count->getOutput();
     $this->assertNotEmpty($output, 'TSV output obtained');
   }
