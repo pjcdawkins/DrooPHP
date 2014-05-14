@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
-if (php_sapi_name() != 'cli') {
-  exit;
+if (PHP_SAPI != 'cli') {
+  exit('CLI only');
 }
 
 require_once __DIR__ . '/library.php';
