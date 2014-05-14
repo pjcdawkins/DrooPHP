@@ -323,6 +323,7 @@ class File extends SourceBase {
     $allow_invalid = $config->getOption('allow_invalid');
     $allow_repeat = $config->getOption('allow_repeat');
     $allow_skipped = $config->getOption('allow_skipped');
+    $candidates = $election->getCandidates();
     while (($line = fgets($this->file)) !== FALSE) {
       // Remove comments (starting with # or // until the end of the line).
       if (strpos($line, '#') !== FALSE || strpos($line, '//') !== FALSE) {
@@ -365,53 +366,61 @@ class File extends SourceBase {
       $ranking = [];
       $preference = 1;
       $valid = TRUE;
-      try {
-        // Loop through all the individual parts of the ballot,
-        // validating them and adding them to $ranking.
-        foreach ($parts as $part) {
-          // Deal with skipped rankings: just move on.
-          if ($part == '-') {
-            if (!$allow_skipped) {
+      // Loop through all the individual parts of the ballot,
+      // validating them and adding them to $ranking.
+      foreach ($parts as $part) {
+        // Deal with skipped rankings: just move on.
+        if ($part == '-') {
+          if (!$allow_skipped) {
+            $valid = FALSE;
+            if (!$allow_invalid) {
               throw new InvalidBallotException('Skipped rankings are not allowed');
-              continue;
             }
-            $part = NULL;
+            continue;
           }
-          // If this is an 'equal ranking', split it into an array and
-          // validate each side against known candidates.
-          if (!$no_equals && strpos($part, '=') !== FALSE) {
-            if (!$allow_equal) {
+          $part = NULL;
+        }
+        // If this is an 'equal ranking', split it into an array and
+        // validate each side against known candidates.
+        if (!$no_equals && strpos($part, '=') !== FALSE) {
+          if (!$allow_equal) {
+            $valid = FALSE;
+            if (!$allow_invalid) {
               throw new InvalidBallotException('Equal rankings are not allowed');
             }
-            $part = explode('=', $part);
-            foreach ($part as $cid) {
-              if (!$election->getCandidate($cid)) {
+          }
+          $part = explode('=', $part);
+          foreach ($part as $cid) {
+            if (!isset($candidates[$cid])) {
+              $valid = FALSE;
+              if (!$allow_invalid) {
                 throw new InvalidBallotException("The candidate '$cid' does not exist.");
               }
             }
           }
-          // Deal with normal rankings.
-          elseif ($part && !$election->getCandidate($part)) {
+        }
+        // Deal with normal rankings.
+        elseif ($part && !isset($candidates[$part])) {
+          $valid = FALSE;
+          if (!$allow_invalid) {
             throw new InvalidBallotException("The candidate '$part' does not exist.");
           }
-          // Check for repeat rankings.
-          if ($part && !$allow_repeat && in_array($part, $ranking)) {
-            throw new InvalidBallotException('Repeat rankings are not allowed');
-            continue;
-          }
-          $ranking[$preference] = $part;
-          $preference++;
         }
-        if (empty($ranking) || $multiplier == 0) {
+        // Check for repeat rankings.
+        if ($part && !$allow_repeat && in_array($part, $ranking)) {
           $valid = FALSE;
-          if (!$allow_empty) {
-            throw new InvalidBallotException('Empty ballots are not allowed');
+          if (!$allow_invalid) {
+            throw new InvalidBallotException('Repeat rankings are not allowed');
           }
+          continue;
         }
-      } catch (InvalidBallotException $e) {
+        $ranking[$preference] = $part;
+        $preference++;
+      }
+      if (empty($ranking) || $multiplier == 0) {
         $valid = FALSE;
-        if (!$allow_invalid) {
-          throw $e;
+        if (!$allow_empty && !$allow_invalid) {
+          throw new InvalidBallotException('Empty ballots are not allowed');
         }
       }
       if (!$valid) {
