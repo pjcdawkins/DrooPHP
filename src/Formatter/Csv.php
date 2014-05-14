@@ -29,6 +29,7 @@ class Csv implements FormatterInterface, ConfigurableInterface {
     $election = $result->getElection();
     $candidates = $election->getCandidates();
     $stages = $result->getStages();
+    $precision = $result->getPrecision();
 
     $delimiter = $this->getConfig()->getOption('delimiter');
     $enclosure = $this->getConfig()->getOption('enclosure');
@@ -58,7 +59,7 @@ class Csv implements FormatterInterface, ConfigurableInterface {
       'Invalid ballots:',
       number_format($election->getNumInvalidBallots())
     ];
-    $info[] = ['Quota:', number_format($result->getQuota())];
+    $info[] = ['Quota:', number_format($result->getQuota(), $precision)];
     $info[] = ['Stages:', number_format(count($stages))];
     $info[] = ['Count method:', $result->getMethodName()];
 
@@ -77,7 +78,7 @@ class Csv implements FormatterInterface, ConfigurableInterface {
     foreach ($candidates as $candidate) {
       $row = [htmlspecialchars($candidate->getName())];
       foreach ($stages as $stage) {
-        $row[] = number_format($stage['votes'][$candidate->getId()]);
+        $row[] = number_format($stage['votes'][$candidate->getId()], $precision);
       }
       fputcsv($csv, $row, $delimiter, $enclosure);
     }

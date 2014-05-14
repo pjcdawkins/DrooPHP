@@ -62,7 +62,7 @@ class Text implements FormatterInterface, ConfigurableInterface {
     $output .= sprintf("Vacancies: %s\n", number_format($election->getNumSeats()));
     $output .= sprintf("Valid ballots: %s\n", number_format($election->getNumValidBallots()));
     $output .= sprintf("Invalid ballots: %s\n", number_format($election->getNumInvalidBallots()));
-    $output .= sprintf("Quota: %s\n", number_format($result->getQuota()));
+    $output .= sprintf("Quota: %s\n", number_format($result->getQuota(), $precision));
     $output .= sprintf("Stages: %d\n", count($stages));
     $output .= sprintf("Count method: %s\n", $result->getMethodName());
 
