@@ -84,10 +84,15 @@ abstract class MethodBase implements MethodInterface, ConfigurableInterface {
    * @param int $stage
    */
   public function logStage($stage) {
-    foreach ($this->getElection()->getCandidates() as $cid => $candidate) {
-      $this->stages[$stage]['votes'][$cid] = round($candidate->getVotes(), 2);
+    $election = $this->getElection();
+    $total_vote = 0;
+    foreach ($election->getCandidates() as $cid => $candidate) {
+      $votes = $candidate->getVotes();
+      $total_vote += $votes;
+      $this->stages[$stage]['votes'][$cid] = round($votes, $this->precision);
       $this->stages[$stage]['changes'][$cid] = $candidate->getLog(TRUE);
     }
+    $this->stages[$stage]['total'] = $total_vote;
   }
 
   /**

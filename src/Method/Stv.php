@@ -12,6 +12,8 @@ use DrooPHP\Exception\CountException;
 
 class Stv extends MethodBase {
 
+  protected $non_transferable_vote = 0;
+
   /**
    * @{inheritdoc}
    */
@@ -152,6 +154,14 @@ class Stv extends MethodBase {
   }
 
   /**
+   * Overrides parent::logStage().
+   */
+  public function logStage($stage) {
+    parent::logStage($stage);
+    $this->stages[$stage]['non_transferable'] = $this->non_transferable_vote;
+  }
+
+  /**
    * Transfer a candidate's votes or surplus to other hopefuls.
    *
    * @param float $num_to_transfer
@@ -188,16 +198,18 @@ class Stv extends MethodBase {
     }
     // To convert this into a ratio, find the total number of votes.
     $total_votes = array_sum($votes);
-    if ($total_votes == 0) {
-      // No transfers to be made.
-      return;
-    }
     // Run the transfer.
+    $transferred = 0;
     foreach ($votes as $to_cid => $num_votes) {
       $amount = ($num_to_transfer / $total_votes) * $num_votes;
+      if (!$amount) {
+        continue;
+      }
       $to_candidate = $hopefuls[$to_cid];
       $from_candidate->transferVotes($amount, $to_candidate);
+      $transferred += $amount;
     }
+    $this->non_transferable_vote += $num_to_transfer - $transferred;
   }
 
 }

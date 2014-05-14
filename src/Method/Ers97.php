@@ -217,6 +217,9 @@ class Ers97 extends Stv {
    */
   public function findExcludableCandidates() {
     $max_to_exclude = count($this->election->getCandidates(CandidateInterface::STATE_HOPEFUL)) - $this->getNumVacancies();
+    if (!$max_to_exclude) {
+      return [];
+    }
     $excludable = [];
     $excludable_vote = 0;
     // Go through candidates in ascending order of votes.
