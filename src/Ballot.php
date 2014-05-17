@@ -8,6 +8,7 @@ namespace DrooPHP;
 
 class Ballot implements BallotInterface {
 
+  protected $identifier;
   protected $last_used_level = 0;
   protected $ranking = [];
   protected $value = 1;
@@ -18,6 +19,23 @@ class Ballot implements BallotInterface {
   public function __construct(array $ranking, $value = 1) {
     $this->ranking = $ranking;
     $this->value = $value;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function getIdentifier() {
+    if (!isset($this->identifier)) {
+      $this->identifier = '';
+      foreach ($this->ranking as $preference) {
+        if (is_array($preference)) {
+          $preference = implode('=', $preference);
+        }
+        $this->identifier .= $preference . ' ';
+      }
+      $this->identifier = rtrim($this->identifier);
+    }
+    return $this->identifier;
   }
 
   /**

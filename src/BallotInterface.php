@@ -23,6 +23,13 @@ interface BallotInterface {
   public function __construct(array $ranking, $value = 1);
 
   /**
+   * Get a serialized string of this ballot's rankings, to be used in sorting.
+   *
+   * @return string
+   */
+  public function getIdentifier();
+
+  /**
    * Get the candidate(s) ranked at the given preference level.
    *
    * @param int $level

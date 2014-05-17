@@ -101,13 +101,7 @@ class Election implements ElectionInterface {
    */
   public function addBallot(BallotInterface $ballot, $key = NULL) {
     if ($key === NULL) {
-      $key = '';
-      for ($i = 1; $preference = $ballot->getPreference($i); $i++) {
-        $key .= ' ' . implode('=', $preference);
-      }
-      if (!strlen($key)) {
-        $key = 0;
-      }
+      $key = $ballot->getIdentifier();
     }
     $value = $ballot->getValue();
     if (isset($this->ballots[$key])) {
@@ -119,6 +113,14 @@ class Election implements ElectionInterface {
       ksort($this->ballots);
     }
     // Increase the count of valid ballots in the election.
+    $this->num_valid_ballots += $value;
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function setBallots(array $ballots, $value) {
+    $this->ballots = $ballots;
     $this->num_valid_ballots += $value;
   }
 

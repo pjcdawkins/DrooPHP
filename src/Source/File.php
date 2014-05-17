@@ -324,6 +324,8 @@ class File extends SourceBase {
     $allow_repeat = $config->getOption('allow_repeat');
     $allow_skipped = $config->getOption('allow_skipped');
     $candidates = $election->getCandidates();
+    $ballots = [];
+    $ballots_value = 0;
     while (($line = fgets($this->file)) !== FALSE) {
       // Remove comments (starting with # or // until the end of the line).
       if (strpos($line, '#') !== FALSE || strpos($line, '//') !== FALSE) {
@@ -348,7 +350,10 @@ class File extends SourceBase {
         throw new BallotFileException("Ballot lines must end with 0.");
       }
       // Skip any ballot IDs at the beginning of the line.
-      $line = preg_replace('/^\([^\)]*\)\s?/', '', $line);
+      $close_bracket = strrpos($line, ')');
+      if ($close_bracket) {
+        $line = ltrim(substr($line, $close_bracket + 1));
+      }
       // Remove the 0 character from the end of the line.
       $line = rtrim($line, ' 0');
       // Split the rest of the line into constituent parts, separated by spaces.
@@ -429,8 +434,16 @@ class File extends SourceBase {
         continue;
       }
       // Register this ballot with its value.
-      $election->addBallot(new Ballot($ranking, $multiplier), $key);
+      if (isset($ballots[$key])) {
+        $ballots[$key]->addValue($multiplier);
+      }
+      else {
+        $ballots[$key] = new Ballot($ranking, $multiplier);
+      }
+      $ballots_value += $multiplier;
     }
+    ksort($ballots);
+    $election->setBallots($ballots, $ballots_value);
   }
 
 }

@@ -68,6 +68,18 @@ interface ElectionInterface {
   public function addBallot(BallotInterface $ballot, $key = NULL);
 
   /**
+   * Set all the election's ballots.
+   *
+   * This may be faster than calling addBallot() repeatedly.
+   *
+   * @param BallotInterface[] $ballots
+   *   An array of BallotInterface objects.
+   * @param $value
+   *   The total value of all the ballots.
+   */
+  public function setBallots(array $ballots, $value);
+
+  /**
    * Get the election title.
    *
    * @return string
