@@ -38,13 +38,13 @@ class CountCommand extends Command {
       ->addOption('allow-invalid', 'i', InputOption::VALUE_NONE,
         'Enable to allow invalid ballots.'
       )
-      ->addOption('allow-equal', NULL, InputOption::VALUE_NONE,
+      ->addOption('allow-equal', 'e', InputOption::VALUE_NONE,
         'Enable to allow equal rankings.'
       )
-      ->addOption('allow-repeat', NULL, InputOption::VALUE_NONE,
+      ->addOption('allow-repeat', 'r', InputOption::VALUE_NONE,
         'Enable to allow repeat rankings.'
       )
-      ->addOption('allow-skipped', NULL, InputOption::VALUE_NONE,
+      ->addOption('allow-skipped', 's', InputOption::VALUE_NONE,
         'Enable to allow skipped rankings.'
       );
   }
@@ -73,26 +73,12 @@ class CountCommand extends Command {
       }
     }
 
-    // Set up a cache directory for the command-line user.
-    $cache_enable = TRUE;
-    $cache_dir = rtrim(sys_get_temp_dir(), '\/') . DIRECTORY_SEPARATOR . 'droophp';
-    if (!file_exists($cache_dir) && !mkdir($cache_dir, 0744, TRUE)) {
-      $cache_dir = FALSE;
-      $cache_enable = FALSE;
-    }
-    if ($cache_dir && !is_writable($cache_dir) || !is_dir($cache_dir)) {
-      $cache_dir = FALSE;
-      $cache_enable = FALSE;
-    }
-
-    // Set up the election source.
+    // Set up options for processing the ballot file.
     $source = new File([
       'filename' => $filename,
-      'cache_enable' => $cache_enable,
-      'cache_dir' => $cache_dir,
+      'cache_enable' => FALSE,
       'allow_invalid' => $input->getOption('allow-invalid'),
     ]);
-
     if (!$input->getOption('allow-invalid')) {
       $source->setOption('allow_equal', $input->getOption('allow-equal'));
       $source->setOption('allow_repeat', $input->getOption('allow-repeat'));

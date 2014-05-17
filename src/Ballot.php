@@ -9,8 +9,8 @@ namespace DrooPHP;
 class Ballot implements BallotInterface {
 
   protected $last_used_level = 0;
-  protected $ranking;
-  protected $value;
+  protected $ranking = [];
+  protected $value = 1;
 
   /**
    * @{inheritdoc}
