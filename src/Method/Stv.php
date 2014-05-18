@@ -70,6 +70,7 @@ class Stv extends MethodBase {
     // Elect candidates
     $hopefuls = $election->getCandidates(CandidateInterface::STATE_HOPEFUL);
     $quota = $this->getQuota();
+    $anyone_elected = FALSE;
     foreach ($hopefuls as $candidate) {
       // A candidate is elected if their votes equal or exceed the quota.
       if ($candidate->getVotes() >= $quota) {
@@ -83,13 +84,14 @@ class Stv extends MethodBase {
         else {
           $candidate->log(sprintf('Elected at stage %d.', $stage));
         }
+        $anyone_elected = TRUE;
       }
     }
 
     // Eliminate candidates.
     // "If no one new meets the quota, the candidate with the fewest votes is eliminated and that candidate's votes are transferred."
     $candidate = $this->findDefeatableCandidate();
-    if ($candidate) {
+    if (!$anyone_elected && $candidate) {
       $candidate->setState(CandidateInterface::STATE_DEFEATED);
       $votes = $candidate->getVotes();
       $candidate->log(sprintf('Defeated at stage %d, with %s votes.', $stage, $votes ? number_format($votes) : 'no'));
