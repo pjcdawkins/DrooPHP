@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Tests for the Election class.
+ * Tests for interactions between elections and candidates.
  */
 
 namespace DrooPHP\Test;
@@ -10,7 +10,7 @@ use DrooPHP\Candidate;
 use DrooPHP\CandidateInterface;
 use DrooPHP\Election;
 
-class ElectionTest extends \PHPUnit_Framework_TestCase {
+class ElectionCandidateTest extends \PHPUnit_Framework_TestCase {
 
   /**
    * Test getCandidate() and getCandidates() methods.

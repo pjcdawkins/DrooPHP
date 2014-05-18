@@ -73,7 +73,8 @@ interface ElectionInterface {
    * This may be faster than calling addBallot() repeatedly.
    *
    * @param BallotInterface[] $ballots
-   *   An array of BallotInterface objects.
+   *   An array of BallotInterface objects, representing all the ballots in the
+   *   election.
    * @param $value
    *   The total value of all the ballots.
    */

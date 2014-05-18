@@ -121,7 +121,7 @@ class Election implements ElectionInterface {
    */
   public function setBallots(array $ballots, $value) {
     $this->ballots = $ballots;
-    $this->num_valid_ballots += $value;
+    $this->num_valid_ballots = $value;
   }
 
   /**
