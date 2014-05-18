@@ -76,7 +76,6 @@ class CountCommand extends Command {
     // Set up options for processing the ballot file.
     $source = new File([
       'filename' => $filename,
-      'cache_enable' => FALSE,
       'allow_invalid' => $input->getOption('allow-invalid'),
     ]);
     if (!$input->getOption('allow-invalid')) {

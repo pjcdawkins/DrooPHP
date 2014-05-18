@@ -17,7 +17,6 @@ class FileTest extends \PHPUnit_Framework_TestCase {
   public function testLoad() {
     $source = new Source\File([
       'filename' => __DIR__ . '/data/wikipedia-counting_stv.blt',
-      'cache_enable' => FALSE,
     ]);
     $election = $source->loadElection();
     $this->assertTrue($election instanceof ElectionInterface);

@@ -18,7 +18,6 @@ class CountTest extends \PHPUnit_Framework_TestCase {
   public function testRun() {
     $source = new File([
       'filename' => __DIR__ . '/data/wikipedia-counting_stv.blt',
-      'cache_enable' => FALSE,
     ]);
     $count = new Count(['source' => $source]);
     $result = $count->getResult();
@@ -38,7 +37,6 @@ class CountTest extends \PHPUnit_Framework_TestCase {
   public function testOutput() {
     $source = new File([
       'filename' => __DIR__ . '/data/wikipedia-counting_stv.blt',
-      'cache_enable' => FALSE,
     ]);
     $count = new Count(['source' => $source, 'formatter' => 'Html']);
     $output = $count->getOutput();

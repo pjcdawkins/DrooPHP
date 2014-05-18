@@ -42,7 +42,6 @@ class Ers97Test extends \PHPUnit_Framework_TestCase {
     $count = new Count(['method' => 'Ers97', 'source' => 'File']);
     $count->getSource()->setOptions([
       'filename' => __DIR__ . '/data/wikipedia-counting_stv.blt',
-      'cache_enable' => FALSE,
     ]);
     $result = $count->getResult();
     $elected = $result->getElected();

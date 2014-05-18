@@ -13,7 +13,6 @@ use DrooPHP\ElectionInterface;
 use DrooPHP\Exception\BallotFileException;
 use DrooPHP\Exception\InvalidBallotException;
 use DrooPHP\Exception\ConfigException;
-use Stash;
 
 class File extends SourceBase {
 
@@ -27,95 +26,11 @@ class File extends SourceBase {
   /** @var int */
   protected $ballot_first_line;
 
-  /** @var Stash\Pool */
-  protected $pool;
-
   /** @var int */
   protected $num_candidates = 0;
 
   /** @var array */
   protected $withdrawn_cids = [];
-
-  /**
-   * Overrides parent::getDefaults().
-   *
-   * Get the default options for loading a file.
-   *
-   * Possible options:
-   *   filename       string  The path to a .blt file.
-   *   allow_invalid  bool    Whether to continue loading despite encountering
-   *                          invalid or spoiled ballots.
-   *   allow_empty    bool    Whether to allow empty ballots (default: TRUE).
-   *   allow_equal    bool    Whether to allow equal rankings (e.g. 2=3).
-   *   allow_repeat   bool    Whether to allow repeat rankings (e.g. 3 2 2).
-   *   allow_skipped  bool    Whether to allow skipped rankings (e.g. -).
-   *   cache_enable   bool    Whether to cache the loaded ElectionInterface
-   *                          object.
-   *   cache_expire   int|\DateTime
-   *                          A TTL (seconds) or DateTime expiry date.
-   *   cache_driver   string|Stash\Driver\DriverInterface
-   *                          The Stash cache driver.
-   */
-  public function getDefaults() {
-    return parent::getDefaults() + [
-      'cache_enable' => TRUE,
-      'cache_expire' => 3600,
-      'cache_driver' => extension_loaded('apc') ? 'Apc' : 'FileSystem',
-      'cache_dir' => sys_get_temp_dir(),
-    ];
-  }
-
-  /**
-   * Get a Stash pool (caching).
-   *
-   * @throws ConfigException
-   * @return Stash\Pool
-   */
-  public function getStashPool() {
-    if ($this->pool === NULL) {
-      $driver_option = $this->getConfig()->getOption('cache_driver');
-      if ($driver_option instanceof Stash\Interfaces\DriverInterface) {
-        $driver = $driver_option;
-      }
-      elseif ($driver_option == 'FileSystem') {
-        $options = [];
-        // Allow cache_dir option to set the filesystem cache directory.
-        $cache_dir = $this->getConfig()->getOption('cache_dir');
-        if ($cache_dir) {
-          if (!is_writable($cache_dir)) {
-            throw new ConfigException('The specified cache directory is not writable: ' . $cache_dir);
-          }
-          $options['path'] = $cache_dir;
-        }
-        $driver = new Stash\Driver\FileSystem($options);
-      }
-      elseif ($driver_option == 'Apc') {
-        $driver = new Stash\Driver\Apc([
-          'ttl' => $this->getConfig()->getOption('cache_expire'),
-        ]);
-      }
-      else {
-        throw new ConfigException('Invalid value provided for option cache_driver.');
-      }
-      $this->pool = new Stash\Pool($driver);
-    }
-    return $this->pool;
-  }
-
-  /**
-   * Get a cache key representing all the options affecting Election loading.
-   */
-  protected function getCacheKey($filename) {
-    // Stash cache directories are based on the / separator in the key.
-    return md5(dirname($filename)) . '/'
-    . basename($filename) . '/'
-    . serialize([
-      'equal' => $this->getConfig()->getOption('allow_equal'),
-      'skipped' => $this->getConfig()->getOption('allow_skipped'),
-      'repeat' => $this->getConfig()->getOption('allow_repeat'),
-      'invalid' => $this->getConfig()->getOption('allow_invalid'),
-    ]);
-  }
 
   /**
    * @{inheritdoc}
@@ -133,46 +48,10 @@ class File extends SourceBase {
       throw new ConfigException('File does not exist or cannot be read: ' . $filename);
     }
     $filename = $realpath;
-    // If caching is disabled, just load and return the Election.
-    if (!$this->getConfig()->getOption('cache_enable')) {
-      return $this->loadElectionWork($filename);
-    }
-    // Load the cache pool.
-    $stash_pool = $this->getStashPool();
-    $stash_item = $stash_pool->getItem($this->getCacheKey($filename));
-    $data = $stash_item->get(Stash\Item::SP_OLD);
-    $file_updated = FALSE;
-    if ($data) {
-      $election = $data['election'];
-      // Invalidate the cache if the file changed since it was last loaded.
-      $file_updated = filemtime($filename) > $data['file_last_loaded'];
-    }
-    // Do the work again if the cache missed or should be refreshed.
-    if (empty($election) || ($stash_item->isMiss() || $file_updated)) {
-      $stash_item->lock();
-      $election = $this->loadElectionWork($filename);
-      $data = [
-        'election' => $election,
-        'file_last_loaded' => time(),
-      ];
-      // Save to cache.
-      $stash_item->set($data, $this->getConfig()->getOption('cache_expire'));
-    }
-    return $election;
-  }
-
-  /**
-   * Do the expensive and cacheable part of loading an Election.
-   *
-   * @param string $filename The absolute pathname to the ballot file.
-   *
-   * @return ElectionInterface
-   */
-  public function loadElectionWork($filename) {
-    // Parse the file, creating a new Election object.
-    $election = new Election();
     // Open the file.
     $this->file = fopen($filename, 'r');
+    // Parse the file, populating an Election object.
+    $election = new Election();
     $this->parse($election);
     // Close the file.
     fclose($this->file);
