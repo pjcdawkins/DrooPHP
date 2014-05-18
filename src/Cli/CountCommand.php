@@ -7,7 +7,6 @@
 namespace DrooPHP\Cli;
 
 use DrooPHP\Count;
-use DrooPHP\Exception\UsageException;
 use DrooPHP\Formatter\Text;
 use DrooPHP\Method\Stv;
 use DrooPHP\Source\File;
@@ -53,29 +52,9 @@ class CountCommand extends Command {
    * @{inheritdoc}
    */
   protected function execute(InputInterface $input, OutputInterface $output) {
-    $filename = $input->getArgument('filename');
-
-    // Validate the given file name.
-    if (!file_exists($filename)) {
-      throw new UsageException('The file does not exist: ' . $filename);
-    }
-    if (is_dir($filename)) {
-      throw new UsageException('The file is a directory: ' . $filename);
-    }
-    if (!is_readable($filename)) {
-      throw new UsageException('Cannot read file: ' . $filename);
-    }
-    if (function_exists('finfo_open')) {
-      $finfo = finfo_open(FILEINFO_MIME);
-      $mime_type = array_shift(explode(';', finfo_file($finfo, $filename)));
-      if ($mime_type != 'text/plain') {
-        throw new UsageException('Invalid file type: ' . $mime_type);
-      }
-    }
-
     // Set up options for processing the ballot file.
     $source = new File([
-      'filename' => $filename,
+      'filename' => $input->getArgument('filename'),
       'allow_invalid' => $input->getOption('allow-invalid'),
     ]);
     if (!$input->getOption('allow-invalid')) {

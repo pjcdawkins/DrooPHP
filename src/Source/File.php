@@ -34,28 +34,39 @@ class File extends SourceBase {
 
   /**
    * @{inheritdoc}
-   *
-   * @throws ConfigException
    */
   public function loadElection() {
-    $filename = $this->getConfig()->getOption('filename');
-    // The filename is mandatory.
-    if (!$filename) {
-      throw new ConfigException('Filename not specified.');
-    }
-    // If the file is readable, convert the filename to an absolute path.
-    if (!is_readable($filename) || !($realpath = realpath($filename))) {
-      throw new ConfigException('File does not exist or cannot be read: ' . $filename);
-    }
-    $filename = $realpath;
     // Open the file.
-    $this->file = fopen($filename, 'r');
+    $this->file = fopen($this->getFilename(), 'r');
     // Parse the file, populating an Election object.
     $election = new Election();
     $this->parse($election);
     // Close the file.
     fclose($this->file);
     return $election;
+  }
+
+  /**
+   * Validate and return the configured filename.
+   *
+   * @throws ConfigException
+   *
+   * @return string
+   */
+  protected function getFilename() {
+    $filename = $this->getConfig()->getOption('filename');
+    // Validate the configured filename.
+    if (!$filename) {
+      throw new ConfigException('The filename is required');
+    }
+    if (!is_readable($filename) || !($realpath = realpath($filename))) {
+      throw new ConfigException('The file does not exist or cannot be read: ' . $filename);
+    }
+    $filename = $realpath;
+    if (is_dir($filename)) {
+      throw new ConfigException('The file is a directory: ' . $filename);
+    }
+    return $filename;
   }
 
   /**
