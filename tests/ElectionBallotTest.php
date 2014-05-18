@@ -56,8 +56,35 @@ class ElectionBallotTest extends \PHPUnit_Framework_TestCase {
     $ballots = [$ballot4, $ballot5, $ballot6];
     $total_value = rand(1, 10);
     $election->setBallots($ballots, $total_value);
-    $this->assertEquals($ballots, $election->getBallots());
+    // The total value of all the election's ballots will now be $total_value,
+    // regardless of the actual values inside the ballot objects.
     $this->assertEquals($total_value, $election->getNumValidBallots());
+    $this->assertEquals($ballots, $election->getBallots());
+  }
+
+  /**
+   * Test the invalid ballots methods.
+   */
+  public function testInvalidBallots() {
+    $election = new Election();
+
+    // Add some invalid ballots.
+    $election->addNumInvalidBallots(16);
+    $this->assertEquals(16, $election->getNumBallots());
+    $this->assertEquals(16, $election->getNumInvalidBallots());
+    $this->assertEquals(0, $election->getNumValidBallots());
+
+    // Add some valid ballots.
+    $election->addBallot(new Ballot($this->randomRanking(), 85));
+    $this->assertEquals(16 + 85, $election->getNumBallots());
+    $this->assertEquals(16, $election->getNumInvalidBallots());
+    $this->assertEquals(85, $election->getNumValidBallots());
+
+    // Add more invalid ballots.
+    $election->addNumInvalidBallots(50);
+    $this->assertEquals(16 + 85 + 50, $election->getNumBallots());
+    $this->assertEquals(16 + 50, $election->getNumInvalidBallots());
+    $this->assertEquals(85, $election->getNumValidBallots());
   }
 
 }
