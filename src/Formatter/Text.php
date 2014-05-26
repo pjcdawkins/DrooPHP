@@ -40,12 +40,6 @@ class Text implements FormatterInterface, ConfigurableInterface {
       $table_rows[] = $row;
     }
 
-    $totals = ['Total vote'];
-    foreach ($stages as $stage) {
-      $totals[] = number_format($stage['total'], $precision);
-    }
-    $table_rows[] = $totals;
-
     $title = sprintf('Results: %s', trim($election->getTitle()));
 
     $elected_names = [];

@@ -54,12 +54,6 @@ class Html implements FormatterInterface, ConfigurableInterface {
       $table_rows[] = $row;
     }
 
-    $total = ['Total vote'];
-    foreach ($stages as $stage) {
-      $total[] = number_format($stage['total'], $precision);
-    }
-    $table_rows[] = $total;
-
     $table_body = '<tbody>';
     foreach ($table_rows as $row) {
       $table_body .= '<tr><th class="droophp-candidate-name">' . array_shift($row) . '</th><td>' . implode('</td><td>', $row) . '</td></tr>';
@@ -77,7 +71,8 @@ class Html implements FormatterInterface, ConfigurableInterface {
       }
     }
 
-    $output = '<h1 class="droophp-heading">' . $title . '</h1>';
+    $output = '<section class="droophp-results">';
+    $output .= '<h1>' . $title . '</h1>';
     $output .= '<dl>';
     $output .= sprintf('<dt>Elected:</dt><dd>%s</dd>', htmlspecialchars(implode(', ', $elected_names)));
     $output .= sprintf('<dt>Number of candidates:</dt><dd>%s</dd>', number_format(count($candidates)));
@@ -89,6 +84,7 @@ class Html implements FormatterInterface, ConfigurableInterface {
     $output .= sprintf('<dt>Count method:</dt><dd>%s</dd>', htmlspecialchars($result->getMethodName()));
     $output .= '</dl>';
     $output .= $table;
+    $output .= '</section>';
 
     // Optionally, output as an HTML fragment (excluding DOCTYPE, etc).
     if ($this->getConfig()->getOption('html_fragment')) {
@@ -111,15 +107,19 @@ class Html implements FormatterInterface, ConfigurableInterface {
   }
 
   /**
-   * Get the CSS for output.
+   * Get CSS for styling results.
+   *
+   * @return string
    */
-  protected function getCss() {
-    return 'body { font: 14px/1.4em sans-serif; }'
-    . 'table { border-collapse: collapse; }'
-    . 'td, th { border: 1px solid #CCC; padding: 0.5em; vertical-align: top; }'
-    . 'dt { font-weight: bold; } '
-    . 'ul { list-style-type: none; padding: 0; margin: 0; font-size: 0.9em; color: #777; }'
-    . 'li { margin-top: 0.5em; line-height: 1.1em; }';
+  public function getCss() {
+    return file_get_contents($this->getCssFile());
+  }
+
+  /**
+   * Get the complete filename for the results CSS.
+   */
+  protected function getCssFile() {
+    return __DIR__ . '/styles.css';
   }
 
 }
