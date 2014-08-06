@@ -18,12 +18,14 @@ class Candidate implements CandidateInterface {
   protected $surplus = 0;
   protected $votes = 0;
 
+  protected static $id_increment = 1;
+
   /**
    * @{inheritdoc}
    */
-  public function __construct($name, $id) {
+  public function __construct($name, $id = NULL) {
     $this->name = $name;
-    $this->id = $id;
+    $this->id = $id !== NULL ? $id : self::$id_increment++;
     $this->state = self::STATE_HOPEFUL;
   }
 

@@ -21,9 +21,9 @@ interface CandidateInterface {
    * @param string $name
    *   The name of the candidate.
    * @param int $id
-   *   The ID of the candidate.
+   *   The ID of the candidate (optional, but recommended).
    */
-  public function __construct($name, $id);
+  public function __construct($name, $id = NULL);
 
   /**
    * Log a message.
