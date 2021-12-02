@@ -7,8 +7,9 @@
 namespace DrooPHP\Test;
 
 use DrooPHP\Candidate;
+use PHPUnit\Framework\TestCase;
 
-class CandidateTest extends \PHPUnit_Framework_TestCase {
+class CandidateTest extends TestCase {
 
   public function testState() {
     $candidate = new Candidate('Test candidate');

@@ -11,8 +11,9 @@ use DrooPHP\Candidate;
 use DrooPHP\Election;
 use DrooPHP\ElectionInterface;
 use DrooPHP\Method;
+use PHPUnit\Framework\TestCase;
 
-class MethodTest extends \PHPUnit_Framework_TestCase {
+class MethodTest extends TestCase {
 
   /**
    * Create a test election.

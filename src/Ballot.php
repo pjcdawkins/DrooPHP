@@ -71,6 +71,8 @@ class Ballot implements BallotInterface {
       return 0;
     }
     $vote = $this->ranking[$level + 1];
+    // FIXME assuming that when $vote is not an array, it would be counted as 1
+    if (!is_array($vote)) $vote = [$vote];
     return (1 / count($vote)) * $this->value;
   }
 

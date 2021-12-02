@@ -7,8 +7,9 @@
 namespace DrooPHP\Test;
 
 use DrooPHP\Ballot;
+use PHPUnit\Framework\TestCase;
 
-class BallotTest extends \PHPUnit_Framework_TestCase {
+class BallotTest extends TestCase {
 
   public function testLevels() {
     $ranking = [

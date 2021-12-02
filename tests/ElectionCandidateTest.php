@@ -9,8 +9,9 @@ namespace DrooPHP\Test;
 use DrooPHP\Candidate;
 use DrooPHP\CandidateInterface;
 use DrooPHP\Election;
+use PHPUnit\Framework\TestCase;
 
-class ElectionCandidateTest extends \PHPUnit_Framework_TestCase {
+class ElectionCandidateTest extends TestCase {
 
   /**
    * Test getCandidate() and getCandidates() methods.
@@ -32,7 +33,7 @@ class ElectionCandidateTest extends \PHPUnit_Framework_TestCase {
   /**
    * Test checking for duplicates in the addCandidate() method.
    *
-   * @expectedException \DrooPHP\Exception\UsageException
+   *
    */
   public function testDuplicateCandidate() {
     // Create three candidates, two of them with the same ID.
@@ -42,8 +43,8 @@ class ElectionCandidateTest extends \PHPUnit_Framework_TestCase {
     $election = new Election();
     $election->addCandidate($candidate1);
     $election->addCandidate($candidate2);
-    // Two candidates with the same ID cannot be added to the same election. So
-    // this should throw an exception as specified in the annotation.
+    // Two candidates with the same ID cannot be added to the same election.
+    $this->expectException(\DrooPHP\Exception\UsageException::class);
     $election->addCandidate($candidate3);
   }
 

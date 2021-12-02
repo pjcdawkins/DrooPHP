@@ -8,8 +8,9 @@ namespace DrooPHP\Test;
 
 use DrooPHP\Ballot;
 use DrooPHP\Election;
+use PHPUnit\Framework\TestCase;
 
-class ElectionBallotTest extends \PHPUnit_Framework_TestCase {
+class ElectionBallotTest extends TestCase {
 
   /**
    * @return array

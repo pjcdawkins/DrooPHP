@@ -9,8 +9,9 @@ namespace DrooPHP\Test;
 use DrooPHP\Count;
 use DrooPHP\ResultInterface;
 use DrooPHP\Source\File;
+use PHPUnit\Framework\TestCase;
 
-class CountTest extends \PHPUnit_Framework_TestCase {
+class CountTest extends TestCase {
 
   /**
    * Test that a count can be run.
