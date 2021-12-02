@@ -179,7 +179,6 @@ class Ers97 extends Stv {
         // The transfer of a surplus constitutes a stage in the count. // ERS97 5.2.4
         $this->logStage($stage);
         return $this->run($stage + 1);
-        break;
       }
     }
 

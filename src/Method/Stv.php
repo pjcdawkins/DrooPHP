@@ -137,7 +137,7 @@ class Stv extends MethodBase {
   /**
    * Get the hopeful candidate with the fewest votes.
    *
-   * @return CandidateInterface
+   * @return CandidateInterface|false
    */
   public function findDefeatableCandidate() {
     $hopefuls = $this->getElection()
