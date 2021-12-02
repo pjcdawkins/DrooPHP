@@ -11,8 +11,9 @@ use DrooPHP\Candidate;
 use DrooPHP\Count;
 use DrooPHP\Election;
 use DrooPHP\Method\Ers97;
+use PHPUnit\Framework\TestCase;
 
-class Ers97Test extends \PHPUnit_Framework_TestCase {
+class Ers97Test extends TestCase {
 
   public function testQuota() {
     $election = new Election();

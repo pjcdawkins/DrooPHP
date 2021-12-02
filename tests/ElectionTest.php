@@ -7,8 +7,9 @@
 namespace DrooPHP\Test;
 
 use DrooPHP\Election;
+use PHPUnit\Framework\TestCase;
 
-class ElectionTest extends \PHPUnit_Framework_TestCase {
+class ElectionTest extends TestCase {
 
   public function testTitle() {
     $election = new Election();

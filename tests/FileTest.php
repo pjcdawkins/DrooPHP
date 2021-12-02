@@ -8,8 +8,9 @@ namespace DrooPHP\Test;
 
 use DrooPHP\ElectionInterface;
 use DrooPHP\Source;
+use PHPUnit\Framework\TestCase;
 
-class FileTest extends \PHPUnit_Framework_TestCase {
+class FileTest extends TestCase {
 
   /**
    * Test that an election can be loaded successfully from a ballot file.
